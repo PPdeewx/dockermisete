@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/conf:/etc/nginx/conf.d:ro
+      - ./backend/static:/app/static
+      - ./backend/media:/app/media
+
+
+    depends_on:
+      - django
+      - nuxt
+    restart: unless-stopped
+
+  mariadb:
+    image: mariadb:11.3
+    container_name: mariadb
+    environment:
+      MARIADB_ROOT_PASSWORD: rootpass
+      MARIADB_DATABASE: devdb
+      MARIADB_USER: devuser
+      MARIADB_PASSWORD: devpass
+    volumes:
+      - ./mariadb:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    restart: unless-stopped

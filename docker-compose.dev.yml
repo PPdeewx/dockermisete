@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  django:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: django
+    command: sh -c "python manage.py migrate && python manage.py createsu && python manage.py runserver 0.0.0.0:8000"
+    depends_on:
+      - mariadb
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./.env
+    restart: unless-stopped
+
+  nuxt:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: nuxt
+    command: npm run dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./.env
+    restart: unless-stopped
