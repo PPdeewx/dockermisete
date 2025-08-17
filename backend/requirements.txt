@@ -5,3 +5,9 @@ tzdata==2025.2
 mysqlclient>=2.2.7
 gunicorn>=23.0.0
 django-environ>=0.12.0
+celery==5.3.6
+python-decouple
+djangorestframework
+django-celery-beat
+pandas
+openpyxl
