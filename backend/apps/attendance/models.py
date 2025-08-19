@@ -28,11 +28,9 @@ class AttendanceRecord(models.Model):
     leave_type = models.CharField(max_length=50, choices=LEAVE_TYPE_CHOICES, null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        # เวลาทำงานมาตรฐาน (ตัวอย่าง 9:00 - 18:00)
         work_start = time(9, 0)
         work_end = time(18, 0)
 
-        # ถ้าวันนี้เป็นลาเต็มวัน หรือ remote ไม่คำนวณเวลา
         if self.status in ['leave', 'remote']:
             self.late_minutes = 0
             self.early_leave_minutes = 0

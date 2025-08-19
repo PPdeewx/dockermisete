@@ -12,13 +12,13 @@ HALF_CHOICES = (
 
 class LeaveType(models.Model):
     name = models.CharField(max_length=50, unique=True)
-    # number of days of advance notice required (0 = allowed anytime)
+
     advance_days = models.IntegerField(default=0)
-    # whether this leave can be requested retroactively (e.g., sick leave)
+
     allow_backdate = models.BooleanField(default=False)
-    # whether this leave consumes quota (e.g., sick may or may not)
+
     consumes_quota = models.BooleanField(default=True)
-    # default yearly quota for this leave type (e.g., vacation = 15)
+
     default_quota = models.DecimalField(max_digits=5, decimal_places=1, default=0.0)
 
     def __str__(self):
@@ -75,7 +75,7 @@ class LeaveRequest(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_PENDING)
     request_date = models.DateTimeField(default=timezone.now)
     leave_number = models.CharField(max_length=20, unique=True, blank=True)
-    # track if this request was created by an admin on behalf of someone else
+    
     created_by_admin = models.BooleanField(default=False)
     substitute_acknowledged = models.BooleanField(default=False)
 

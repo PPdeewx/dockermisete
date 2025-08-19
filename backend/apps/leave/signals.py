@@ -9,9 +9,8 @@ from apps.users.models import CustomUser
 @receiver(post_save, sender=LeaveRequest)
 def send_leave_email(sender, instance, created, **kwargs):
     if created:
-        # ======================
+
         # 1) แจ้งผู้อนุมัติ
-        # ======================
         if instance.approver and instance.approver.email:
             subject = f"คำขอลา #{instance.leave_number} จาก {instance.user}"
             text_content = f"มีคำขอลาจาก {instance.user} กรุณาตรวจสอบ"
@@ -40,9 +39,7 @@ def send_leave_email(sender, instance, created, **kwargs):
             email.attach_alternative(html_content, "text/html")
             email.send(fail_silently=True)
 
-        # ======================
         # 2) แจ้งผู้ปฏิบัติงานแทน
-        # ======================
         if instance.substitute and instance.substitute.email:
             subject = f"แจ้งปฏิบัติงานแทน - คำขอลา #{instance.leave_number}"
             text_content = f"คุณถูกระบุให้ปฏิบัติงานแทน {instance.user}"

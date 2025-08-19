@@ -13,7 +13,6 @@ class IsApproverOrAdmin(permissions.BasePermission):
         return request.user and request.user.is_authenticated
 
     def has_object_permission(self, request, view, obj):
-        # approver or staff
         return request.user.is_staff or obj.approver == request.user
 
 class LeaveTypeViewSet(viewsets.ModelViewSet):
@@ -30,32 +29,25 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
         user = self.request.user
         qs = super().get_queryset()
         
-        # ถ้าเป็น admin/staff เห็นทุกคน
         if user.is_staff or getattr(user, 'role', '') == 'admin':
             return qs
         
-        # ถ้าเป็นพนักงาน เห็นเฉพาะของตัวเอง
         if getattr(user, 'role', '') == 'employee':
             return qs.filter(user=user)
         
-        # ถ้าไม่เข้าเงื่อนไขอื่น ๆ ให้ return ว่าง
         return qs.none()
 
     def perform_create(self, serializer):
-        # ⭐ เพิ่มฟีเจอร์ลาแทน
         on_behalf_of = serializer.validated_data.get('on_behalf_of')
         if on_behalf_of:
-            # ลาแทนคนอื่น
             serializer.save(user=self.request.user, on_behalf_of=on_behalf_of)
         else:
-            # ลาให้ตัวเอง
             serializer.save(user=self.request.user)
 
     def perform_update(self, serializer):
         instance = self.get_object()
         user = self.request.user
 
-        # ตรวจสิทธิ์
         if not (user.is_staff or getattr(user, 'role', '') == 'admin' or instance.user == user):
             raise PermissionError('คุณไม่มีสิทธิ์แก้ไขการลานี้')
 
@@ -68,11 +60,9 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
     def cancel(self, request, pk=None):
         lr = self.get_object()
         if lr.status == LeaveRequest.STATUS_APPROVED:
-            # remove attendance records for that user/dates
             start = lr.start_date
             end = lr.end_date
             AttendanceRecord.objects.filter(user=lr.user, date__range=(start,end), status='ลา').delete()
-            # decrease quota
             if lr.leave_type.consumes_quota:
                 from decimal import Decimal
                 year = start.year
@@ -95,7 +85,6 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
         with transaction.atomic():
             lr.status = LeaveRequest.STATUS_APPROVED
             lr.save()
-            # create attendance records
             start = lr.start_date
             end = lr.end_date
             day = start
@@ -133,15 +122,12 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
         lr = self.get_object()
         user = request.user
 
-        # ตรวจสอบว่าเป็น substitute หรือไม่
         if lr.substitute != user:
             return Response({'detail': 'คุณไม่ได้ถูกระบุให้ปฏิบัติงานแทน'}, status=status.HTTP_403_FORBIDDEN)
 
-        # ตรวจสอบว่า acknowledge ยังไม่ถูกทำ
         if getattr(lr, 'substitute_acknowledged', False):
             return Response({'detail': 'คุณได้ยืนยันการปฏิบัติงานแทนแล้ว'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # ทำเครื่องหมาย acknowledge
         lr.substitute_acknowledged = True
         lr.save()
         return Response({'status': 'acknowledged'})
