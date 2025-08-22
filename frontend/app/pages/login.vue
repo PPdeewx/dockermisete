@@ -27,9 +27,7 @@
             Forgot Password?
           </NuxtLink>
 
-          <button type="submit" class="login-btn">
-            Login
-          </button>
+          <button type="submit" class="login-btn">Login</button>
 
         </form>
       </div>
@@ -37,24 +35,37 @@
   </div>
 </template>
 
-<script lang="ts" setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+<script setup lang="ts">
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import axios from "axios";
 
 const router = useRouter();
-const username = ref('');
-const password = ref('');
+const username = ref("");
+const password = ref("");
 const showPassword = ref(false);
 
-function handleLogin() {
-  router.push({ path: '/user', query: { username: username.value } });
-}
+const handleLogin = async () => {
+  try {
+    const response = await axios.post("http://localhost:8000/api/login/", {
+      username: username.value,
+      password: password.value,
+    });
 
+    const token = response.data.token;
+    localStorage.setItem("token", token);
 
+    alert("Login success!");
+    router.push("/user");
+  } catch (error: any) {
+    console.error("Login failed:", error.response?.data || error.message);
+    alert("Login failed, username or password incorrect.");
+  }
+};
 
-function goToRecovery() {
-  router.push('/forgot-recovery');
-}
+const goToRecovery = () => {
+  router.push("/forgot-recovery");
+};
 </script>
 
 <style scoped>

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.authtoken.views import obtain_auth_token
-from apps.users.views import UserCreateView
+from apps.users.views import UserCreateView, LoginView
 from . import views
 
 urlpatterns = [
@@ -12,5 +12,5 @@ urlpatterns = [
     path('api/work-from-outside/', include('apps.work_from_outside.urls')),
     path('api/holiday/', include('apps.holiday.urls')),
     path('api/attendance/', include('apps.attendance.urls')),
-    path('api/login/', obtain_auth_token, name='api_login'),
+    path('api/login/', LoginView.as_view(), name='api_login'),
 ]

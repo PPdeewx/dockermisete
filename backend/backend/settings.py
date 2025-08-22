@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',
+    "corsheaders",
     'rest_framework',
     'rest_framework.authtoken',
     'django_celery_beat',
@@ -34,6 +35,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -137,6 +139,8 @@ EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS')
 CRONJOBS = [
     ('0 0 1 1 *', 'leaves.cron.reset_leave_quota')
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 FRONTEND_URL = "http://localhost:3000"
 BACKEND_URL = 'http://localhost:8000'
