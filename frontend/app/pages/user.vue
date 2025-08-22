@@ -57,7 +57,8 @@
         <div class="user-profile" @click.stop="toggleProfileMenu">
           <i class="fas fa-bell"></i>
           <i class="fas fa-user-circle"></i>
-          <span class="username">Username ตำแหน่ง:</span>
+          <span class="username">{{ user?.username }}</span>
+          <span v-if="user">ตำแหน่ง: {{ user.role }}</span>
           <i class="fas fa-chevron-down"></i>
 
           <div class="user-profile-menu" v-if="showProfileMenu">
@@ -149,9 +150,32 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import axios from 'axios';
 
 const router = useRouter()
 const route = useRoute()
+
+const user = ref<any>(null)
+const token = ref<string | null>(null)
+
+onMounted(async () => {
+  token.value = localStorage.getItem('token');
+
+  if (!token.value) {
+    router.push('/login');
+    return;
+  }
+
+  try {
+    const response = await axios.get('http://localhost:8000/api/users/me/', {
+      headers: { Authorization: `Token ${token.value}` },
+    });
+    user.value = response.data;
+  } catch (err) {
+    console.error(err);
+    router.push('/login');
+  }
+});
 
 const announcements = ref([
   {
@@ -227,6 +251,8 @@ const breadcrumbs = computed(() => {
       return 'หน้าหลัก';
   }
 });
+
+
 </script>
 
 <style scoped>

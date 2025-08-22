@@ -11,3 +11,4 @@ djangorestframework
 django-celery-beat
 pandas
 openpyxl
+django-cors-headers

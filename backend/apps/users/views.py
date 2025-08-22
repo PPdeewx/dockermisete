@@ -5,7 +5,8 @@ from .models import CustomUser
 from .serializers import CustomUserSerializer
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.auth import get_user_model
+from rest_framework.authtoken.models import Token
+from django.contrib.auth import get_user_model, authenticate
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.core.mail import send_mail
@@ -180,4 +181,36 @@ class SetPasswordView(APIView):
         user.set_password(password)
         user.save()
         return Response({"message": "Password has been reset successfully"}, status=status.HTTP_200_OK)
+
+class LoginView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        username = request.data.get("username")
+        password = request.data.get("password")
+
+        if not username or not password:
+            return Response({"error": "Username and password required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = authenticate(username=username, password=password)
+        if user is None:
+            return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({"token": token.key}, status=status.HTTP_200_OK)
     
+class CurrentUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        return Response({
+            "id": user.id,
+            "username": user.username,
+            "employee_code": user.employee_code,
+            "firstname_th": user.firstname_th,
+            "lastname_th": user.lastname_th,
+            "email": user.email,
+            "role": user.role,
+            "status": user.status
+        })
