@@ -51,7 +51,7 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # set queryset lazily to avoid circular imports
+
         from apps.users.models import CustomUser
         self.fields['approver_id'].queryset = CustomUser.objects.all()
         self.fields['substitute_id'].queryset = CustomUser.objects.all()
@@ -73,7 +73,6 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
         if end < start:
             raise serializers.ValidationError('end_date ต้องไม่ต่ำกว่า start_date')
 
-        # คำนวณวันลา
         days = Decimal((end - start).days + 1)
 
         if start == end:
@@ -89,7 +88,6 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
 
         data['days'] = days.quantize(Decimal('0.1'))
 
-        # ตรวจวันลาล่วงหน้า
         from django.utils import timezone
         today = timezone.localdate()
         if not leave_type.allow_backdate:
@@ -97,7 +95,6 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
             if start < min_start:
                 raise serializers.ValidationError(f'ต้องขอล่วงหน้า {leave_type.advance_days} วันสำหรับการลา {leave_type.name}')
 
-        # ตรวจโควตา
         if leave_type.consumes_quota:
             year = start.year
             quota, _ = LeaveQuota.objects.get_or_create(

@@ -1,6 +1,6 @@
 from rest_framework import generics
 from .models import WorkOutsideRequest
-from .serializers import WorkOutsideRequestSerializer  # สร้าง Serializer ต่อไป
+from .serializers import WorkOutsideRequestSerializer
 
 class WorkOutsideRequestListView(generics.ListCreateAPIView):
     queryset = WorkOutsideRequest.objects.all()
