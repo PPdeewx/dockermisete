@@ -28,5 +28,5 @@ services:
     volumes:
       - ./mariadb:/var/lib/mysql
     ports:
-      - "3306:3306"
+      - "8306:3306"
     restart: unless-stopped
