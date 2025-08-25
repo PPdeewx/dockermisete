@@ -8,10 +8,22 @@
         <li class="nav-item active">
           <a href="#" class="nav-link"><i class="fas fa-home"></i> หน้าหลัก</a>
         </li>
-        <li class="nav-item has-submenu">
-          <router-link to="/admin17" class="nav-link">
+        <li class="nav-item has-submenu" :class="{ 'active': showSubmenu }">
+          <a href="#" class="nav-link" @click.prevent="toggleSubmenu">
             <i class="fas fa-users"></i> บุคลากร
-          </router-link>
+            <i :class="['fas', showSubmenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
+          </a>
+          <ul class="submenu" v-if="showSubmenu">
+            <li><router-link to="/admin18" class="submenu-link">พนักงานปัจจุบัน</router-link></li>
+            <li><a href="#" class="submenu-link">พนักงานที่ลาออก</a></li>
+            <li><a href="#" class="submenu-link">บุคลากรภายนอก</a></li>
+            <li><a href="#" class="submenu-link">พนักงาน EDDP</a></li>
+            <li><a href="#" class="submenu-link">เพิ่ม/แก้ไข/ลบ พนักงาน</a></li>
+            <li><a href="#" class="submenu-link">เพิ่มบุคลากรภายนอก</a></li>
+            <li><a href="#" class="submenu-link">เปลี่ยนสถานะพนักงาน</a></li>
+            <li><a href="#" class="submenu-link">กำหนดโควต้าลา(ทั้งหมด)</a></li>
+            <li><a href="#" class="submenu-link">Reset Quota ประจำปี</a></li>
+          </ul>
         </li>
         <li class="nav-item">
           <a href="#" class="nav-link"><i class="fas fa-flask"></i> ห้องวิจัย</a>
@@ -190,6 +202,12 @@ const showDropdown = ref(false);
 
 const toggleDropdown = () => {
   showDropdown.value = !showDropdown.value;
+};
+
+// **เพิ่มส่วนนี้** เพื่อจัดการการแสดงผลของเมนูย่อย "บุคลากร"
+const showSubmenu = ref(false);
+const toggleSubmenu = () => {
+  showSubmenu.value = !showSubmenu.value;
 };
 </script>
 

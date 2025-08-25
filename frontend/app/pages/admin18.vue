@@ -11,10 +11,8 @@
           </router-link>
         </li>
         <li class="nav-item has-submenu active">
-          <a href="#" class="nav-link" @click.prevent="toggleSubmenu">
-            <i class="fas fa-users"></i> บุคลากร
-          </a>
-          <ul class="submenu" v-if="showSubmenu">
+          <a href="#" class="nav-link"><i class="fas fa-users"></i> บุคลากร</a>
+          <ul class="submenu active">
             <li><a href="#" class="submenu-link active">พนักงานปัจจุบัน</a></li>
             <li><a href="#" class="submenu-link">พนักงานที่ลาออก</a></li>
             <li><a href="#" class="submenu-link">บุคลากรภายนอก</a></li>
@@ -43,18 +41,11 @@
         <div class="breadcrumbs">
           <span><i class="fas fa-home"></i> หน้าหลัก > บุคลากร > พนักงานปัจจุบัน</span>
         </div>
-        <div class="user-profile" @click="toggleUserDropdown">
+        <div class="user-profile">
           <i class="fas fa-bell"></i>
           <i class="fas fa-user-circle"></i>
           <span class="username">Username ตำแหน่ง: Admin</span>
-          <i :class="['fas', showUserDropdown ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
-
-          <div class="dropdown-menu" v-if="showUserDropdown">
-            <a href="#" class="dropdown-item">ดูข้อมูลส่วนตัว</a>
-            <a href="#" class="dropdown-item">แก้ไขข้อมูลส่วนตัว</a>
-            <a href="#" class="dropdown-item">เปลี่ยนรหัสผ่าน</a>
-            <a href="#" class="dropdown-item">ออกจากระบบ</a>
-          </div>
+          <i class="fas fa-chevron-down"></i>
         </div>
       </div>
 
@@ -108,18 +99,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-
-const showSubmenu = ref(true);
-const showUserDropdown = ref(false);
-
-const toggleSubmenu = () => {
-  showSubmenu.value = !showSubmenu.value;
-};
-
-const toggleUserDropdown = () => {
-  showUserDropdown.value = !showUserDropdown.value;
-};
 </script>
 
 <style scoped>
@@ -258,10 +237,8 @@ const toggleUserDropdown = () => {
 }
 
 .user-profile {
-  position: relative;
   display: flex;
   align-items: center;
-  cursor: pointer;
 }
 
 .user-profile i {
@@ -273,32 +250,6 @@ const toggleUserDropdown = () => {
 .user-profile .username {
   margin-left: 15px;
   font-weight: bold;
-}
-
-.dropdown-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background-color: #ffffff;
-  border: 1px solid #e0e0e0;
-  border-radius: 5px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  min-width: 200px;
-  margin-top: 10px;
-  z-index: 1000;
-  padding: 5px 0;
-}
-
-.dropdown-item {
-  display: block;
-  padding: 10px 15px;
-  text-decoration: none;
-  color: #333;
-  transition: background-color 0.2s;
-}
-
-.dropdown-item:hover {
-  background-color: #f5f5f5;
 }
 
 .content-container {
