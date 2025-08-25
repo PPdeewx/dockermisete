@@ -6,16 +6,14 @@
       </div>
       <ul class="nav-menu">
         <li class="nav-item">
-          <router-link to="/admin16" class="nav-link">
-            <i class="fas fa-home"></i> หน้าหลัก
-          </router-link>
+          <a href="#" class="nav-link"><i class="fas fa-home"></i> หน้าหลัก</a>
         </li>
         <li class="nav-item has-submenu active">
           <a href="#" class="nav-link"><i class="fas fa-users"></i> บุคลากร</a>
           <ul class="submenu active">
-            <li><a href="#" class="submenu-link active">พนักงานปัจจุบัน</a></li>
+            <li><a href="#" class="submenu-link">พนักงานปัจจุบัน</a></li>
             <li><a href="#" class="submenu-link">พนักงานที่ลาออก</a></li>
-            <li><a href="#" class="submenu-link">บุคลากรภายนอก</a></li>
+            <li><a href="#" class="submenu-link active">บุคลากรภายนอก</a></li>
             <li><a href="#" class="submenu-link">พนักงาน EDDP</a></li>
             <li><a href="#" class="submenu-link">เพิ่ม/แก้ไข/ลบ พนักงาน</a></li>
             <li><a href="#" class="submenu-link">เพิ่มบุคลากรภายนอก</a></li>
@@ -39,7 +37,7 @@
     <div class="main-content">
       <div class="top-bar">
         <div class="breadcrumbs">
-          <span><i class="fas fa-home"></i> หน้าหลัก > บุคลากร > พนักงานปัจจุบัน</span>
+          <span><i class="fas fa-home"></i> หน้าหลัก > บุคลากร > บุคลากรภายนอก</span>
         </div>
         <div class="user-profile">
           <i class="fas fa-bell"></i>
@@ -53,9 +51,9 @@
         <div class="header-with-button">
           <div class="left-section">
             <i class="fas fa-user-circle title-icon"></i>
-            <h2>พนักงานปัจจุบัน</h2>
+            <h2>บุคลากรภายนอก</h2>
           </div>
-          <button class="add-button"><i class="fas fa-plus"></i> เพิ่มพนักงาน</button>
+          <button class="add-button"><i class="fas fa-plus"></i> เพิ่มบุคลากรภายนอก</button>
         </div>
 
         <div class="search-and-table-container">
@@ -69,20 +67,16 @@
               <thead>
                 <tr>
                   <th>ลำดับที่</th>
-                  <th>รหัส</th>
-                  <th>Username</th>
-                  <th>Lab</th>
                   <th>ชื่อภาษาไทย</th>
                   <th>เบอร์โทรศัพท์</th>
                   <th>Email</th>
+                  <th>หน่วยงาน</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="i in 10" :key="i">
                   <td>{{ i }}</td>
-                  <td></td>
-                  <td></td>
                   <td></td>
                   <td></td>
                   <td></td>
@@ -99,6 +93,7 @@
 </template>
 
 <script setup lang="ts">
+
 </script>
 
 <style scoped>

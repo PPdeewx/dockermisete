@@ -14,6 +14,7 @@
             <i :class="['fas', showSubmenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
           </a>
           <ul class="submenu" v-if="showSubmenu">
+            <li><router-link to="/admin17" class="submenu-link">พนักงานปัจจุบัน</router-link></li>
             <li><router-link to="/admin18" class="submenu-link">พนักงานปัจจุบัน</router-link></li>
             <li><a href="#" class="submenu-link">พนักงานที่ลาออก</a></li>
             <li><a href="#" class="submenu-link">บุคลากรภายนอก</a></li>
@@ -204,7 +205,6 @@ const toggleDropdown = () => {
   showDropdown.value = !showDropdown.value;
 };
 
-// **เพิ่มส่วนนี้** เพื่อจัดการการแสดงผลของเมนูย่อย "บุคลากร"
 const showSubmenu = ref(false);
 const toggleSubmenu = () => {
   showSubmenu.value = !showSubmenu.value;
@@ -354,18 +354,17 @@ const toggleSubmenu = () => {
   font-weight: bold;
 }
 
-/* Style for the dropdown menu */
 .dropdown-menu {
   position: absolute;
-  top: 100%; /* Position below the user-profile div */
+  top: 100%;
   right: 0;
   background-color: #ffffff;
   border: 1px solid #e0e0e0;
   border-radius: 5px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   min-width: 200px;
-  margin-top: 10px; /* Add some space between the user info and the dropdown */
-  z-index: 1000; /* Ensure it's on top of other content */
+  margin-top: 10px;
+  z-index: 1000; 
   padding: 5px 0;
 }
 
