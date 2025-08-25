@@ -16,10 +16,11 @@
         </div>
 
         <div class="card-body">
-          <input type="text" class="email-input" placeholder="" />
-            <button class="send-email-button" @click="$router.push('/password2')">
-              Send email
-            </button>
+          <input v-model="email" type="text" class="email-input" placeholder="Enter your email" />
+          <button class="send-email-button" @click="handleForgotPassword">
+            Send email
+          </button>
+          <p v-if="message" class="success-message">{{ message }}</p>
         </div>
 
         <NuxtLink to="/login" class="login-link-btn">
@@ -31,7 +32,24 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { ref } from "vue";
+import axios from "axios";
+
+const email = ref("");
+const message = ref("");
+
+async function handleForgotPassword() {
+  try {
+    await axios.post("http://localhost:8000/api/users/password-reset/", {
+      email: email.value,
+    });
+    message.value = "📩 เราส่งลิ้งสำหรับรีเซ็ตรหัสผ่านไปที่อีเมลแล้ว";
+  } catch (err) {
+    console.error(err);
+    message.value = "❌ ไม่พบอีเมลนี้ในระบบ หรือเกิดข้อผิดพลาด";
+  }
+}
 </script>
 
 <style scoped>

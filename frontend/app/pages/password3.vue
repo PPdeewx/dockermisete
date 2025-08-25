@@ -13,68 +13,76 @@
           <p class="user-name">นาย admin admin</p>
           <p class="user-email">asdgqwe@example.com</p>
         </div>
-
+        
         <div class="set-form">
-          <h2>Reset Your Password</h2>
-          <p class="instruction-text">Please enter your new password below</p>
-
+          <h2>Set Your Password</h2>
+          <p class="instruction-text">Please create a password for your account</p>
+          
           <div class="input-group">
             <input 
-              v-model="newPassword"
-              :type="showNewPassword ? 'text' : 'password'" 
+              :type="showPassword1 ? 'text' : 'password'" 
               placeholder="New password" 
-              class="password-input"
+              class="password-input" 
             />
-            <i class="fas password-toggle-icon" 
-               :class="showNewPassword ? 'fa-eye' : 'fa-eye-slash'" 
-               @click="toggleNewPassword"></i>
+            <i 
+              :class="['fas', showPassword1 ? 'fa-eye' : 'fa-eye-slash', 'password-toggle-icon']" 
+              @click="togglePasswordVisibility(1)">
+            </i>
           </div>
-
+          
           <div class="input-group">
             <input 
-              v-model="confirmPassword"
-              :type="showConfirmPassword ? 'text' : 'password'" 
-              placeholder="Confirm new password" 
-              class="password-input"
+              :type="showPassword2 ? 'text' : 'password'" 
+              placeholder="Confirm password" 
+              class="password-input" 
             />
-            <i class="fas password-toggle-icon" 
-               :class="showConfirmPassword ? 'fa-eye' : 'fa-eye-slash'" 
-               @click="toggleConfirmPassword"></i>
+            <i 
+              :class="['fas', showPassword2 ? 'fa-eye' : 'fa-eye-slash', 'password-toggle-icon']" 
+              @click="togglePasswordVisibility(2)">
+            </i>
           </div>
 
-          <button class="set-button" @click="goToLogin">Reset password</button>
+          <p class="password-hint">Your password must be at least 8 characters long and contain letters and numbers</p>
+          
+          <button class="set-button" @click="goToLogin">Set password</button>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
+<script>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-const router = useRouter();
+export default {
+  name: '6PasswordView',
+  setup() {
+    const showPassword1 = ref(false);
+    const showPassword2 = ref(false);
+    const router = useRouter();
 
-const newPassword = ref('');
-const confirmPassword = ref('');
-const showNewPassword = ref(false);
-const showConfirmPassword = ref(false);
+    const togglePasswordVisibility = (inputNumber) => {
+      if (inputNumber === 1) {
+        showPassword1.value = !showPassword1.value;
+      } else if (inputNumber === 2) {
+        showPassword2.value = !showPassword2.value;
+      }
+    };
 
-function toggleNewPassword() {
-  showNewPassword.value = !showNewPassword.value;
-}
+    const goToLogin = () => {
+      // Navigate to the login page (root path)
+      router.push('/');
+    };
 
-function toggleConfirmPassword() {
-  showConfirmPassword.value = !showConfirmPassword.value;
-}
-
-function goToLogin() {
-  if (newPassword.value !== confirmPassword.value) {
-    alert('Passwords do not match!');
-    return;
+    return {
+      showPassword1,
+      showPassword2,
+      togglePasswordVisibility,
+      goToLogin,
+    };
   }
-  router.push('/login');
-}
+};
 </script>
 
 <style scoped>
@@ -94,9 +102,10 @@ function goToLogin() {
   width: 100%;
   background-color: #093273; 
   color: white;
-  padding: 15px 20px;
+  padding: 10px 20px;
   text-align: left;
-  font-size: 16px;
+  font-size: 14px;
+  box-sizing: border-box;
 }
 
 .content-wrapper {
@@ -133,6 +142,10 @@ function goToLogin() {
   margin: 0 auto 10px;
   background-color: #f7f7f7;
   color: #888;
+}
+
+.profile-text {
+  font-size: 16px;
 }
 
 .user-name {
@@ -172,6 +185,7 @@ function goToLogin() {
   border-radius: 4px;
   font-size: 16px;
   box-sizing: border-box; 
+  text-align: left;
 }
 
 .password-toggle-icon {
@@ -192,11 +206,17 @@ function goToLogin() {
   border-radius: 4px;
   font-size: 18px;
   cursor: pointer;
-  margin-top: 15px;
   transition: background-color 0.3s ease;
+  margin-top: 15px;
 }
 
 .set-button:hover {
   background-color: #305488;
+}
+
+.password-hint {
+    font-size: 12px;
+    color: #999;
+    margin-top: 10px;
 }
 </style>

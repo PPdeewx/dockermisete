@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import generics, status
+from rest_framework.decorators import api_view
 from .models import CustomUser
 from .serializers import CustomUserSerializer
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
@@ -17,6 +18,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 
 User = get_user_model()
 
+# --- User List & Filter ---
 class UserListView(generics.ListAPIView):
     queryset = CustomUser.objects.all().exclude(role='developer')
     serializer_class = CustomUserSerializer
@@ -48,6 +50,7 @@ class UserFilterView(generics.ListAPIView):
             )
         return queryset
 
+# --- User Create ---
 class UserCreateView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
@@ -78,6 +81,7 @@ class UserCreateView(generics.CreateAPIView):
         except Exception as e:
             print(f"Email sending failed: {e}")
 
+# --- User Detail ---
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
@@ -89,6 +93,7 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
             instance.exit_date = None
         return super().update(request, *args, **kwargs)
 
+# --- Password Reset Request ---
 class PasswordResetRequestView(APIView):
     permission_classes = [AllowAny]
 
@@ -98,9 +103,9 @@ class PasswordResetRequestView(APIView):
         if user:
             token = default_token_generator.make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
-            reset_url = self.request.build_absolute_uri(f"/api/users/set-password/{uid}/{token}/")
+            reset_url = f"{settings.FRONTEND_URL}/password2/{uid}/{token}"
             email_body = (
-                f"สวัสดี {user.firstname_th},\n\n"
+                f"สวัสดี {user.firstname_th} {user.lastname_th},\n\n"
                 f"คุณได้ร้องขอการรีเซ็ตรหัสผ่าน หากเป็นคำขอนี้ให้คลิกที่ลิงก์ด้านล่างเพื่อตั้งรหัสผ่านใหม่:\n\n{reset_url}\n\n"
                 "หมายเหตุ: รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร และต้องมีตัวพิมพ์ใหญ่, ตัวพิมพ์เล็ก, ตัวเลข และอักขระพิเศษ."
             )
@@ -109,7 +114,7 @@ class PasswordResetRequestView(APIView):
                     'Reset Your Password',
                     email_body,
                     settings.EMAIL_HOST_USER,
-                    [email],
+                    [user.email],
                     fail_silently=False,
                 )
             except Exception as e:
@@ -117,6 +122,7 @@ class PasswordResetRequestView(APIView):
             return Response({"message": "Reset link sent"}, status=status.HTTP_200_OK)
         return Response({"error": "Email not found"}, status=status.HTTP_404_NOT_FOUND)
 
+# --- Profile Update ---
 class ProfileUpdateSerializer(CustomUserSerializer):
     class Meta(CustomUserSerializer.Meta):
         fields = ['prefix_th', 'firstname_th', 'lastname_th', 'phone_number', 'address', 'password', 'email']
@@ -139,11 +145,11 @@ class UserUpdateProfileView(generics.UpdateAPIView):
                 return Response({"error": list(e.messages)}, status=status.HTTP_400_BAD_REQUEST)
             instance.set_password(password)
             instance.save()
-            request.data._mutable = True if hasattr(request.data, '_mutable') else False
             if isinstance(request.data, dict):
                 request.data.pop('password', None)
         return super().update(request, *args, **kwargs)
 
+# --- Set Password ---
 class SetPasswordView(APIView):
     permission_classes = [AllowAny]
 
@@ -152,9 +158,9 @@ class SetPasswordView(APIView):
             uid = urlsafe_base64_decode(uidb64).decode()
             user = User.objects.get(pk=uid)
         except (User.DoesNotExist, ValueError, TypeError, OverflowError):
-            user = None
+            return Response({"error": "Invalid user"}, status=status.HTTP_400_BAD_REQUEST)
 
-        if user is not None and default_token_generator.check_token(user, token):
+        if default_token_generator.check_token(user, token):
             return Response({"message": "Token valid, you can now set your password"}, status=status.HTTP_200_OK)
         else:
             return Response({"error": "Invalid or expired token"}, status=status.HTTP_400_BAD_REQUEST)
@@ -182,6 +188,7 @@ class SetPasswordView(APIView):
         user.save()
         return Response({"message": "Password has been reset successfully"}, status=status.HTTP_200_OK)
 
+# --- Login ---
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
@@ -198,7 +205,8 @@ class LoginView(APIView):
 
         token, created = Token.objects.get_or_create(user=user)
         return Response({"token": token.key}, status=status.HTTP_200_OK)
-    
+
+# --- Current User ---
 class CurrentUserView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -213,4 +221,28 @@ class CurrentUserView(APIView):
             "email": user.email,
             "role": user.role,
             "status": user.status
+        })
+
+# --- Password Reset Validate ---
+class PasswordResetValidateView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, uidb64, token):
+        try:
+            uid = urlsafe_base64_decode(uidb64).decode()
+            user = User.objects.get(pk=uid)
+        except (User.DoesNotExist, ValueError, TypeError, OverflowError):
+            return Response({'error': 'Invalid link'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not default_token_generator.check_token(user, token):
+            return Response({'error': 'Invalid or expired token'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "firstname_th": getattr(user, "firstname_th", None),
+            "lastname_th": getattr(user, "lastname_th", None),
+            "role": getattr(user, "role", None),
+            "profile": getattr(user, "profile_image_url", None),
         })
