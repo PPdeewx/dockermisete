@@ -5,26 +5,11 @@
         <span>MIS ETE</span>
       </div>
       <ul class="nav-menu">
-        <li class="nav-item active">
+        <li class="nav-item">
           <a href="#" class="nav-link"><i class="fas fa-home"></i> หน้าหลัก</a>
         </li>
-        <li class="nav-item has-submenu" :class="{ 'active': showSubmenu }">
-          <a href="#" class="nav-link" @click.prevent="toggleSubmenu">
-            <i class="fas fa-users"></i> บุคลากร
-            <i :class="['fas', showSubmenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
-          </a>
-          <ul class="submenu" v-if="showSubmenu">
-            <li><router-link to="/admin17" class="submenu-link">พนักงานปัจจุบัน</router-link></li>
-            <li><router-link to="/admin18" class="submenu-link">พนักงานปัจจุบัน</router-link></li>
-            <li><a href="#" class="submenu-link">พนักงานที่ลาออก</a></li>
-            <li><a href="#" class="submenu-link">บุคลากรภายนอก</a></li>
-            <li><a href="#" class="submenu-link">พนักงาน EDDP</a></li>
-            <li><a href="#" class="submenu-link">เพิ่ม/แก้ไข/ลบ พนักงาน</a></li>
-            <li><a href="#" class="submenu-link">เพิ่มบุคลากรภายนอก</a></li>
-            <li><a href="#" class="submenu-link">เปลี่ยนสถานะพนักงาน</a></li>
-            <li><a href="#" class="submenu-link">กำหนดโควต้าลา(ทั้งหมด)</a></li>
-            <li><a href="#" class="submenu-link">Reset Quota ประจำปี</a></li>
-          </ul>
+        <li class="nav-item has-submenu">
+          <a href="/admin2" class="nav-link"><i class="fas fa-users"></i> บุคลากร</a>
         </li>
         <li class="nav-item">
           <a href="#" class="nav-link"><i class="fas fa-flask"></i> ห้องวิจัย</a>
@@ -199,15 +184,11 @@ const upcomingActivities = ref([
   }
 ]);
 
+
 const showDropdown = ref(false);
 
 const toggleDropdown = () => {
   showDropdown.value = !showDropdown.value;
-};
-
-const showSubmenu = ref(false);
-const toggleSubmenu = () => {
-  showSubmenu.value = !showSubmenu.value;
 };
 </script>
 
@@ -354,17 +335,18 @@ const toggleSubmenu = () => {
   font-weight: bold;
 }
 
+/* Style for the dropdown menu */
 .dropdown-menu {
   position: absolute;
-  top: 100%;
+  top: 100%; /* Position below the user-profile div */
   right: 0;
   background-color: #ffffff;
   border: 1px solid #e0e0e0;
   border-radius: 5px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   min-width: 200px;
-  margin-top: 10px;
-  z-index: 1000; 
+  margin-top: 10px; /* Add some space between the user info and the dropdown */
+  z-index: 1000; /* Ensure it's on top of other content */
   padding: 5px 0;
 }
 

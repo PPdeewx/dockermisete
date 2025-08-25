@@ -57,7 +57,8 @@
         <div class="user-profile" @click.stop="toggleProfileMenu">
           <i class="fas fa-bell"></i>
           <i class="fas fa-user-circle"></i>
-          <span class="username">Username ตำแหน่ง:</span>
+          <span class="username">{{ user?.username }}</span>
+          <span v-if="user">ตำแหน่ง: {{ user.role }}</span>
           <i class="fas fa-chevron-down"></i>
 
           <div class="user-profile-menu" v-if="showProfileMenu">
@@ -97,7 +98,7 @@
               <h3>เปลี่ยนรหัสผ่าน</h3>
               <p class="note">กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง</p>
             </div>
-            <div class="profile-body">
+            <div class="profile-body" v-if="user">
               <form @submit.prevent="submitForm" class="password-form">
                 <div class="form-row">
                   <div class="form-group full-width">
@@ -133,8 +134,30 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import axios from 'axios';
 
-// State for profile menu
+const user = ref<any>(null);
+const token = ref<string | null>(null);
+
+onMounted(async () => {
+  token.value = localStorage.getItem('token');
+
+  if (!token.value) {
+    router.push('/login');
+    return;
+  }
+
+  try {
+    const response = await axios.get('http://localhost:8000/api/users/me/', {
+      headers: { Authorization: `Token ${token.value}` },
+    });
+    user.value = response.data;
+  } catch (err) {
+    console.error(err);
+    router.push('/login');
+  }
+});
+
 const showProfileMenu = ref(false);
 function toggleProfileMenu() {
   showProfileMenu.value = !showProfileMenu.value;
@@ -151,13 +174,13 @@ onBeforeUnmount(() => {
   document.removeEventListener('click', handleBodyClick);
 });
 
-// Router and navigation
 const router = useRouter();
 const route = useRoute();
 function goTo(path: string) {
   router.push(path);
 }
 function logout() {
+  localStorage.removeItem('token'); 
   router.push('/login');
 }
 
@@ -167,13 +190,40 @@ const form = ref({
   confirmPassword: ''
 });
 
-const submitForm = () => {
+const submitForm = async () => {
   if (form.value.newPassword !== form.value.confirmPassword) {
     alert('รหัสผ่านใหม่ไม่ตรงกัน');
     return;
   }
-  console.log('เปลี่ยนรหัสผ่าน:', form.value);
-  alert('เปลี่ยนรหัสผ่านเรียบร้อยแล้ว!');
+  
+  if (!user.value || !token.value) {
+    alert('เกิดข้อผิดพลาดในการตรวจสอบผู้ใช้งาน');
+    return;
+  }
+
+  try {
+    const response = await axios.post('http://localhost:8000/api/users/change_password/', {
+      old_password: form.value.currentPassword,
+      new_password: form.value.newPassword
+    }, {
+      headers: { Authorization: `Token ${token.value}` },
+    });
+    
+    if (response.status === 200) {
+      alert('เปลี่ยนรหัสผ่านเรียบร้อยแล้ว!');
+      
+      form.value.currentPassword = '';
+      form.value.newPassword = '';
+      form.value.confirmPassword = '';
+    }
+  } catch (err: any) {
+    console.error(err);
+    if (err.response && err.response.data) {
+      alert(`ไม่สามารถเปลี่ยนรหัสผ่านได้: ${JSON.stringify(err.response.data)}`);
+    } else {
+      alert('เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน');
+    }
+  }
 };
 
 const cancelForm = () => {

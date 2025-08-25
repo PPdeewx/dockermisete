@@ -57,7 +57,8 @@
         <div class="user-profile" @click.stop="toggleProfileMenu">
           <i class="fas fa-bell"></i>
           <i class="fas fa-user-circle"></i>
-          <span class="username">Username ตำแหน่ง:</span>
+          <span class="username">{{ user?.username }}</span>
+          <span v-if="user">ตำแหน่ง: {{ user.role }}</span>
           <i class="fas fa-chevron-down"></i>
 
           <div class="user-profile-menu" v-if="showProfileMenu">
@@ -97,7 +98,7 @@
               <h3>แก้ไขข้อมูลส่วนตัว</h3>
               <p class="note">กรุณากรอกข้อมูลทุกช่องที่่มีเครื่องหมาย *</p>
             </div>
-            <div class="profile-body">
+            <div class="profile-body" v-if="user">
               <div class="profile-image-section">
                 <div class="profile-placeholder">
                   Profile
@@ -108,7 +109,7 @@
                 <div class="form-row">
                   <div class="form-group">
                     <label>คำนำหน้าชื่อ *:</label>
-                    <select v-model="form.prefix" class="select-input">
+                    <select v-model="user.prefix" class="select-input">
                       <option>นาย</option>
                       <option>นาง</option>
                       <option>นางสาว</option>
@@ -116,43 +117,43 @@
                   </div>
                   <div class="form-group">
                     <label>ชื่อภาษาไทย *:</label>
-                    <input type="text" v-model="form.thaiName" class="text-input" />
+                    <input type="text" v-model="user.thai_name" class="text-input" />
                   </div>
                 </div>
                 <div class="form-row">
                   <div class="form-group">
                     <label>นามสกุลภาษาไทย *:</label>
-                    <input type="text" v-model="form.thaiSurname" class="text-input" />
+                    <input type="text" v-model="user.thai_surname" class="text-input" />
                   </div>
                   <div class="form-group">
                     <label>ชื่อภาษาอังกฤษ *:</label>
-                    <input type="text" v-model="form.engName" class="text-input" />
+                    <input type="text" v-model="user.eng_name" class="text-input" />
                   </div>
                 </div>
                 <div class="form-row">
                   <div class="form-group">
                     <label>นามสกุลภาษาอังกฤษ *:</label>
-                    <input type="text" v-model="form.engSurname" class="text-input" />
+                    <input type="text" v-model="user.eng_surname" class="text-input" />
                   </div>
                   <div class="form-group">
                     <label>Email *:</label>
-                    <input type="email" v-model="form.email" class="text-input" />
+                    <input type="email" v-model="user.email" class="text-input" />
                   </div>
                 </div>
                 <div class="form-row">
                   <div class="form-group">
                     <label>เบอร์โทรศัพท์ *:</label>
-                    <input type="tel" v-model="form.phone" class="text-input" />
+                    <input type="tel" v-model="user.phone_number" class="text-input" />
                   </div>
                   <div class="form-group">
                     <label>วันเกิด *:</label>
-                    <input type="date" v-model="form.birthDate" class="text-input" />
+                    <input type="date" v-model="user.birth_date" class="text-input" />
                   </div>
                 </div>
                 <div class="form-row">
                   <div class="form-group full-width">
                     <label>ที่อยู่ติดต่อสะดวก *:</label>
-                    <textarea v-model="form.address" class="textarea-input"></textarea>
+                    <textarea v-model="user.address" class="textarea-input"></textarea>
                   </div>
                 </div>
                 <div class="form-buttons-bottom">
@@ -171,8 +172,30 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import axios from 'axios';
 
-// State for profile menu
+const user = ref<any>(null);
+const token = ref<string | null>(null);
+
+onMounted(async () => {
+  token.value = localStorage.getItem('token');
+
+  if (!token.value) {
+    router.push('/login');
+    return;
+  }
+
+  try {
+    const response = await axios.get('http://localhost:8000/api/users/me/', {
+      headers: { Authorization: `Token ${token.value}` },
+    });
+    user.value = response.data;
+  } catch (err) {
+    console.error(err);
+    router.push('/login');
+  }
+});
+
 const showProfileMenu = ref(false);
 function toggleProfileMenu() {
   showProfileMenu.value = !showProfileMenu.value;
@@ -189,30 +212,18 @@ onBeforeUnmount(() => {
   document.removeEventListener('click', handleBodyClick);
 });
 
-// Router and navigation
 const router = useRouter();
 const route = useRoute();
 function goTo(path: string) {
   router.push(path);
 }
 function logout() {
+  localStorage.removeItem('token'); 
   router.push('/login');
 }
 
-const form = ref({
-  prefix: 'นาย',
-  thaiName: 'ชื่อ',
-  thaiSurname: 'นามสกุล',
-  engName: 'Name',
-  engSurname: 'Surname',
-  email: 'email@example.com',
-  phone: '0812345678',
-  birthDate: '1990-01-01',
-  address: 'ที่อยู่'
-});
-
 const submitForm = () => {
-  console.log('บันทึกข้อมูล:', form.value);
+  console.log('บันทึกข้อมูล:', user.value);
   alert('บันทึกข้อมูลส่วนตัวเรียบร้อย!');
 };
 

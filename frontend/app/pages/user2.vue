@@ -53,6 +53,7 @@
         <div class="breadcrumbs">
           <span><i class="fas fa-home"></i> {{ breadcrumbs }}</span>
         </div>
+         
          <div class="user-profile" @click.stop="toggleProfileMenu">
           <i class="fas fa-bell"></i>
           <i class="fas fa-user-circle"></i>
