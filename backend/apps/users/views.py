@@ -61,7 +61,7 @@ class UserCreateView(generics.CreateAPIView):
     def send_set_password_email(self, user):
         token = default_token_generator.make_token(user)
         uid = urlsafe_base64_encode(force_bytes(user.pk))
-        reset_url = self.request.build_absolute_uri(f"/api/users/set-password/{uid}/{token}/")
+        reset_url = f"{settings.FRONTEND_URL}/password3/{uid}/{token}"
         email_body = (
             f"สวัสดี {user.firstname_th} {user.lastname_th},\n\n"
             f"ระบบได้รับการสร้างบัญชีให้คุณแล้ว กรุณาตั้งรหัสผ่านโดยคลิกที่ลิงก์ด้านล่าง:\n\n{reset_url}\n\n"
@@ -103,7 +103,8 @@ class PasswordResetRequestView(APIView):
             email_body = (
                 f"สวัสดี {user.firstname_th} {user.lastname_th},\n\n"
                 f"คุณได้ร้องขอการรีเซ็ตรหัสผ่าน หากเป็นคำขอนี้ให้คลิกที่ลิงก์ด้านล่างเพื่อตั้งรหัสผ่านใหม่:\n\n{reset_url}\n\n"
-                "หมายเหตุ: รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร และต้องมีตัวพิมพ์ใหญ่, ตัวพิมพ์เล็ก, ตัวเลข และอักขระพิเศษ."
+                "หมายเหตุ: รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร และต้องมีตัวพิมพ์ใหญ่, ตัวพิมพ์เล็ก, ตัวเลข และอักขระพิเศษ.\n\n"
+                "หากมีปัญหา กรุณาติดต่อผู้ดูแลระบบ."
             )
             try:
                 send_mail(

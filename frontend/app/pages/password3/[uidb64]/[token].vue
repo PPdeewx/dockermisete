@@ -6,12 +6,10 @@
 
     <div class="content-wrapper">
       <div class="password-box">
-        <div class="profile-section">
-          <div class="profile-image">
-            <span class="profile-text">Profile</span>
-          </div>
-          <p class="user-name">นาย admin admin</p>
-          <p class="user-email">asdgqwe@example.com</p>
+        <div class="profile-section" v-if="user">
+          <img v-if="user.profile" :src="user.profile" alt="Profile" class="profile-image" />
+          <p><strong>Name:</strong> {{ user.firstname_th }} {{ user.lastname_th }}</p>
+          <p><strong>Email:</strong> {{ user.email }}</p>
         </div>
         
         <div class="set-form">
@@ -20,69 +18,90 @@
           
           <div class="input-group">
             <input 
-              :type="showPassword1 ? 'text' : 'password'" 
+              v-model="newPassword"
+              :type="showNewPassword ? 'text' : 'password'" 
               placeholder="New password" 
-              class="password-input" 
+              class="password-input"
             />
-            <i 
-              :class="['fas', showPassword1 ? 'fa-eye' : 'fa-eye-slash', 'password-toggle-icon']" 
-              @click="togglePasswordVisibility(1)">
-            </i>
+            <i class="fas password-toggle-icon" 
+               :class="showNewPassword ? 'fa-eye' : 'fa-eye-slash'" 
+               @click="toggleNewPassword"></i>
           </div>
-          
+
           <div class="input-group">
             <input 
-              :type="showPassword2 ? 'text' : 'password'" 
-              placeholder="Confirm password" 
-              class="password-input" 
+              v-model="confirmPassword"
+              :type="showConfirmPassword ? 'text' : 'password'" 
+              placeholder="Confirm new password" 
+              class="password-input"
             />
-            <i 
-              :class="['fas', showPassword2 ? 'fa-eye' : 'fa-eye-slash', 'password-toggle-icon']" 
-              @click="togglePasswordVisibility(2)">
-            </i>
+            <i class="fas password-toggle-icon" 
+               :class="showConfirmPassword ? 'fa-eye' : 'fa-eye-slash'" 
+               @click="toggleConfirmPassword"></i>
           </div>
 
           <p class="password-hint">Your password must be at least 8 characters long and contain letters and numbers</p>
           
-          <button class="set-button" @click="goToLogin">Set password</button>
+          <button class="set-button" @click="handleResetPassword">Set password</button>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<script>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+<script setup lang="ts">
+import { ref, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import axios from "axios";
 
-export default {
-  name: '6PasswordView',
-  setup() {
-    const showPassword1 = ref(false);
-    const showPassword2 = ref(false);
-    const router = useRouter();
+const route = useRoute();
+const router = useRouter();
 
-    const togglePasswordVisibility = (inputNumber) => {
-      if (inputNumber === 1) {
-        showPassword1.value = !showPassword1.value;
-      } else if (inputNumber === 2) {
-        showPassword2.value = !showPassword2.value;
-      }
-    };
+const uidb64 = route.params.uidb64
+const token = route.params.token
 
-    const goToLogin = () => {
-      // Navigate to the login page (root path)
-      router.push('/');
-    };
+const user = ref<any>(null)
+const newPassword = ref("")
+const confirmPassword = ref("")
+const showNewPassword = ref(false)
+const showConfirmPassword = ref(false)
 
-    return {
-      showPassword1,
-      showPassword2,
-      togglePasswordVisibility,
-      goToLogin,
-    };
+function toggleNewPassword() { showNewPassword.value = !showNewPassword.value }
+function toggleConfirmPassword() { showConfirmPassword.value = !showConfirmPassword.value }
+
+async function fetchUser() {
+  try {
+    const url = `http://localhost:8000/api/users/password-reset-validate/${uidb64}/${token}/`
+    const res = await axios.get(url)
+    user.value = res.data
+  } catch (err) {
+    console.error("❌ Validate error:", err)
+    alert("❌ ลิ้ง set password ไม่ถูกต้อง หรือหมดอายุ")
+    router.push("/login")
   }
-};
+}
+
+async function handleResetPassword() {
+  if (newPassword.value !== confirmPassword.value) {
+    alert("Passwords do not match!")
+    return
+  }
+
+  try {
+    const url = `http://localhost:8000/api/users/set-password/${uidb64}/${token}/`
+    await axios.post(url, { password: newPassword.value })
+    alert("✅ รหัสผ่านถูกตั้งแล้ว กรุณาเข้าสู่ระบบ")
+    router.push("/login")
+  } catch (err) {
+    console.error("❌ Reset error:", err.response?.data || err)
+    const msg = err.response?.data?.error || "❌ ไม่สามารถตั้งรหัสผ่านได้"
+    alert(msg)
+  }
+}
+
+onMounted(() => {
+  fetchUser()
+})
 </script>
 
 <style scoped>

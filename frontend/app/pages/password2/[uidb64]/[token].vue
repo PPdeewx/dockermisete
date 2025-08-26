@@ -7,7 +7,7 @@
     <div class="content-wrapper">
       <div class="password-box">
         <div class="profile-section" v-if="user">
-          <img v-if="user.profile" :src="user.profile" alt="Profile" class="profile-img" />
+          <img v-if="user.profile" :src="user.profile" alt="Profile" class="profile-image" />
           <p><strong>Name:</strong> {{ user.firstname_th }} {{ user.lastname_th }}</p>
           <p><strong>Email:</strong> {{ user.email }}</p>
         </div>
