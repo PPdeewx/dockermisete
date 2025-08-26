@@ -101,19 +101,19 @@
               <div class="profile-form-row">
                 <div class="form-group">
                   <label>ชื่อภาษาไทย :</label>
-                  <input type="text" v-model="user.thaiName" class="text-input" readonly />
+                  <input type="text" :value="`${user?.firstname_th ?? ''} ${user?.lastname_th ?? ''}`" class="text-input" readonly />
                 </div>
               </div>
               <div class="profile-form-row">
                 <div class="form-group">
                   <label>ชื่อภาษาอังกฤษ :</label>
-                  <input type="text" v-model="user.engName" class="text-input" readonly />
+                  <input type="text" :value="`${user?.firstname_en ?? ''} ${user?.lastname_en ?? ''}`" class="text-input" readonly />
                 </div>
               </div>
               <div class="profile-form-row">
                 <div class="form-group">
                   <label>ตำแหน่ง :</label>
-                  <input type="text" v-model="user.role" class="text-input" readonly />
+                  <input type="text" :value="user?.role" class="text-input" readonly />
                 </div>
               </div>
               
@@ -121,41 +121,42 @@
                 <div class="profile-info-block">
                   <div class="info-group">
                     <label>ประเภทการจ้างงาน :</label>
-                    <span>{{ user.employment_type }}</span>
+                    <span>{{ user?.employment_type }}</span>
                   </div>
                   <div class="info-group">
                     <label>วันที่เริ่มทำงาน :</label>
-                    <span>{{ user.start_date }}</span>
+                    <span>{{ user?.start_date }}</span>
                   </div>
                   <div class="info-group">
                     <label>วันเกิด :</label>
-                    <span>{{ user.birth_date }}</span>
+                    <span>{{ user?.birth_date }}</span>
                   </div>
                   <div class="info-group">
                     <label>ที่อยู่ :</label>
-                    <span>{{ user.address }}</span>
+                    <span>{{ user?.address }}</span>
                   </div>
                   <div class="info-group">
                     <label>Email :</label>
-                    <span>{{ user.email }}</span>
+                    <span>{{ user?.email }}</span>
                   </div>
                   <div class="info-group">
                     <label>เบอร์โทรศัพท์ :</label>
-                    <span>{{ user.phone_number }}</span>
+                    <span>{{ user?.phone_number }}</span>
                   </div>
                 </div>
                 <div class="profile-info-block">
-                  </div>
+                  <!-- ช่องว่างสำรอง -->
+                </div>
               </div>
 
               <div class="leave-info-card">
                 <label>รหัสเครื่องสแกนลายนิ้วมือ :</label>
-                <span>{{ user.fingerprint_id }}</span>
+                <span>{{ user?.fingerprint_id }}</span>
                 <div class="leave-balance">
-                  <p>วันลากิจคงเหลือ : {{ user.leave_balance.personal }} วัน</p>
-                  <p>วันลาป่วยคงเหลือ : {{ user.leave_balance.sick }} วัน</p>
-                  <p>วันลาพักร้อนคงเหลือ : {{ user.leave_balance.vacation }} วัน</p>
-                  <p>วันลาอื่นๆคงเหลือ : {{ user.leave_balance.other }} วัน</p>
+                  <p>วันลากิจคงเหลือ : {{ user?.quota_casual ?? 0 }} วัน</p>
+                  <p>วันลาป่วยคงเหลือ : {{ user?.quota_sick ?? 0 }} วัน</p>
+                  <p>วันลาพักร้อนคงเหลือ : {{ user?.quota_vacation ?? 0 }} วัน</p>
+                  <p>วันลาอื่นๆคงเหลือ : {{ user?.leave_balance?.other ?? 0 }} วัน</p>
                 </div>
               </div>
             </div>
@@ -171,27 +172,29 @@ import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import axios from 'axios';
 
-// Logic for user authentication and data fetching
-//-------------------------------------------------------------
 const user = ref<any>(null);
 const token = ref<string | null>(null);
 
-onMounted(async () => {
-  token.value = localStorage.getItem('token');
+const router = useRouter();
+const route = useRoute();
 
-  if (!token.value) {
-    router.push('/login');
+onMounted(async () => {
+  const tokenStored = localStorage.getItem("token");
+  if (!tokenStored) {
+    router.push("/login");
     return;
   }
+  axios.defaults.headers.common['Authorization'] = `Token ${tokenStored}`;
 
   try {
-    const response = await axios.get('http://localhost:8000/api/users/me/', {
-      headers: { Authorization: `Token ${token.value}` },
-    });
+    const response = await axios.get("http://localhost:8000/api/users/me/");
     user.value = response.data;
+    if (user.value.role !== "employee") {
+      router.push("/login");
+    }
   } catch (err) {
     console.error(err);
-    router.push('/login');
+    router.push("/login");
   }
 });
 
@@ -204,73 +207,37 @@ function handleBodyClick(event: MouseEvent) {
     showProfileMenu.value = false;
   }
 }
-onMounted(() => {
-  document.addEventListener('click', handleBodyClick);
-});
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleBodyClick);
-});
+onMounted(() => document.addEventListener('click', handleBodyClick));
+onBeforeUnmount(() => document.removeEventListener('click', handleBodyClick));
 
-const router = useRouter();
-const route = useRoute();
 function goTo(path: string) {
   router.push(path);
 }
 function logout() {
-  localStorage.removeItem('token'); 
-  router.push('/login');
+  localStorage.removeItem("token")
+  delete axios.defaults.headers.common['Authorization']
+  router.push("/login")
 }
-
-const profile = ref({
-  thaiName: 'นาย User Name',
-  engName: 'Mr. User Name',
-  position: 'ตำแหน่ง',
-  employmentType: 'พนักงานประจำ',
-  startDate: '2020-01-01',
-  birthDate: '1990-01-01',
-  address: 'ที่อยู่...',
-  email: 'user@example.com',
-  phone: '081-123-4567',
-  fingerprintId: '12345',
-  leaveBalance: {
-    personal: 5,
-    sick: 30,
-    vacation: 10,
-    other: 0,
-  }
-});
 
 const breadcrumbs = computed(() => {
   switch (route.path) {
-    case '/user':
-      return 'หน้าหลัก';
-    case '/user2':
-      return 'หน้าหลัก > ยื่นใบลา';
-    case '/user3':
-      return 'หน้าหลัก > ยื่นใบลาแทน';
-    case '/user4':
-      return 'หน้าหลัก > ประวัติการลา';
-    case '/user5':
-      return 'หน้าหลัก > ขออนุญาตปฏิบัติงานนอกสถานที่';
-    case '/user6':
-      return 'หน้าหลัก > ขออนุญาตปฏิบัติงานนอกสถานที่ให้คนอื่น';
-    case '/user7':
-      return 'หน้าหลัก > ดูรายการปฏิบัติงานนอกสถานที่';
-    case '/user8':
-      return 'หน้าหลัก > วันหยุด';
-    case '/user9':
-      return 'หน้าหลัก > วันหยุด > ปฏิทิน';
-    case '/user10':
-      return 'หน้าหลัก > ข้อมูลส่วนตัว';
-    case '/user11':
-      return 'หน้าหลัก > ข้อมูลส่วนตัว > แก้ไข';
-    case '/user12':
-      return 'หน้าหลัก > เปลี่ยนรหัสผ่าน';
-    default:
-      return 'หน้าหลัก';
+    case '/user': return 'หน้าหลัก';
+    case '/user2': return 'หน้าหลัก > ยื่นใบลา';
+    case '/user3': return 'หน้าหลัก > ยื่นใบลาแทน';
+    case '/user4': return 'หน้าหลัก > ประวัติการลา';
+    case '/user5': return 'หน้าหลัก > ขออนุญาตปฏิบัติงานนอกสถานที่';
+    case '/user6': return 'หน้าหลัก > ขออนุญาตปฏิบัติงานนอกสถานที่ให้คนอื่น';
+    case '/user7': return 'หน้าหลัก > ดูรายการปฏิบัติงานนอกสถานที่';
+    case '/user8': return 'หน้าหลัก > วันหยุด';
+    case '/user9': return 'หน้าหลัก > วันหยุด > ปฏิทิน';
+    case '/user10': return 'หน้าหลัก > ข้อมูลส่วนตัว';
+    case '/user11': return 'หน้าหลัก > ข้อมูลส่วนตัว > แก้ไข';
+    case '/user12': return 'หน้าหลัก > เปลี่ยนรหัสผ่าน';
+    default: return 'หน้าหลัก';
   }
 });
 </script>
+
 
 <style scoped>
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');

@@ -167,21 +167,22 @@ const user = ref(null);
 const token = ref(null);
 
 onMounted(async () => {
-  token.value = localStorage.getItem('token');
-
-  if (!token.value) {
-    router.push('/login');
+  const tokenStored = localStorage.getItem("token");
+  if (!tokenStored) {
+    router.push("/login");
     return;
   }
+  axios.defaults.headers.common['Authorization'] = `Token ${tokenStored}`;
 
   try {
-    const response = await axios.get('http://localhost:8000/api/users/me/', {
-      headers: { Authorization: `Token ${token.value}` },
-    });
+    const response = await axios.get("http://localhost:8000/api/users/me/");
     user.value = response.data;
+    if (user.value.role !== "employee") {
+      router.push("/login");
+    }
   } catch (err) {
     console.error(err);
-    router.push('/login');
+    router.push("/login");
   }
 });
 
@@ -212,10 +213,11 @@ const goTo = (path) => {
   router.push(path);
 };
 
-const logout = () => {
-  localStorage.removeItem('token');
-  router.push('/login');
-};
+function logout() {
+  localStorage.removeItem("token")
+  delete axios.defaults.headers.common['Authorization']
+  router.push("/login")
+}
 
 const breadcrumbs = computed(() => {
   switch (route.path) {

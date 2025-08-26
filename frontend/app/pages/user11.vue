@@ -109,7 +109,7 @@
                 <div class="form-row">
                   <div class="form-group">
                     <label>คำนำหน้าชื่อ *:</label>
-                    <select v-model="user.prefix" class="select-input">
+                    <select v-model="user.prefix_th" class="select-input">
                       <option>นาย</option>
                       <option>นาง</option>
                       <option>นางสาว</option>
@@ -117,23 +117,23 @@
                   </div>
                   <div class="form-group">
                     <label>ชื่อภาษาไทย *:</label>
-                    <input type="text" v-model="user.thai_name" class="text-input" />
+                    <input type="text" v-model="user.firstname_th" class="text-input" />
                   </div>
                 </div>
                 <div class="form-row">
                   <div class="form-group">
                     <label>นามสกุลภาษาไทย *:</label>
-                    <input type="text" v-model="user.thai_surname" class="text-input" />
+                    <input type="text" v-model="user.lastname_th" class="text-input" />
                   </div>
                   <div class="form-group">
                     <label>ชื่อภาษาอังกฤษ *:</label>
-                    <input type="text" v-model="user.eng_name" class="text-input" />
+                    <input type="text" v-model="user.firstname_en" class="text-input" />
                   </div>
                 </div>
                 <div class="form-row">
                   <div class="form-group">
                     <label>นามสกุลภาษาอังกฤษ *:</label>
-                    <input type="text" v-model="user.eng_surname" class="text-input" />
+                    <input type="text" v-model="user.lastname_en" class="text-input" />
                   </div>
                   <div class="form-group">
                     <label>Email *:</label>
@@ -178,21 +178,22 @@ const user = ref<any>(null);
 const token = ref<string | null>(null);
 
 onMounted(async () => {
-  token.value = localStorage.getItem('token');
-
-  if (!token.value) {
-    router.push('/login');
+  const tokenStored = localStorage.getItem("token");
+  if (!tokenStored) {
+    router.push("/login");
     return;
   }
+  axios.defaults.headers.common['Authorization'] = `Token ${tokenStored}`;
 
   try {
-    const response = await axios.get('http://localhost:8000/api/users/me/', {
-      headers: { Authorization: `Token ${token.value}` },
-    });
+    const response = await axios.get("http://localhost:8000/api/users/me/");
     user.value = response.data;
+    if (user.value.role !== "employee") {
+      router.push("/login");
+    }
   } catch (err) {
     console.error(err);
-    router.push('/login');
+    router.push("/login");
   }
 });
 
@@ -218,8 +219,9 @@ function goTo(path: string) {
   router.push(path);
 }
 function logout() {
-  localStorage.removeItem('token'); 
-  router.push('/login');
+  localStorage.removeItem("token")
+  delete axios.defaults.headers.common['Authorization']
+  router.push("/login")
 }
 
 const submitForm = () => {

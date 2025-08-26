@@ -99,6 +99,39 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+
+const router = useRouter()
+const token = localStorage.getItem('token')
+const showDropdown = ref(false)
+
+onMounted(async () => {
+  if (!token) {
+    router.push('/login')
+    return
+  }
+  axios.defaults.headers.common['Authorization'] = `Token ${token}`
+  
+  try {
+    const response = await axios.get('http://localhost:8000/api/users/me/')
+    if (response.data.role !== 'admin') {
+      router.push('/login')
+    }
+  } catch (err) {
+    console.error(err)
+    router.push('/login')
+  }
+})
+
+const toggleDropdown = () => { showDropdown.value = !showDropdown.value }
+
+function logout() {
+  localStorage.removeItem("token")
+  delete axios.defaults.headers.common['Authorization']
+  router.push("/login")
+}
 </script>
 
 <style scoped>

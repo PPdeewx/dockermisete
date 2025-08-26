@@ -54,19 +54,32 @@ const handleLogin = async () => {
 
     const token = response.data.token;
     localStorage.setItem("token", token);
+    axios.defaults.headers.common['Authorization'] = `Token ${token}`;
 
-    alert("Login success!");
-    router.push("/user");
+    // ดึงข้อมูลผู้ใช้เพื่อตรวจสอบ role
+    const userResponse = await axios.get("http://localhost:8000/api/users/me/");
+    const user = userResponse.data;
+
+    if (user.role === "admin") {
+      router.push("/admin");
+    } else {
+      router.push("/user");
+    }
+
   } catch (error: any) {
     console.error("Login failed:", error.response?.data || error.message);
     alert("Login failed, username or password incorrect.");
   }
 };
 
-const goToRecovery = () => {
-  router.push("/forgot-recovery");
+// ใช้ฟังก์ชัน logout ในหน้า user/admin
+const logout = () => {
+  localStorage.removeItem("token");
+  delete axios.defaults.headers.common['Authorization'];
+  router.push("/login");
 };
 </script>
+
 
 <style scoped>
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
