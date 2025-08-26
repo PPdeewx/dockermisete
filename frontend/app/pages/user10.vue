@@ -57,7 +57,8 @@
         <div class="user-profile" @click.stop="toggleProfileMenu">
           <i class="fas fa-bell"></i>
           <i class="fas fa-user-circle"></i>
-          <span class="username">Username ตำแหน่ง:</span>
+          <span class="username">{{ user?.username }}</span>
+          <span v-if="user">ตำแหน่ง: {{ user.role }}</span>
           <i class="fas fa-chevron-down"></i>
 
           <div class="user-profile-menu" v-if="showProfileMenu">
@@ -100,19 +101,19 @@
               <div class="profile-form-row">
                 <div class="form-group">
                   <label>ชื่อภาษาไทย :</label>
-                  <input type="text" v-model="profile.thaiName" class="text-input" />
+                  <input type="text" v-model="user.thaiName" class="text-input" readonly />
                 </div>
               </div>
               <div class="profile-form-row">
                 <div class="form-group">
                   <label>ชื่อภาษาอังกฤษ :</label>
-                  <input type="text" v-model="profile.engName" class="text-input" />
+                  <input type="text" v-model="user.engName" class="text-input" readonly />
                 </div>
               </div>
               <div class="profile-form-row">
                 <div class="form-group">
                   <label>ตำแหน่ง :</label>
-                  <input type="text" v-model="profile.position" class="text-input" />
+                  <input type="text" v-model="user.role" class="text-input" readonly />
                 </div>
               </div>
               
@@ -120,27 +121,27 @@
                 <div class="profile-info-block">
                   <div class="info-group">
                     <label>ประเภทการจ้างงาน :</label>
-                    <span>{{ profile.employmentType }}</span>
+                    <span>{{ user.employment_type }}</span>
                   </div>
                   <div class="info-group">
                     <label>วันที่เริ่มทำงาน :</label>
-                    <span>{{ profile.startDate }}</span>
+                    <span>{{ user.start_date }}</span>
                   </div>
                   <div class="info-group">
                     <label>วันเกิด :</label>
-                    <span>{{ profile.birthDate }}</span>
+                    <span>{{ user.birth_date }}</span>
                   </div>
                   <div class="info-group">
                     <label>ที่อยู่ :</label>
-                    <span>{{ profile.address }}</span>
+                    <span>{{ user.address }}</span>
                   </div>
                   <div class="info-group">
                     <label>Email :</label>
-                    <span>{{ profile.email }}</span>
+                    <span>{{ user.email }}</span>
                   </div>
                   <div class="info-group">
                     <label>เบอร์โทรศัพท์ :</label>
-                    <span>{{ profile.phone }}</span>
+                    <span>{{ user.phone_number }}</span>
                   </div>
                 </div>
                 <div class="profile-info-block">
@@ -149,12 +150,12 @@
 
               <div class="leave-info-card">
                 <label>รหัสเครื่องสแกนลายนิ้วมือ :</label>
-                <span>{{ profile.fingerprintId }}</span>
+                <span>{{ user.fingerprint_id }}</span>
                 <div class="leave-balance">
-                  <p>วันลากิจคงเหลือ : {{ profile.leaveBalance.personal }} วัน</p>
-                  <p>วันลาป่วยคงเหลือ : {{ profile.leaveBalance.sick }} วัน</p>
-                  <p>วันลาพักร้อนคงเหลือ : {{ profile.leaveBalance.vacation }} วัน</p>
-                  <p>วันลาอื่นๆคงเหลือ : {{ profile.leaveBalance.other }} วัน</p>
+                  <p>วันลากิจคงเหลือ : {{ user.leave_balance.personal }} วัน</p>
+                  <p>วันลาป่วยคงเหลือ : {{ user.leave_balance.sick }} วัน</p>
+                  <p>วันลาพักร้อนคงเหลือ : {{ user.leave_balance.vacation }} วัน</p>
+                  <p>วันลาอื่นๆคงเหลือ : {{ user.leave_balance.other }} วัน</p>
                 </div>
               </div>
             </div>
@@ -168,8 +169,32 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import axios from 'axios';
 
-// State for profile menu
+// Logic for user authentication and data fetching
+//-------------------------------------------------------------
+const user = ref<any>(null);
+const token = ref<string | null>(null);
+
+onMounted(async () => {
+  token.value = localStorage.getItem('token');
+
+  if (!token.value) {
+    router.push('/login');
+    return;
+  }
+
+  try {
+    const response = await axios.get('http://localhost:8000/api/users/me/', {
+      headers: { Authorization: `Token ${token.value}` },
+    });
+    user.value = response.data;
+  } catch (err) {
+    console.error(err);
+    router.push('/login');
+  }
+});
+
 const showProfileMenu = ref(false);
 function toggleProfileMenu() {
   showProfileMenu.value = !showProfileMenu.value;
@@ -186,17 +211,16 @@ onBeforeUnmount(() => {
   document.removeEventListener('click', handleBodyClick);
 });
 
-// Router and navigation
 const router = useRouter();
 const route = useRoute();
 function goTo(path: string) {
   router.push(path);
 }
 function logout() {
+  localStorage.removeItem('token'); 
   router.push('/login');
 }
 
-// Profile data
 const profile = ref({
   thaiName: 'นาย User Name',
   engName: 'Mr. User Name',
@@ -216,7 +240,6 @@ const profile = ref({
   }
 });
 
-// Breadcrumbs based on the current route
 const breadcrumbs = computed(() => {
   switch (route.path) {
     case '/user':

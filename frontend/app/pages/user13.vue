@@ -53,10 +53,11 @@
         <div class="breadcrumbs">
           <span><i class="fas fa-home"></i> {{ breadcrumbs }}</span>
         </div>
-        <div class="user-profile" @click.stop="toggleProfileMenu">
+         <div class="user-profile" @click.stop="toggleProfileMenu">
           <i class="fas fa-bell"></i>
           <i class="fas fa-user-circle"></i>
-          <span class="username">Username ตำแหน่ง:</span>
+          <span class="username">{{ user?.username }}</span>
+          <span v-if="user">ตำแหน่ง: {{ user.role }}</span>
           <i class="fas fa-chevron-down"></i>
           
           <div class="user-profile-menu" v-if="showProfileMenu">
@@ -98,8 +99,8 @@
                     <i class="fas fa-cog gear-icon"></i>
                 </div>
                 <div class="profile-details">
-                    <span class="profile-username">Username</span>
-                    <span class="profile-id">รหัส DD#0000</span>
+                    <span class="profile-username">{{ user?.username }}</span>
+                    <span class="profile-id" v-if="user">รหัส {{ user.role }}</span>
                 </div>
             </div>
             
@@ -203,6 +204,29 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import axios from 'axios';
+
+const user = ref<any>(null);
+const token = ref<string | null>(null);
+
+onMounted(async () => {
+  token.value = localStorage.getItem('token');
+
+  if (!token.value) {
+    router.push('/login');
+    return;
+  }
+
+  try {
+    const response = await axios.get('http://localhost:8000/api/users/me/', {
+      headers: { Authorization: `Token ${token.value}` },
+    });
+    user.value = response.data;
+  } catch (err) {
+    console.error(err);
+    router.push('/login');
+  }
+});
 
 const showProfileMenu = ref(false);
 function toggleProfileMenu() {
@@ -226,6 +250,7 @@ function goTo(path: string) {
   router.push(path);
 }
 function logout() {
+  localStorage.removeItem('token'); 
   router.push('/login');
 }
 
@@ -277,7 +302,6 @@ const breadcrumbs = computed(() => {
   color: #333;
 }
 
-/* Sidebar Styling */
 .sidebar {
   width: 250px;
   background-color: #ffffff;
@@ -331,7 +355,6 @@ const breadcrumbs = computed(() => {
   color: #1890ff;
 }
 
-/* Main Content Styling */
 .main-content {
   flex-grow: 1;
   display: flex;
