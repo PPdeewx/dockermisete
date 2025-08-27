@@ -104,16 +104,21 @@ import { useRouter } from 'vue-router'
 import axios from 'axios'
 
 const router = useRouter()
-const token = localStorage.getItem('token')
 const showDropdown = ref(false)
+const token = ref<string | null>(null)
 
 onMounted(async () => {
-  if (!token) {
+  if (typeof window !== "undefined") {
+    token.value = localStorage.getItem("token")
+  }
+
+  if (!token.value) {
     router.push('/login')
     return
   }
-  axios.defaults.headers.common['Authorization'] = `Token ${token}`
-  
+
+  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`
+
   try {
     const response = await axios.get('http://localhost:8000/api/users/me/')
     if (response.data.role !== 'admin') {
@@ -128,7 +133,9 @@ onMounted(async () => {
 const toggleDropdown = () => { showDropdown.value = !showDropdown.value }
 
 function logout() {
-  localStorage.removeItem("token")
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("token")
+  }
   delete axios.defaults.headers.common['Authorization']
   router.push("/login")
 }
