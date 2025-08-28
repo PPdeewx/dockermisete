@@ -13,8 +13,8 @@
           <ul class="submenu active">
             <li><a href="#" class="submenu-link">พนักงานปัจจุบัน</a></li>
             <li><a href="#" class="submenu-link">พนักงานที่ลาออก</a></li>
-            <li><a href="#" class="submenu-link active">บุคลากรภายนอก</a></li>
-            <li><a href="#" class="submenu-link">พนักงาน EDDP</a></li>
+            <li><a href="#" class="submenu-link">บุคลากรภายนอก</a></li>
+            <li><a href="#" class="submenu-link active">พนักงาน EDDP</a></li>
             <li><a href="#" class="submenu-link">เพิ่ม/แก้ไข/ลบ พนักงาน</a></li>
             <li><a href="#" class="submenu-link">เพิ่มบุคลากรภายนอก</a></li>
             <li><a href="#" class="submenu-link">เปลี่ยนสถานะพนักงาน</a></li>
@@ -68,12 +68,6 @@
           <div class="left-section">
             <i class="fas fa-user-circle title-icon"></i>
             <h2>บุคลากรภายนอก</h2>
-          </div>
-          <div class="right-section">
-            <button class="add-external-staff-button">
-              <i class="fas fa-plus-circle"></i>
-              เพิ่มบุคลากรภายนอก
-            </button>
           </div>
         </div>
 
