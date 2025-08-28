@@ -37,7 +37,7 @@
     <div class="main-content">
       <div class="top-bar">
         <div class="breadcrumbs">
-          <span><i class="fas fa-home"></i> หน้าหลัก > บุคลากร > บุคลากรภายนอก</span>
+          <span><i class="fas fa-home"></i> หน้าหลัก > บุคลากร > พนักงาน EDDP</span>
         </div>
         <div class="user-profile-container">
           <div class="user-profile" @click="toggleDropdown">
@@ -67,7 +67,7 @@
         <div class="header-with-button">
           <div class="left-section">
             <i class="fas fa-user-circle title-icon"></i>
-            <h2>บุคลากรภายนอก</h2>
+            <h2>ผู้ใช้งานโครงการพัฒนาการศึกษาด้านพลังงาน</h2>
           </div>
         </div>
 
