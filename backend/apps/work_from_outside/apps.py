@@ -1,6 +1,8 @@
 from django.apps import AppConfig
 
-
 class WorkFromOutsideConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'apps.work_from_outside'
+
+    def ready(self):
+        from . import signals

@@ -1,3 +1,8 @@
 from django.contrib import admin
+from .models import WorkOutsideRequest
 
-# Register your models here.
+@admin.register(WorkOutsideRequest)
+class WorkOutsideRequestAdmin(admin.ModelAdmin):
+    list_display = ('request_number', 'user', 'approver', 'status', 'start_date', 'end_date')
+    list_filter = ('status', 'approver')
+    search_fields = ('request_number', 'user__username', 'approver__username')
