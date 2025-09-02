@@ -31,7 +31,7 @@
         <div class="user-profile" @click="toggleDropdown">
           <i class="fas fa-bell"></i>
           <i class="fas fa-user-circle"></i>
-          <span class="username">Username ตำแหน่ง: Admin</span>
+          <span class="username">{{ user?.username }} ตำแหน่ง: {{ user?.role }}</span>
           <i :class="['fas', showDropdown ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
 
           <div class="dropdown-menu" v-if="showDropdown">
@@ -140,6 +140,8 @@ import axios from 'axios'
 const router = useRouter()
 const showDropdown = ref(false)
 const token = ref<string | null>(null)
+
+const user = ref<any>(null)
 
 onMounted(async () => {
   if (typeof window !== "undefined") {

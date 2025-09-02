@@ -45,9 +45,12 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
         allow_null=True
     )
     on_behalf_of_name = serializers.CharField(source='on_behalf_of.username', read_only=True)
+    
+    period = serializers.ChoiceField(choices=HALF_CHOICES)
+    
     class Meta:
         model = LeaveRequest
-        fields = ['id','leave_number','user','on_behalf_of_id', 'on_behalf_of_name','leave_type','leave_type_id','start_date','end_date','start_half','end_half','days','reason','approver','approver_id','substitute','substitute_id','status','request_date','created_by_admin']
+        fields = ['id','leave_number','user','on_behalf_of_id', 'on_behalf_of_name','leave_type','leave_type_id','start_date','end_date','period','days','reason','approver','approver_id','substitute','substitute_id','status','request_date','created_by_admin']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -64,9 +67,8 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
         leave_type = data.get('leave_type') or getattr(self.instance, 'leave_type', None)
         start = data.get('start_date') or getattr(self.instance, 'start_date', None)
         end = data.get('end_date') or getattr(self.instance, 'end_date', None)
-        start_half = data.get('start_half') or getattr(self.instance, 'start_half', None)
-        end_half = data.get('end_half') or getattr(self.instance, 'end_half', None)
-
+        period = data.get('period') or getattr(self.instance, 'period', None)
+        
         if not leave_type or not start or not end:
             raise serializers.ValidationError('leave_type, start_date and end_date are required.')
 

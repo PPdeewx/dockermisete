@@ -101,8 +101,8 @@
               <i class="fas fa-user-circle"></i>
             </div>
             <div class="user-details">
-              <span>รหัส {{ user?.employee_id || 'N/A' }}</span>
-              <p>{{ user?.first_name || 'Username' }} {{ user?.last_name || 'Username' }}</p>
+              <span>รหัส {{ user?.employee_code || 'N/A' }}</span>
+              <p>{{ user?.firstname_th || 'Username' }} {{ user?.lastname_th || 'Username' }}</p>
             </div>
           </div>
         </div>
@@ -131,7 +131,7 @@
                 <td>{{ item.status }}</td>
                 <td class="actions-cell">
                   <i class="fas fa-edit action-icon" @click="goTo('/user14')"></i>
-                  <i class="fas fa-search-plus action-icon"@click="goTo('/user15')"></i>
+                  <i class="fas fa-search-plus action-icon" @click="goTo('/user15')"></i>
                 </td>
               </tr>
             </tbody>
