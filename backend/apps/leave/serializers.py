@@ -68,25 +68,21 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
         start = data.get('start_date') or getattr(self.instance, 'start_date', None)
         end = data.get('end_date') or getattr(self.instance, 'end_date', None)
         period = data.get('period') or getattr(self.instance, 'period', None)
-        
+
         if not leave_type or not start or not end:
             raise serializers.ValidationError('leave_type, start_date and end_date are required.')
 
         if end < start:
             raise serializers.ValidationError('end_date ต้องไม่ต่ำกว่า start_date')
 
-        days = Decimal((end - start).days + 1)
-
+        from decimal import Decimal
         if start == end:
-            if start_half != end_half:
+            if period == 'full':
                 days = Decimal('1.0')
             else:
                 days = Decimal('0.5')
         else:
-            if start_half == 'afternoon':
-                days -= Decimal('0.5')
-            if end_half == 'morning':
-                days -= Decimal('0.5')
+            days = Decimal((end - start).days + 1)
 
         data['days'] = days.quantize(Decimal('0.1'))
 
