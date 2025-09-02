@@ -215,7 +215,7 @@ const loadUsers = async () => {
     const allUsers = response.data;
 
     approvers.value = allUsers
-      .filter((u: any) => u.role === "manager")
+      .filter((u: any) => u.role === "manager" || u.role === "admin")
       .map((u: any) => ({
         id: u.id,
         name: `${u.prefix_th || ""} ${u.firstname_th} ${u.lastname_th}`.trim(),
@@ -271,20 +271,29 @@ onMounted(async () => {
 const submitForm = async () => {
   try {
     const payload = {
-      leave_type: form.value.leaveType,
+      leave_type_id: leaveTypes.value.find(t => t.name === form.value.leaveType)?.id,
       start_date: form.value.startDate,
       end_date: form.value.endDate,
       period: form.value.period,
       reason: form.value.reason,
-      approver: form.value.approver,
-      substitute: form.value.substitute
+      approver_id: approvers.value.find(a => a.name === form.value.approver)?.id,
+      substitute_id: substitutes.value.find(s => s.name === form.value.substitute)?.id || null
     };
+
+    // ตรวจสอบ field required
+    if (!payload.leave_type_id || !payload.start_date || !payload.end_date || !payload.period || !payload.reason || !payload.approver_id) {
+      alert("กรุณากรอกข้อมูลให้ครบทุกช่องที่จำเป็น");
+      return;
+    }
+
+    console.log("Payload to send:", payload);
+
     await axios.post("http://localhost:8000/api/leave/leave-requests/", payload);
     alert('ส่งคำขอลาสำเร็จ!');
     router.push('/user4');
-  } catch (error:any) {
-    console.error(error.response?.data || error);
-    alert('เกิดข้อผิดพลาดในการส่งคำขอ');
+  } catch (error: any) {
+    console.error("Submit error:", error.response?.data || error);
+    alert(`เกิดข้อผิดพลาด: ${error.response?.data?.detail || JSON.stringify(error.response?.data)}`);
   }
 };
 
