@@ -8,12 +8,12 @@
         <li class="nav-item">
           <a href="#" class="nav-link"><i class="fas fa-home"></i> หน้าหลัก</a>
         </li>
-        <li class="nav-item has-submenu active">
+        <li class="nav-item has-submenu">
           <a href="#" class="nav-link"><i class="fas fa-users"></i> บุคลากร</a>
-          <ul class="submenu active">
+          <ul class="submenu">
             <li><a href="#" class="submenu-link">พนักงานปัจจุบัน</a></li>
             <li><a href="#" class="submenu-link">พนักงานที่ลาออก</a></li>
-            <li><a href="#" class="submenu-link active">บุคลากรภายนอก</a></li>
+            <li><a href="#" class="submenu-link">บุคลากรภายนอก</a></li>
             <li><a href="#" class="submenu-link">พนักงาน EDDP</a></li>
             <li><a href="#" class="submenu-link">เพิ่ม/แก้ไข/ลบ พนักงาน</a></li>
             <li><a href="#" class="submenu-link">เพิ่มบุคลากรภายนอก</a></li>
@@ -21,22 +21,18 @@
             <li><a href="#" class="submenu-link">กำหนดโควต้าลา(ทั้งหมด)</a></li>
           </ul>
         </li>
-        <li class="nav-item">
+        <li class="nav-item active">
           <a href="#" class="nav-link"><i class="fas fa-flask"></i> ห้องวิจัย</a>
         </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link"><i class="fas fa-calendar-alt"></i> วันหยุด</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link"><i class="fas fa-cog"></i> ระบบการปฏิบัติงาน</a>
-        </li>
+        <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-calendar-alt"></i> วันหยุด</a></li>
+        <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-cog"></i> ระบบการปฏิบัติงาน</a></li>
       </ul>
     </div>
 
     <div class="main-content">
       <div class="top-bar">
         <div class="breadcrumbs">
-          <span><i class="fas fa-home"></i> หน้าหลัก > บุคลากร > บุคลากรภายนอก</span>
+          <span><i class="fas fa-home"></i> หน้าหลัก > ห้องวิจัย</span>
         </div>
         <div class="user-profile-container">
           <div class="user-profile" @click="toggleDropdown">
@@ -46,72 +42,45 @@
             <i class="fas fa-chevron-down" :class="{ 'rotate': isDropdownOpen }"></i>
           </div>
           <div class="dropdown-menu" v-if="isDropdownOpen">
-            <a href="#" class="dropdown-item">
-              <i class="fas fa-user"></i> ดูข้อมูลส่วนตัว
-            </a>
-            <a href="#" class="dropdown-item">
-              <i class="fas fa-user-edit"></i> แก้ไขข้อมูลส่วนตัว
-            </a>
-            <a href="#" class="dropdown-item">
-              <i class="fas fa-fingerprint"></i> เปลี่ยนรหัสผ่าน
-            </a>
-            <a href="#" class="dropdown-item">
-              <i class="fas fa-sign-out-alt"></i> ออกจากระบบ
-            </a>
+            <a href="#" class="dropdown-item"><i class="fas fa-user"></i> ดูข้อมูลส่วนตัว</a>
+            <a href="#" class="dropdown-item"><i class="fas fa-user-edit"></i> แก้ไขข้อมูลส่วนตัว</a>
+            <a href="#" class="dropdown-item"><i class="fas fa-fingerprint"></i> เปลี่ยนรหัสผ่าน</a>
+            <a href="#" class="dropdown-item"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</a>
           </div>
         </div>
       </div>
 
       <div class="content-container">
         <div class="header-with-button">
-          <div class="left-section">
-            <i class="fas fa-user-circle title-icon"></i>
-            <h2>บุคลากรภายนอก</h2>
-          </div>
-          <div class="right-section">
-            <button class="add-external-staff-button">
-              <i class="fas fa-plus-circle"></i>
-              เพิ่มบุคลากรภายนอก
-            </button>
-          </div>
+          <h2><i class="fas fa-flask"></i> ห้องวิจัย</h2>
+          <button class="btn-add-room" @click="addRoom">
+            <i class="fas fa-plus"></i> เพิ่มห้องวิจัย
+          </button>
         </div>
-
-        <div class="search-and-table-container">
-          <div class="search-bar-container">
-            <label for="search">SEARCH :</label>
-            <input type="text" id="search" placeholder="" class="search-input">
-          </div>
-
-          <div class="responsive-table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>ลำดับที่</th>
-                  <th>รหัส</th>
-                  <th>Username</th>
-                  <th>Lab</th>
-                  <th>ชื่อภาษาไทย</th>
-                  <th>เบอร์โทรศัพท์</th>
-                  <th>Email</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="i in 10" :key="i">
-                  <td>{{ i }}</td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td>
-                    <i class="fas fa-search action-icon view-icon"></i>
-                    <i class="fas fa-edit action-icon edit-icon"></i>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+        
+        <div class="room-list">
+          <div v-for="(room, index) in researchRooms" :key="index" class="room-card">
+            <div class="room-card-header">
+              <h3>
+                {{ room.nameThai }}<br>
+                <small>{{ room.nameEnglish }}</small>
+              </h3>
+              <div class="room-actions">
+                <button class="btn-action edit" @click="editRoom(room)"><i class="fas fa-edit"></i></button>
+                <button class="btn-action delete" @click="deleteRoom(room)"><i class="fas fa-times"></i></button>
+              </div>
+            </div>
+            <div class="room-card-body">
+              <p>
+                <strong>หัวหน้าห้องวิจัย : </strong>{{ room.head }}
+              </p>
+              <div class="personnel-list">
+                <strong>บุคลากร :</strong>
+                <ol>
+                  <li v-for="(person, pIndex) in room.personnel" :key="pIndex">{{ person }}</li>
+                </ol>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -120,12 +89,56 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, reactive } from 'vue';
 
 const isDropdownOpen = ref(false);
 
 const toggleDropdown = () => {
   isDropdownOpen.value = !isDropdownOpen.value;
+};
+
+const researchRooms = reactive([
+  {
+    nameThai: 'ห้องวิจัยพลังงานทดแทนและอนุรักษ์พลังงาน',
+    nameEnglish: '[Renewable Energy and Energy Conservation Laboratory - REEC]',
+    head: 'ผศ.ดร.ชัยวาส อัยยนะ',
+    personnel: [
+      '1.', '2.', '3.', '4.', '5.'
+    ]
+  },
+  {
+    nameThai: 'ห้องวิจัยด้านวิศวกรรมและการบริหารจัดการการเปลี่ยนแปลงสภาพภูมิอากาศด้านพลังงาน',
+    nameEnglish: '[Climate Change Engineering and Management in Energy Sector Laboratory - CCEME]',
+    head: 'ผศ.วงกต วงศ์อภัย',
+    personnel: [
+      '1.', '2.', '3.', '4.', '5.'
+    ]
+  },
+  {
+    nameThai: 'โครงการพัฒนาการศึกษาด้านพลังงาน',
+    nameEnglish: '[Energy Education Development Project: EEDP]',
+    head: 'รศ.ดร.ธงชัย ฟองสมุทร',
+    personnel: [
+      '1.', '2.', '3.', '4.', '5.'
+    ]
+  }
+]);
+
+const addRoom = () => {
+  alert('ฟังก์ชันสำหรับเพิ่มห้องวิจัย');
+};
+
+const editRoom = (room: any) => {
+  alert(`แก้ไขข้อมูลห้องวิจัย: ${room.nameThai}`);
+};
+
+const deleteRoom = (room: any) => {
+  if (confirm(`คุณต้องการลบห้องวิจัย ${room.nameThai} หรือไม่?`)) {
+    const index = researchRooms.findIndex(r => r === room);
+    if (index > -1) {
+      researchRooms.splice(index, 1);
+    }
+  }
 };
 </script>
 
@@ -160,12 +173,6 @@ const toggleDropdown = () => {
   margin-bottom: 10px;
 }
 
-.logo {
-  width: 40px;
-  height: 40px;
-  margin-right: 10px;
-}
-
 .sidebar-header span {
   font-size: 18px;
   font-weight: bold;
@@ -184,7 +191,6 @@ const toggleDropdown = () => {
 .nav-link {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 10px 15px;
   text-decoration: none;
   color: #555;
@@ -202,14 +208,6 @@ const toggleDropdown = () => {
 .nav-item.active .nav-link {
   background-color: #e6f7ff;
   color: #1890ff;
-}
-
-.nav-item.has-submenu .arrow {
-  transition: transform 0.3s ease-in-out;
-}
-
-.nav-item.has-submenu.active .arrow {
-  transform: rotate(90deg);
 }
 
 .submenu {
@@ -232,7 +230,6 @@ const toggleDropdown = () => {
   color: #555;
   border-left: 3px solid transparent;
   transition: all 0.2s;
-  position: relative;
 }
 
 .submenu-link:hover,
@@ -312,13 +309,11 @@ const toggleDropdown = () => {
   padding: 10px 20px;
   text-decoration: none;
   color: #333;
-  transition: background-color 0.2s;
 }
 
 .dropdown-item i {
   margin-right: 12px;
   font-size: 16px;
-  width: 20px;
 }
 
 .dropdown-item:hover {
@@ -341,118 +336,111 @@ const toggleDropdown = () => {
   margin-bottom: 20px;
 }
 
-.left-section {
-  display: flex;
-  align-items: center;
-}
-
-.title-icon {
+.header-with-button h2 {
   font-size: 24px;
-  color: #888;
-  margin-right: 10px;
+  font-weight: bold;
 }
 
-h2 {
-  margin: 0;
-  font-size: 20px;
-}
-
-.add-button {
+.btn-add-room {
   background-color: #4CAF50;
   color: white;
-  padding: 10px 15px;
   border: none;
+  padding: 10px 15px;
   border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  font-size: 1em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
 }
 
-.add-button:hover {
+.btn-add-room:hover {
   background-color: #45a049;
 }
 
-.search-and-table-container {
+.room-list {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.search-bar-container {
+.room-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  background-color: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.room-card-header {
   display: flex;
-  justify-content: flex-end;
-  align-items: center;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.room-card-header h3 {
+  margin: 0;
+  font-size: 1.2em;
+  font-weight: bold;
+  line-height: 1.4;
+}
+
+.room-card-header small {
+  color: #666;
+  font-size: 0.9em;
+  font-weight: normal;
+}
+
+.room-actions {
+  display: flex;
   gap: 10px;
 }
 
-.search-input {
+.btn-action {
+  background: none;
   border: 1px solid #ccc;
   border-radius: 5px;
-  padding: 8px 12px;
-}
-
-.responsive-table-wrapper {
-  overflow-x: auto;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th, td {
-  border: 1px solid #ddd;
-  padding: 12px;
-  text-align: left;
-  white-space: nowrap;
-}
-
-th {
-  background-color: #f2f2f2;
-  font-weight: bold;
-}
-
-tr:nth-child(even) {
-  background-color: #fafafa;
-}
-
-.add-external-staff-button {
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  border-radius: 5px;
-  border: none;
-  background-color: #4CAF50;
-  color: white;
-  font-size: 14px;
-  font-weight: 500;
+  padding: 8px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.2s;
+  font-size: 1em;
 }
 
-.add-external-staff-button:hover {
-  background-color: #45a049;
-}
-
-.add-external-staff-button i {
-  margin-right: 5px;
-}
-
-.action-icon {
-  font-size: 20px;
-  margin-right: 10px;
-  cursor: pointer;
-  transition: transform 0.2s ease-in-out;
-}
-
-.action-icon:hover {
-  transform: scale(1.1);
-}
-
-.view-icon {
+.btn-action.edit {
   color: #1890ff;
+  border-color: #1890ff;
 }
 
-.edit-icon {
-  color: #fadb14;
+.btn-action.edit:hover {
+  background-color: #e6f7ff;
+}
+
+.btn-action.delete {
+  color: #f5222d;
+  border-color: #f5222d;
+}
+
+.btn-action.delete:hover {
+  background-color: #fff1f0;
+}
+
+.room-card-body p {
+  margin: 0 0 10px 0;
+}
+
+.personnel-list {
+  font-size: 0.9em;
+  line-height: 1.6;
+}
+
+.personnel-list ol {
+  padding-left: 25px;
+  margin-top: 5px;
+}
+
+.personnel-list li {
+  margin-bottom: 2px;
 }
 </style>

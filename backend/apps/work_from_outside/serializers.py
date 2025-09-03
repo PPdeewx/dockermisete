@@ -1,15 +1,10 @@
 from rest_framework import serializers
 from .models import WorkOutsideRequest
-from apps.users.models import CustomUser
 
 class WorkOutsideRequestSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField(read_only=True)  # ใช้ request.user
-    approver = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all())
-    collaborators = serializers.PrimaryKeyRelatedField(
-        queryset=CustomUser.objects.all(),
-        many=True,
-        required=False
-    )
+    user = serializers.StringRelatedField()
+    approver = serializers.StringRelatedField()
+    collaborators = serializers.StringRelatedField(many=True)
 
     class Meta:
         model = WorkOutsideRequest

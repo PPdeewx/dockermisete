@@ -2,8 +2,6 @@ from rest_framework import serializers
 from .models import Holiday
 
 class HolidaySerializer(serializers.ModelSerializer):
-    holiday_type_display = serializers.CharField(source='get_holiday_type_display', read_only=True)
-    
     class Meta:
         model = Holiday
         fields = '__all__'

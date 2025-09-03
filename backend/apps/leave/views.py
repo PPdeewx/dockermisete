@@ -156,14 +156,3 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
         qs = LeaveRequest.objects.filter(user_id=user_id, start_date__year=qyear).order_by('-start_date')
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
-
-class LeaveQuotaViewSet(viewsets.ModelViewSet):
-    queryset = LeaveQuota.objects.select_related('user','leave_type').all()
-    serializer_class = LeaveQuotaSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        user = self.request.user
-        if getattr(user, 'role', '') == 'employee':
-            return self.queryset.filter(user=user)
-        return self.queryset

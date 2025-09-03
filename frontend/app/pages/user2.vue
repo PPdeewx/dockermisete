@@ -97,17 +97,17 @@
 
         <div class="user-info-section">
           <span class="user-label">พนักงาน *:</span>
-          <span class="user-name">{{ user?.prefix_th }} {{ user?.firstname_th }} {{ user?.lastname_th }}</span>
+          <span class="user-name">นาย Username  usernamesss</span>
         </div>
 
         <form @submit.prevent="submitForm" class="leave-form">
           <div class="form-row">
-            <div class="form-group full-width">
+            <div class="form-group">
               <label>ประเภทการลา *</label>
               <div class="radio-group">
-                <label v-for="type in leaveTypes" :key="type.id">
-                  <input type="radio" :value="type.name" v-model="form.leaveType" /> {{ type.name }}
-                </label>
+                <label><input type="radio" value="ลากิจ" v-model="form.leaveType" /> ลากิจ</label>
+                <label><input type="radio" value="ลาป่วย" v-model="form.leaveType" /> ลาป่วย</label>
+                <label><input type="radio" value="ลาพักร้อน" v-model="form.leaveType" /> ลาพักร้อน</label>
               </div>
             </div>
           </div>
@@ -124,12 +124,12 @@
           </div>
 
           <div class="form-row">
-            <div class="form-group full-width">
-              <label>ช่วงเวลาการลา *</label>
+            <div class="form-group">
+              <label>ช่วงเวลา :</label>
               <div class="radio-group">
-                <label v-for="(label, key) in HALF_CHOICES" :key="key">
-                  <input type="radio" :value="key" v-model="form.period" /> {{ label }}
-                </label>
+                <label><input type="radio" value="ครึ่งวันเช้า" v-model="form.period" /> ครึ่งวันเช้า</label>
+                <label><input type="radio" value="ครึ่งวันบ่าย" v-model="form.period" /> ครึ่งวันบ่าย</label>
+                <label><input type="radio" value="ทั้งวัน" v-model="form.period" /> ทั้งวัน</label>
               </div>
             </div>
           </div>
@@ -179,70 +179,31 @@ import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import axios from 'axios';
 
-const HALF_CHOICES: Record<string, string> = {
-  full: 'ทั้งวัน',
-  morning: 'ครึ่งเช้า',
-  afternoon: 'ครึ่งบ่าย'
-};
-
 const form = ref({
-  leaveType: '',
+  leaveType: 'ลากิจ',
   startDate: '',
   endDate: '',
-  period: 'full',   // ช่วงเวลาเดียว
+  period: 'ทั้งวัน',
   reason: '',
   approver: '',
   substitute: ''
 });
 
+const approvers = ref([
+  { id: 1, name: 'หัวหน้า A' },
+  { id: 2, name: 'หัวหน้า B' }
+]);
+
+const substitutes = ref([
+  { id: 1, name: 'พนักงาน X' },
+  { id: 2, name: 'พนักงาน Y' }
+]);
+
 const router = useRouter();
 const route = useRoute();
 
 const user = ref<any>(null);
-
-// dropdown data
-const leaveTypes = ref<any[]>([]);
-const approvers = ref<any[]>([]);
-const substitutes = ref<any[]>([]);
-
-// โหลดผู้ใช้งาน (approvers/substitutes)
-const loadUsers = async () => {
-  try {
-    const response = await axios.get("http://localhost:8000/api/users/", {
-      headers: { Authorization: `Token ${localStorage.getItem("token")}` }
-    });
-
-    const allUsers = response.data;
-
-    approvers.value = allUsers
-      .filter((u: any) => u.role === "manager" || u.role === "admin")
-      .map((u: any) => ({
-        id: u.id,
-        name: `${u.prefix_th || ""} ${u.firstname_th} ${u.lastname_th}`.trim(),
-      }));
-
-    substitutes.value = allUsers
-      .filter((u: any) => u.role === "employee")
-      .map((u: any) => ({
-        id: u.id,
-        name: `${u.prefix_th || ""} ${u.firstname_th} ${u.lastname_th}`.trim(),
-      }));
-  } catch (error: any) {
-    console.error("โหลด users ไม่ได้:", error.response?.data || error);
-  }
-};
-
-// โหลดประเภทการลา
-const loadLeaveTypes = async () => {
-  try {
-    const response = await axios.get("http://localhost:8000/api/leave/leave-types/", {
-      headers: { Authorization: `Token ${localStorage.getItem("token")}` }
-    });
-    leaveTypes.value = response.data;
-  } catch (error: any) {
-    console.error("โหลดประเภทการลาไม่สำเร็จ:", error.response?.data || error);
-  }
-};
+const token = ref<string | null>(null);
 
 onMounted(async () => {
   const tokenStored = localStorage.getItem("token");
@@ -255,12 +216,8 @@ onMounted(async () => {
   try {
     const response = await axios.get("http://localhost:8000/api/users/me/");
     user.value = response.data;
-
     if (user.value.role !== "employee") {
       router.push("/login");
-    } else {
-      // โหลด dropdown ทั้งหมด
-      await Promise.all([loadUsers(), loadLeaveTypes()]);
     }
   } catch (err) {
     console.error(err);
@@ -268,33 +225,11 @@ onMounted(async () => {
   }
 });
 
-const submitForm = async () => {
-  try {
-    const payload = {
-      leave_type_id: leaveTypes.value.find(t => t.name === form.value.leaveType)?.id,
-      start_date: form.value.startDate,
-      end_date: form.value.endDate,
-      period: form.value.period,
-      reason: form.value.reason,
-      approver_id: approvers.value.find(a => a.name === form.value.approver)?.id,
-      substitute_id: substitutes.value.find(s => s.name === form.value.substitute)?.id || null
-    };
+const submitForm = () => {
+  console.log('ส่งฟอร์ม:', form.value);
+  alert('ส่งคำขอลาสำเร็จ!');
 
-    // ตรวจสอบ field required
-    if (!payload.leave_type_id || !payload.start_date || !payload.end_date || !payload.period || !payload.reason || !payload.approver_id) {
-      alert("กรุณากรอกข้อมูลให้ครบทุกช่องที่จำเป็น");
-      return;
-    }
-
-    console.log("Payload to send:", payload);
-
-    await axios.post("http://localhost:8000/api/leave/leave-requests/", payload);
-    alert('ส่งคำขอลาสำเร็จ!');
-    router.push('/user4');
-  } catch (error: any) {
-    console.error("Submit error:", error.response?.data || error);
-    alert(`เกิดข้อผิดพลาด: ${error.response?.data?.detail || JSON.stringify(error.response?.data)}`);
-  }
+  router.push('/user4');
 };
 
 const cancelAndGoHome = () => {
@@ -332,18 +267,30 @@ function logout() {
 
 const breadcrumbs = computed(() => {
   switch (route.path) {
-    case '/user': return 'หน้าหลัก';
-    case '/user2': return 'หน้าหลัก > ยื่นใบลา';
-    case '/user3': return 'หน้าหลัก > ยื่นใบลาแทน';
-    case '/user4': return 'หน้าหลัก > ประวัติการลา';
-    case '/user5': return 'หน้าหลัก > ขออนุญาตปฏิบัติงานนอกสถานที่';
-    case '/user6': return 'หน้าหลัก > ขออนุญาตปฏิบัติงานนอกสถานที่ให้คนอื่น';
-    case '/user7': return 'หน้าหลัก > ดูรายการปฏิบัติงาน...';
-    case '/user8': return 'หน้าหลัก > วันหยุด';
-    case '/user10': return 'หน้าหลัก > ข้อมูลส่วนตัว';
-    case '/user11': return 'หน้าหลัก > ข้อมูลส่วนตัว > แก้ไข';
-    case '/user12': return 'หน้าหลัก > เปลี่ยนรหัสผ่าน';
-    default: return 'หน้าหลัก';
+    case '/user':
+      return 'หน้าหลัก';
+    case '/user2':
+      return 'หน้าหลัก > ยื่นใบลา';
+    case '/user3':
+      return 'หน้าหลัก > ยื่นใบลาแทน';
+    case '/user4':
+      return 'หน้าหลัก > ประวัติการลา';
+    case '/user5':
+      return 'หน้าหลัก > ขออนุญาตปฏิบัติงานนอกสถานที่';
+    case '/user6':
+      return 'หน้าหลัก > ขออนุญาตปฏิบัติงานนอกสถานที่ให้คนอื่น';
+    case '/user7':
+      return 'หน้าหลัก > ดูรายการปฏิบัติงาน...';
+    case '/user8':
+      return 'หน้าหลัก > วันหยุด';
+    case '/user10':
+      return 'หน้าหลัก > ข้อมูลส่วนตัว';
+    case '/user11':
+      return 'หน้าหลัก > ข้อมูลส่วนตัว > แก้ไข';
+    case '/user12':
+      return 'หน้าหลัก > เปลี่ยนรหัสผ่าน';
+    default:
+      return 'หน้าหลัก';
   }
 });
 </script>

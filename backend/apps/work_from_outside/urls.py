@@ -1,10 +1,8 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import WorkOutsideRequestViewSet
-
-router = DefaultRouter()
-router.register(r'requests', WorkOutsideRequestViewSet, basename='work-outside-request')
+from django.urls import path
+from . import views
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('requests/', views.WorkOutsideRequestListView.as_view(), name='work_outside_requests'),
+    path('request/create/', views.WorkOutsideRequestCreateView.as_view(), name='work_outside_request_create'),
+    path('request/<int:pk>/', views.WorkOutsideRequestDetailView.as_view(), name='work_outside_request_detail'),
 ]

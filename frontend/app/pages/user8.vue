@@ -108,7 +108,7 @@
               <tr v-for="(holiday, index) in holidays" :key="index">
                 <td>{{ holiday.date }}</td>
                 <td>{{ holiday.name }}</td>
-                <td>{{ holiday.holiday_type_display }}</td>
+                <td>{{ holiday.type }}</td>
               </tr>
             </tbody>
           </table>
@@ -127,10 +127,6 @@ import axios from 'axios';
 //-------------------------------------------------------------
 const user = ref<any>(null);
 const token = ref<string | null>(null);
-const holidays = ref<any[]>([]);
-
-const router = useRouter();
-const route = useRoute();
 
 onMounted(async () => {
   const tokenStored = localStorage.getItem("token");
@@ -141,16 +137,11 @@ onMounted(async () => {
   axios.defaults.headers.common['Authorization'] = `Token ${tokenStored}`;
 
   try {
-    // โหลด user
-    const responseUser = await axios.get("http://localhost:8000/api/users/me/");
-    user.value = responseUser.data;
+    const response = await axios.get("http://localhost:8000/api/users/me/");
+    user.value = response.data;
     if (user.value.role !== "employee") {
       router.push("/login");
     }
-
-    // โหลด holidays จาก API
-    const responseHoliday = await axios.get("http://localhost:8000/api/holiday/list/");
-    holidays.value = responseHoliday.data;
   } catch (err) {
     console.error(err);
     router.push("/login");
@@ -174,6 +165,9 @@ onBeforeUnmount(() => {
   document.removeEventListener('click', handleBodyClick);
 });
 
+const router = useRouter();
+const route = useRoute();
+
 function goTo(path: string) {
   router.push(path);
 }
@@ -182,6 +176,17 @@ function logout() {
   delete axios.defaults.headers.common['Authorization']
   router.push("/login")
 }
+
+const holidays = ref([
+  { date: '2025-01-01', name: 'วันขึ้นปีใหม่ 2568', type: 'นักขัตฤกษ์' },
+  { date: '', name: '', type: '' },
+  { date: '', name: '', type: '' },
+  { date: '', name: '', type: '' },
+  { date: '', name: '', type: '' },
+  { date: '', name: '', type: '' },
+  { date: '', name: '', type: '' },
+  { date: '', name: '', type: '' },
+]);
 
 const breadcrumbs = computed(() => {
   switch (route.path) {
@@ -214,7 +219,6 @@ const breadcrumbs = computed(() => {
   }
 });
 </script>
-
 
 <style scoped>
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');

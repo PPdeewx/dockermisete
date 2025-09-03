@@ -1,6 +1,5 @@
 <template>
   <div class="full-page-container">
-    <!-- Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-header">
         <span class="logo-text">MIS ETE</span>
@@ -49,20 +48,19 @@
       </ul>
     </aside>
 
-    <!-- Main Content -->
     <main class="main-content">
-      <!-- Top Bar -->
       <div class="top-bar">
         <div class="breadcrumbs">
           <span><i class="fas fa-home"></i> {{ breadcrumbs }}</span>
         </div>
+        
         <div class="user-profile" @click.stop="toggleProfileMenu">
           <i class="fas fa-bell"></i>
           <i class="fas fa-user-circle"></i>
           <span class="username">{{ user?.username }}</span>
           <span v-if="user">ตำแหน่ง: {{ user.role }}</span>
           <i class="fas fa-chevron-down"></i>
-
+          
           <div class="user-profile-menu" v-if="showProfileMenu">
             <button class="menu-item" @click.stop="goTo('/user10')">
               <i class="fas fa-user"></i>
@@ -84,9 +82,7 @@
         </div>
       </div>
 
-      <!-- Content Container -->
       <div class="content-container">
-        <!-- Header -->
         <div class="content-header">
           <div class="header-left">
             <i class="fas fa-calendar-alt title-icon"></i>
@@ -98,7 +94,6 @@
           </div>
         </div>
 
-        <!-- Profile & Summary -->
         <div class="profile-and-summary">
           <div class="profile-card">
             <div class="profile-icon">
@@ -106,19 +101,30 @@
             </div>
             <div class="profile-details">
               <span class="profile-username">{{ user?.username }}</span>
-              <span class="profile-id">รหัส {{ user?.employee_code }}</span>
+              <span class="profile-id">รหัส {{ user?.employee_id }}</span>
             </div>
           </div>
-
+          
           <div class="leave-summary">
-            <div class="leave-item" v-for="lq in leaveQuotas" :key="lq.id">
-              <span>{{ lq.leave_type.name }} คงเหลือ</span>
-              <strong>{{ (lq.quota_total - lq.quota_used).toFixed(1) }} วัน</strong>
+            <div class="leave-item">
+              <span>ลากิจ คงเหลือ</span>
+              <strong>7 วัน</strong>
+            </div>
+            <div class="leave-item">
+              <span>ลาป่วย คงเหลือ</span>
+              <strong>5 วัน</strong>
+            </div>
+            <div class="leave-item">
+              <span>ลาพักร้อน คงเหลือ</span>
+              <strong>5 วัน</strong>
+            </div>
+            <div class="leave-item">
+              <span>ลาอื่นๆ คงเหลือ</span>
+              <strong>5 วัน</strong>
             </div>
           </div>
         </div>
-
-        <!-- Leave Table -->
+        
         <div class="responsive-table-wrapper">
           <table>
             <thead>
@@ -133,15 +139,15 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="leave in leaves" :key="leave.id">
-                <td>{{ leave.leave_number }}</td>
-                <td>{{ formatDate(leave.start_date) }} ถึง {{ formatDate(leave.end_date) }}</td>
-                <td>{{ leave.leave_type.name }}</td>
-                <td>{{ leave.period === 'full' ? 'ทั้งวัน' : (leave.period === 'morning' ? 'ครึ่งเช้า' : 'ครึ่งบ่าย') }}</td>
-                <td>{{ leave.reason || '-' }}</td>
-                <td>{{ leave.status_display }}</td>
+              <tr v-for="i in 10" :key="i">
+                <td>001</td>
+                <td>01/ม.ค./2568</td>
+                <td>ลาพักร้อน</td>
+                <td>ทั้งวัน</td>
+                <td>-</td>
+                <td>รอการอนุมัติ</td>
                 <td>
-                  <i class="fas fa-edit action-icon" @click="goTo(`/user13/${leave.id}`)"></i>
+                  <i class="fas fa-edit action-icon" @click="goTo('/user13')"></i>
                 </td>
               </tr>
             </tbody>
@@ -158,12 +164,29 @@ import { useRouter, useRoute } from 'vue-router';
 import axios from 'axios';
 
 const user = ref(null);
-const leaves = ref([]);
-const leaveQuotas = ref([]);
-const showProfileMenu = ref(false);
+const token = ref(null);
 
-const router = useRouter();
-const route = useRoute();
+onMounted(async () => {
+  const tokenStored = localStorage.getItem("token");
+  if (!tokenStored) {
+    router.push("/login");
+    return;
+  }
+  axios.defaults.headers.common['Authorization'] = `Token ${tokenStored}`;
+
+  try {
+    const response = await axios.get("http://localhost:8000/api/users/me/");
+    user.value = response.data;
+    if (user.value.role !== "employee") {
+      router.push("/login");
+    }
+  } catch (err) {
+    console.error(err);
+    router.push("/login");
+  }
+});
+
+const showProfileMenu = ref(false);
 
 function toggleProfileMenu() {
   showProfileMenu.value = !showProfileMenu.value;
@@ -183,80 +206,47 @@ onBeforeUnmount(() => {
   document.removeEventListener('click', handleBodyClick);
 });
 
-// Fetch user info and leaves
-async function fetchData() {
-  const tokenStored = localStorage.getItem("token");
-  if (!tokenStored) {
-    router.push("/login");
-    return;
-  }
-  axios.defaults.headers.common['Authorization'] = `Token ${tokenStored}`;
+const router = useRouter();
+const route = useRoute();
 
-  try {
-    const resUser = await axios.get("http://localhost:8000/api/users/me/");
-    user.value = resUser.data;
-    if (user.value.role !== "employee") router.push("/login");
-
-    const resLeaves = await axios.get("http://localhost:8000/api/leave/leave-requests/");
-    const dataLeaves = resLeaves.data.results || resLeaves.data || [];
-    leaves.value = dataLeaves.map(l => ({
-      ...l,
-      status_display: mapStatus(l.status)
-    }));
-
-    const resQuotas = await axios.get("http://localhost:8000/api/leave/leave-quotas/");
-    leaveQuotas.value = (resQuotas.data.results || resQuotas.data).filter(lq => {
-      return lq.user?.id === user.value.id;
-    });
-
-  } catch (err) {
-    console.error(err);
-    router.push("/login");
-  }
-}
-
-function mapStatus(status) {
-  switch(status) {
-    case 'pending': return 'รอการอนุมัติ';
-    case 'approved': return 'อนุมัติ';
-    case 'rejected': return 'ไม่อนุมัติ';
-    case 'cancelled': return 'ยกเลิก';
-    default: return status;
-  }
-}
-
-function formatDate(dateStr) {
-  const d = new Date(dateStr);
-  return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543}`;
-}
-
-const goTo = (path) => router.push(path);
+const goTo = (path) => {
+  router.push(path);
+};
 
 function logout() {
-  localStorage.removeItem("token");
-  delete axios.defaults.headers.common['Authorization'];
-  router.push("/login");
+  localStorage.removeItem("token")
+  delete axios.defaults.headers.common['Authorization']
+  router.push("/login")
 }
-
-onMounted(() => {
-  fetchData();
-});
 
 const breadcrumbs = computed(() => {
   switch (route.path) {
-    case '/user': return 'หน้าหลัก';
-    case '/user2': return 'หน้าหลัก > ยื่นใบลา';
-    case '/user3': return 'หน้าหลัก > ยื่นใบลาแทน';
-    case '/user4': return 'หน้าหลัก > ประวัติการลา';
-    case '/user5': return 'หน้าหลัก > ขออนุญาตปฏิบัติงานนอกสถานที่';
-    case '/user6': return 'หน้าหลัก > ขออนุญาตปฏิบัติงานนอกสถานที่ให้คนอื่น';
-    case '/user7': return 'หน้าหลัก > ดูรายการปฏิบัติงานนอกสถานที่';
-    case '/user8': return 'หน้าหลัก > วันหยุด';
-    case '/user10': return 'หน้าหลัก > ข้อมูลส่วนตัว';
-    case '/user11': return 'หน้าหลัก > ข้อมูลส่วนตัว > แก้ไข';
-    case '/user12': return 'หน้าหลัก > เปลี่ยนรหัสผ่าน';
-    case '/user13': return 'หน้าหลัก > ประวัติการลา > แก้ไข';
-    default: return 'หน้าหลัก';
+    case '/user':
+      return 'หน้าหลัก';
+    case '/user2':
+      return 'หน้าหลัก > ยื่นใบลา';
+    case '/user3':
+      return 'หน้าหลัก > ยื่นใบลาแทน';
+    case '/user4':
+      return 'หน้าหลัก > ประวัติการลา';
+    case '/user5':
+      return 'หน้าหลัก > ขออนุญาตปฏิบัติงานนอกสถานที่';
+    case '/user6':
+      return 'หน้าหลัก > ขออนุญาตปฏิบัติงานนอกสถานที่ให้คนอื่น';
+    case '/user7':
+      return 'หน้าหลัก > ดูรายการปฏิบัติงานนอกสถานที่';
+    case '/user8':
+      return 'หน้าหลัก > วันหยุด';
+    case '/user10':
+      return 'หน้าหลัก > ข้อมูลส่วนตัว';
+    case '/user11':
+      return 'หน้าหลัก > ข้อมูลส่วนตัว > แก้ไข';
+    case '/user12':
+      return 'หน้าหลัก > เปลี่ยนรหัสผ่าน';
+    case '/user13':
+      return 'หน้าหลัก > ประวัติการลา > แก้ไข';
+    default:
+      return 'หน้าหลัก';
   }
 });
 </script>

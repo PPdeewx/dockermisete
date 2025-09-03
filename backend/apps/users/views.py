@@ -21,7 +21,7 @@ User = get_user_model()
 class UserListView(generics.ListAPIView):
     queryset = CustomUser.objects.all().exclude(role='developer')
     serializer_class = CustomUserSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
 class UserFilterView(generics.ListAPIView):
     serializer_class = CustomUserSerializer

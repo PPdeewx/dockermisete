@@ -2,8 +2,6 @@ from pathlib import Path
 from decouple import config
 import os
 import sys
-from celery.schedules import crontab
-
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -130,13 +128,6 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Asia/Bangkok'
-
-CELERY_BEAT_SCHEDULE = {
-    'calculate-daily-attendance': {
-        'task': 'apps.attendance.tasks.calculate_daily_attendance',
-        'schedule': crontab(hour=0, minute=0),  # ทุกวันเที่ยงคืน
-    },
-}
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.getenv('EMAIL_HOST')
