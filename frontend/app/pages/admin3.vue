@@ -19,7 +19,6 @@
             <li><a href="#" class="submenu-link">เพิ่มบุคลากรภายนอก</a></li>
             <li><a href="#" class="submenu-link">เปลี่ยนสถานะพนักงาน</a></li>
             <li><a href="#" class="submenu-link">กำหนดโควต้าลา(ทั้งหมด)</a></li>
-            <li><a href="#" class="submenu-link">Reset Quota ประจำปี</a></li>
           </ul>
         </li>
         <li class="nav-item">

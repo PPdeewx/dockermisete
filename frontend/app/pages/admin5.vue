@@ -13,30 +13,24 @@
           <ul class="submenu active">
             <li><a href="#" class="submenu-link">พนักงานปัจจุบัน</a></li>
             <li><a href="#" class="submenu-link">พนักงานที่ลาออก</a></li>
-            <li><a href="#" class="submenu-link active">บุคลากรภายนอก</a></li>
-            <li><a href="#" class="submenu-link">พนักงาน EDDP</a></li>
+            <li><a href="#" class="submenu-link">บุคลากรภายนอก</a></li>
+            <li><a href="#" class="submenu-link active">พนักงาน EDDP</a></li>
             <li><a href="#" class="submenu-link">เพิ่ม/แก้ไข/ลบ พนักงาน</a></li>
             <li><a href="#" class="submenu-link">เพิ่มบุคลากรภายนอก</a></li>
             <li><a href="#" class="submenu-link">เปลี่ยนสถานะพนักงาน</a></li>
             <li><a href="#" class="submenu-link">กำหนดโควต้าลา(ทั้งหมด)</a></li>
           </ul>
         </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link"><i class="fas fa-flask"></i> ห้องวิจัย</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link"><i class="fas fa-calendar-alt"></i> วันหยุด</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link"><i class="fas fa-cog"></i> ระบบการปฏิบัติงาน</a>
-        </li>
+        <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-flask"></i> ห้องวิจัย</a></li>
+        <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-calendar-alt"></i> วันหยุด</a></li>
+        <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-cog"></i> ระบบการปฏิบัติงาน</a></li>
       </ul>
     </div>
 
     <div class="main-content">
       <div class="top-bar">
         <div class="breadcrumbs">
-          <span><i class="fas fa-home"></i> หน้าหลัก > บุคลากร > บุคลากรภายนอก</span>
+          <span><i class="fas fa-home"></i> หน้าหลัก > บุคลากร > พนักงาน EDDP</span>
         </div>
         <div class="user-profile-container">
           <div class="user-profile" @click="toggleDropdown">
@@ -46,27 +40,20 @@
             <i class="fas fa-chevron-down" :class="{ 'rotate': isDropdownOpen }"></i>
           </div>
           <div class="dropdown-menu" v-if="isDropdownOpen">
-            <a href="#" class="dropdown-item">
-              <i class="fas fa-user"></i> ดูข้อมูลส่วนตัว
-            </a>
-            <a href="#" class="dropdown-item">
-              <i class="fas fa-user-edit"></i> แก้ไขข้อมูลส่วนตัว
-            </a>
-            <a href="#" class="dropdown-item">
-              <i class="fas fa-fingerprint"></i> เปลี่ยนรหัสผ่าน
-            </a>
-            <a href="#" class="dropdown-item">
-              <i class="fas fa-sign-out-alt"></i> ออกจากระบบ
-            </a>
+            <a href="#" class="dropdown-item"><i class="fas fa-user"></i> ดูข้อมูลส่วนตัว</a>
+            <a href="#" class="dropdown-item"><i class="fas fa-user-edit"></i> แก้ไขข้อมูลส่วนตัว</a>
+            <a href="#" class="dropdown-item"><i class="fas fa-fingerprint"></i> เปลี่ยนรหัสผ่าน</a>
+            <a href="#" class="dropdown-item"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</a>
           </div>
         </div>
       </div>
 
+      <!-- Page Content -->
       <div class="content-container">
         <div class="header-with-button">
           <div class="left-section">
             <i class="fas fa-user-circle title-icon"></i>
-            <h2>บุคลากรภายนอก</h2>
+            <h2>พนักงาน EDDP</h2>
           </div>
           <div class="right-section">
             <button class="add-external-staff-button">
@@ -114,19 +101,20 @@
             </table>
           </div>
         </div>
+
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref } from 'vue'
 
-const isDropdownOpen = ref(false);
+const isDropdownOpen = ref(false)
 
 const toggleDropdown = () => {
-  isDropdownOpen.value = !isDropdownOpen.value;
-};
+  isDropdownOpen.value = !isDropdownOpen.value
+}
 </script>
 
 <style scoped>
@@ -160,12 +148,6 @@ const toggleDropdown = () => {
   margin-bottom: 10px;
 }
 
-.logo {
-  width: 40px;
-  height: 40px;
-  margin-right: 10px;
-}
-
 .sidebar-header span {
   font-size: 18px;
   font-weight: bold;
@@ -177,14 +159,11 @@ const toggleDropdown = () => {
   margin: 0;
 }
 
-.nav-item {
-  margin-bottom: 5px;
-}
+.nav-item { margin-bottom: 5px; }
 
 .nav-link {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 10px 15px;
   text-decoration: none;
   color: #555;
@@ -204,14 +183,6 @@ const toggleDropdown = () => {
   color: #1890ff;
 }
 
-.nav-item.has-submenu .arrow {
-  transition: transform 0.3s ease-in-out;
-}
-
-.nav-item.has-submenu.active .arrow {
-  transform: rotate(90deg);
-}
-
 .submenu {
   list-style: none;
   padding: 0;
@@ -220,10 +191,7 @@ const toggleDropdown = () => {
   overflow: hidden;
   transition: max-height 0.3s ease-in-out;
 }
-
-.nav-item.has-submenu.active .submenu {
-  max-height: 500px;
-}
+.nav-item.has-submenu.active .submenu { max-height: 500px; }
 
 .submenu-link {
   display: block;
@@ -232,9 +200,7 @@ const toggleDropdown = () => {
   color: #555;
   border-left: 3px solid transparent;
   transition: all 0.2s;
-  position: relative;
 }
-
 .submenu-link:hover,
 .submenu-link.active {
   background-color: #f5f5f5;
@@ -242,12 +208,8 @@ const toggleDropdown = () => {
   color: #1890ff;
 }
 
-.main-content {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
-}
+/* Main content */
+.main-content { flex-grow: 1; display: flex; flex-direction: column; padding: 20px; }
 
 .top-bar {
   display: flex;
@@ -259,39 +221,15 @@ const toggleDropdown = () => {
   border-radius: 8px;
   margin-bottom: 20px;
 }
+.breadcrumbs span { color: #888; }
 
-.breadcrumbs span {
-  color: #888;
-}
-
-.user-profile-container {
-  position: relative;
-}
-
-.user-profile {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-}
-
-.user-profile i {
-  margin-left: 15px;
-  color: #555;
-  cursor: pointer;
-}
-
-.user-profile .username {
-  margin-left: 15px;
-  font-weight: bold;
-}
-
-.user-profile .fa-chevron-down {
-  transition: transform 0.3s ease-in-out;
-}
-
-.user-profile .fa-chevron-down.rotate {
-  transform: rotate(180deg);
-}
+/* User profile */
+.user-profile-container { position: relative; }
+.user-profile { display: flex; align-items: center; cursor: pointer; }
+.user-profile i { margin-left: 15px; color: #555; cursor: pointer; }
+.user-profile .username { margin-left: 15px; font-weight: bold; }
+.user-profile .fa-chevron-down { transition: transform 0.3s ease-in-out; }
+.user-profile .fa-chevron-down.rotate { transform: rotate(180deg); }
 
 .dropdown-menu {
   position: absolute;
@@ -305,33 +243,23 @@ const toggleDropdown = () => {
   min-width: 220px;
   padding: 10px 0;
 }
-
 .dropdown-item {
   display: flex;
   align-items: center;
   padding: 10px 20px;
   text-decoration: none;
   color: #333;
-  transition: background-color 0.2s;
 }
+.dropdown-item i { margin-right: 12px; font-size: 16px; }
+.dropdown-item:hover { background-color: #f5f5f5; }
 
-.dropdown-item i {
-  margin-right: 12px;
-  font-size: 16px;
-  width: 20px;
-}
-
-.dropdown-item:hover {
-  background-color: #f5f5f5;
-}
-
+/* Content */
 .content-container {
   background-color: #ffffff;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
-
 .header-with-button {
   display: flex;
   justify-content: space-between;
@@ -340,81 +268,10 @@ const toggleDropdown = () => {
   padding-bottom: 15px;
   margin-bottom: 20px;
 }
+.left-section { display: flex; align-items: center; }
+.title-icon { font-size: 24px; color: #888; margin-right: 10px; }
 
-.left-section {
-  display: flex;
-  align-items: center;
-}
-
-.title-icon {
-  font-size: 24px;
-  color: #888;
-  margin-right: 10px;
-}
-
-h2 {
-  margin: 0;
-  font-size: 20px;
-}
-
-.add-button {
-  background-color: #4CAF50;
-  color: white;
-  padding: 10px 15px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.add-button:hover {
-  background-color: #45a049;
-}
-
-.search-and-table-container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.search-bar-container {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 10px;
-}
-
-.search-input {
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 8px 12px;
-}
-
-.responsive-table-wrapper {
-  overflow-x: auto;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th, td {
-  border: 1px solid #ddd;
-  padding: 12px;
-  text-align: left;
-  white-space: nowrap;
-}
-
-th {
-  background-color: #f2f2f2;
-  font-weight: bold;
-}
-
-tr:nth-child(even) {
-  background-color: #fafafa;
-}
-
+/* Buttons */
 .add-external-staff-button {
   display: flex;
   align-items: center;
@@ -428,31 +285,21 @@ tr:nth-child(even) {
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
+.add-external-staff-button:hover { background-color: #45a049; }
+.add-external-staff-button i { margin-right: 5px; }
 
-.add-external-staff-button:hover {
-  background-color: #45a049;
-}
+.search-and-table-container { display: flex; flex-direction: column; gap: 20px; }
+.search-bar-container { display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
+.search-input { border: 1px solid #ccc; border-radius: 5px; padding: 8px 12px; }
 
-.add-external-staff-button i {
-  margin-right: 5px;
-}
+.responsive-table-wrapper { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th, td { border: 1px solid #ddd; padding: 12px; text-align: left; white-space: nowrap; }
+th { background-color: #f2f2f2; font-weight: bold; }
+tr:nth-child(even) { background-color: #fafafa; }
 
-.action-icon {
-  font-size: 20px;
-  margin-right: 10px;
-  cursor: pointer;
-  transition: transform 0.2s ease-in-out;
-}
-
-.action-icon:hover {
-  transform: scale(1.1);
-}
-
-.view-icon {
-  color: #1890ff;
-}
-
-.edit-icon {
-  color: #fadb14;
-}
+.action-icon { font-size: 20px; margin-right: 10px; cursor: pointer; transition: transform 0.2s ease-in-out; }
+.action-icon:hover { transform: scale(1.1); }
+.view-icon { color: #1890ff; }
+.edit-icon { color: #fadb14; }
 </style>

@@ -16,8 +16,8 @@
             <li><a href="#" class="submenu-link">บุคลากรภายนอก</a></li>
             <li><a href="#" class="submenu-link">พนักงาน EDDP</a></li>
             <li><a href="#" class="submenu-link">เพิ่ม/แก้ไข/ลบ พนักงาน</a></li>
-            <li><a href="#" class="submenu-link active">เพิ่มบุคลากรภายนอก</a></li>
-            <li><a href="#" class="submenu-link">เปลี่ยนสถานะพนักงาน</a></li>
+            <li><a href="#" class="submenu-link">เพิ่มบุคลากรภายนอก</a></li>
+            <li><a href="#" class="submenu-link active">เปลี่ยนสถานะพนักงาน</a></li>
             <li><a href="#" class="submenu-link">กำหนดโควต้าลา(ทั้งหมด)</a></li>
           </ul>
         </li>
@@ -30,7 +30,7 @@
     <div class="main-content">
       <div class="top-bar">
         <div class="breadcrumbs">
-          <span><i class="fas fa-home"></i> หน้าหลัก > บุคลากร > เพิ่มบุคลากรภายนอก</span>
+          <span><i class="fas fa-home"></i> หน้าหลัก > บุคลากร > เปลี่ยนสถานะพนักงาน</span>
         </div>
         <div class="user-profile-container">
           <div class="user-profile" @click="toggleDropdown">
@@ -49,129 +49,130 @@
       </div>
 
       <div class="content-container">
-        <div class="form-header">
-          <h2>เพิ่มบุคลากรภายนอก</h2>
-          <button class="btn-cancel" @click.prevent="cancelForm">
-            <i class="fas fa-times"></i> ยกเลิก
-          </button>
+        <div class="table-header">
+          <h2>เปลี่ยนสถานะพนักงาน</h2>
+          <div class="header-actions">
+            <div class="search-container">
+              <span>ค้นหาพนักงาน :</span>
+              <input type="text" v-model="searchQuery" placeholder="ค้นหา..." />
+            </div>
+            <button class="btn-save" @click="saveChanges">
+              <i class="fas fa-plus"></i> บันทึกการเปลี่ยนแปลง
+            </button>
+          </div>
         </div>
-        <form @submit.prevent="submitForm">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="thai-name-prefix">คำนำหน้าชื่อ *</label>
-              <select id="thai-name-prefix" v-model="form.thaiNamePrefix" required>
-                <option value="">กรุณาเลือก</option>
-                <option v-for="prefix in thaiNamePrefixOptions" :key="prefix" :value="prefix">
-                  {{ prefix }}
-                </option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="english-name-prefix">ชื่อภาษาอังกฤษ *</label>
-              <select id="english-name-prefix" v-model="form.englishNamePrefix" required>
-                <option value="">กรุณาเลือก</option>
-                <option v-for="prefix in englishNamePrefixOptions" :key="prefix" :value="prefix">
-                  {{ prefix }}
-                </option>
-              </select>
-            </div>
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label for="thai-name">ชื่อภาษาไทย *</label>
-              <input type="text" id="thai-name" v-model="form.thaiName" required />
-            </div>
-            <div class="form-group">
-              <label for="english-name">ชื่อภาษาอังกฤษ *</label>
-              <input type="text" id="english-name" v-model="form.englishName" required />
-            </div>
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label for="thai-surname">นามสกุลภาษาไทย *</label>
-              <input type="text" id="thai-surname" v-model="form.thaiSurname" required />
-            </div>
-            <div class="form-group">
-              <label for="english-surname">นามสกุลภาษาอังกฤษ *</label>
-              <input type="text" id="english-surname" v-model="form.englishSurname" required />
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="email">Email *</label>
-              <input type="email" id="email" v-model="form.email" required />
-            </div>
-            <div class="form-group">
-              <label for="phone">เบอร์โทรศัพท์ *</label>
-              <input type="tel" id="phone" v-model="form.phone" required />
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="department">หน่วยงาน :</label>
-              <input type="text" id="department" v-model="form.department" />
-            </div>
-          </div>
-
-          <div class="form-actions">
-            <button type="submit" class="btn-submit">บันทึกข้อมูล</button>
-          </div>
-        </form>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>ลำดับที่</th>
+                <th>รหัสพนักงาน</th>
+                <th>ชื่อ - นามสกุล</th>
+                <th>Email</th>
+                <th>ตำแหน่ง</th>
+                <th>เบอร์โทรศัพท์</th>
+                <th>สถานะปัจจุบัน</th>
+                <th>เปลี่ยนสถานะ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(employee, index) in filteredEmployees" :key="index">
+                <td>{{ index + 1 }}</td>
+                <td>{{ employee.id }}</td>
+                <td>{{ employee.name }}</td>
+                <td>{{ employee.email }}</td>
+                <td>{{ employee.position }}</td>
+                <td>{{ employee.phone }}</td>
+                <td>{{ employee.currentStatus }}</td>
+                <td>
+                  <select v-model="employee.newStatus">
+                    <option value="ปฏิบัติงาน">ปฏิบัติงาน</option>
+                    <option value="ลาออก">ลาออก</option>
+                  </select>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, computed } from 'vue';
 
 const isDropdownOpen = ref(false);
+const searchQuery = ref('');
 
 const toggleDropdown = () => {
   isDropdownOpen.value = !isDropdownOpen.value;
 };
 
-// ตัวเลือกสำหรับ dropdowns
-const thaiNamePrefixOptions = ref(['นาย', 'นาง', 'นางสาว']);
-const englishNamePrefixOptions = ref(['Mr.', 'Mrs.', 'Ms.']);
+const employees = reactive([
+  {
+    id: 'E-001',
+    name: 'สมชาย เจริญสุข',
+    email: 'somchai@example.com',
+    position: 'นักวิจัย',
+    phone: '081-123-4567',
+    currentStatus: 'ปฏิบัติงาน',
+    newStatus: 'ปฏิบัติงาน',
+  },
+  {
+    id: 'E-002',
+    name: 'สมหญิง รักดี',
+    email: 'somying@example.com',
+    position: 'วิศวกรอาวุโส',
+    phone: '089-765-4321',
+    currentStatus: 'ปฏิบัติงาน',
+    newStatus: 'ปฏิบัติงาน',
+  },
+  {
+    id: 'E-003',
+    name: 'เอกชัย มีชัย',
+    email: 'aekachai@example.com',
+    position: 'เจ้าหน้าที่ประสานงาน',
+    phone: '098-111-2222',
+    currentStatus: 'ปฏิบัติงาน',
+    newStatus: 'ปฏิบัติงาน',
+  },
+  {
+    id: 'E-004',
+    name: 'อรุณี สว่างจิต',
+    email: 'arunee@example.com',
+    position: 'นักวิจัย',
+    phone: '081-999-8888',
+    currentStatus: 'ปฏิบัติงาน',
+    newStatus: 'ปฏิบัติงาน',
+  },
+]);
 
-const form = reactive({
-  thaiNamePrefix: '',
-  englishNamePrefix: '',
-  thaiName: '',
-  thaiSurname: '',
-  englishName: '',
-  englishSurname: '',
-  email: '',
-  phone: '',
-  department: '',
+const filteredEmployees = computed(() => {
+  if (!searchQuery.value) {
+    return employees;
+  }
+  const query = searchQuery.value.toLowerCase();
+  return employees.filter(employee => {
+    return (
+      employee.name.toLowerCase().includes(query) ||
+      employee.id.toLowerCase().includes(query) ||
+      employee.email.toLowerCase().includes(query)
+    );
+  });
 });
 
-const submitForm = () => {
-  console.log('Form data submitted:', form);
-};
-
-const cancelForm = () => {
-  resetForm();
-  console.log('Form has been canceled.');
-};
-
-const resetForm = () => {
-  Object.assign(form, {
-    thaiNamePrefix: '',
-    englishNamePrefix: '',
-    thaiName: '',
-    thaiSurname: '',
-    englishName: '',
-    englishSurname: '',
-    email: '',
-    phone: '',
-    department: '',
-  });
+const saveChanges = () => {
+  const changes = employees.filter(emp => emp.currentStatus !== emp.newStatus);
+  if (changes.length > 0) {
+    console.log('Changes to be saved:', changes);
+    alert('บันทึกการเปลี่ยนแปลงเรียบร้อยแล้ว');
+    changes.forEach(emp => {
+      emp.currentStatus = emp.newStatus;
+    });
+  } else {
+    alert('ไม่มีการเปลี่ยนแปลงสถานะพนักงาน');
+  }
 };
 </script>
 
@@ -192,7 +193,7 @@ const resetForm = () => {
 }
 
 .sidebar {
-  width: 250px;
+  width: 270px;
   background-color: #ffffff;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
   padding: 10px;
@@ -360,7 +361,7 @@ const resetForm = () => {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.form-header {
+.table-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -369,97 +370,82 @@ const resetForm = () => {
   margin-bottom: 20px;
 }
 
-.form-header h2 {
+.table-header h2 {
   font-weight: bold;
   font-size: 24px;
+  margin: 0;
 }
 
-.btn-cancel {
+.header-actions {
   display: flex;
   align-items: center;
+  gap: 15px;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search-container input {
   padding: 8px 12px;
+  border: 1px solid #ccc;
   border-radius: 5px;
+}
+
+.btn-save {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
   border: none;
-  background-color: #ff6b6b;
+  border-radius: 5px;
+  background-color: #4CAF50;
   color: white;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s;
 }
 
-.btn-cancel:hover {
-  background-color: #e55a5a;
+.btn-save:hover {
+  background-color: #45a049;
 }
 
-.btn-cancel i {
+.btn-save i {
   margin-right: 5px;
 }
 
-.form-group-container,
-.form-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  margin-bottom: 20px;
+.table-responsive {
+  overflow-x: auto;
 }
 
-.form-group {
-  flex: 1 1 300px;
-  display: flex;
-  flex-direction: column;
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
 }
 
-.form-group label {
-  font-weight: bold;
-  margin-bottom: 5px;
+thead th {
+  background-color: #f5f5f5;
+  padding: 12px;
+  text-align: left;
+  border-bottom: 2px solid #ddd;
 }
 
-.form-group input,
-.form-group select {
+tbody td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+tbody tr:hover {
+  background-color: #fafafa;
+}
+
+select {
+  width: 100%;
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 5px;
-  width: 100%;
-}
-
-.radio-group {
-  display: flex;
-  gap: 15px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.radio-group label {
-  font-weight: normal;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.small-text {
-  font-size: 0.9em;
-  color: #888;
-  margin-bottom: 10px;
-}
-
-.form-actions {
-  margin-top: 30px;
-  text-align: center;
-}
-
-.btn-submit {
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  padding: 12px 30px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 1em;
-  transition: background-color 0.2s;
-}
-
-.btn-submit:hover {
-  background-color: #45a049;
 }
 </style>
