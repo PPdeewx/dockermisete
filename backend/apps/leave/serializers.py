@@ -12,9 +12,11 @@ class LeaveTypeSerializer(serializers.ModelSerializer):
 
 class LeaveQuotaSerializer(serializers.ModelSerializer):
     leave_type = LeaveTypeSerializer(read_only=True)
+    user = UserSerializerShort(read_only=True, allow_null=True)
+    
     class Meta:
         model = LeaveQuota
-        fields = ['id','leave_type','year','quota_total','quota_used']
+        fields = ['id', 'user', 'leave_type', 'year', 'quota_total', 'quota_used']
 
 class LeaveRequestSerializer(serializers.ModelSerializer):
     user = UserSerializerShort(read_only=True)
@@ -45,9 +47,12 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
         allow_null=True
     )
     on_behalf_of_name = serializers.CharField(source='on_behalf_of.username', read_only=True)
+    
+    period = serializers.ChoiceField(choices=HALF_CHOICES)
+    
     class Meta:
         model = LeaveRequest
-        fields = ['id','leave_number','user','on_behalf_of_id', 'on_behalf_of_name','leave_type','leave_type_id','start_date','end_date','start_half','end_half','days','reason','approver','approver_id','substitute','substitute_id','status','request_date','created_by_admin']
+        fields = ['id','leave_number','user','on_behalf_of_id', 'on_behalf_of_name','leave_type','leave_type_id','start_date','end_date','period','days','reason','approver','approver_id','substitute','substitute_id','status','request_date','created_by_admin']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -64,8 +69,7 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
         leave_type = data.get('leave_type') or getattr(self.instance, 'leave_type', None)
         start = data.get('start_date') or getattr(self.instance, 'start_date', None)
         end = data.get('end_date') or getattr(self.instance, 'end_date', None)
-        start_half = data.get('start_half') or getattr(self.instance, 'start_half', None)
-        end_half = data.get('end_half') or getattr(self.instance, 'end_half', None)
+        period = data.get('period') or getattr(self.instance, 'period', None)
 
         if not leave_type or not start or not end:
             raise serializers.ValidationError('leave_type, start_date and end_date are required.')
@@ -73,18 +77,14 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
         if end < start:
             raise serializers.ValidationError('end_date ต้องไม่ต่ำกว่า start_date')
 
-        days = Decimal((end - start).days + 1)
-
+        from decimal import Decimal
         if start == end:
-            if start_half != end_half:
+            if period == 'full':
                 days = Decimal('1.0')
             else:
                 days = Decimal('0.5')
         else:
-            if start_half == 'afternoon':
-                days -= Decimal('0.5')
-            if end_half == 'morning':
-                days -= Decimal('0.5')
+            days = Decimal((end - start).days + 1)
 
         data['days'] = days.quantize(Decimal('0.1'))
 
