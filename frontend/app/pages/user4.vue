@@ -204,8 +204,10 @@ async function fetchData() {
       status_display: mapStatus(l.status)
     }));
 
-    //const resQuotas = await axios.get("http://localhost:8000/api/leave/leave-quotas/");
-    //leaveQuotas.value = resQuotas.data;
+    const resQuotas = await axios.get("http://localhost:8000/api/leave/leave-quotas/");
+    leaveQuotas.value = (resQuotas.data.results || resQuotas.data).filter(lq => {
+      return lq.user?.id === user.value.id;
+    });
 
   } catch (err) {
     console.error(err);

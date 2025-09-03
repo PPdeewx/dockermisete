@@ -95,29 +95,29 @@
 
         <div class="user-info-section">
           <span class="user-label">พนักงานผู้ลาแทน :</span>
-          <span class="user-name">{{ user?.first_name }} {{ user?.last_name }}</span>
+          <span class="user-name">{{ user?.prefix_th }} {{ user?.firstname_th }} {{ user?.lastname_th }}</span>
         </div>
 
-        <form @submit.prevent="submitForm" class="leave-form">
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label>พนักงานผู้ลา *:</label>
+            <select v-model="form.employee" class="select-input">
+              <option disabled value="">เลือกพนักงานลา</option>
+              <option v-for="emp in employees" :key="emp.id" :value="emp.name">
+                {{ emp.name }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+          <form @submit.prevent="submitForm" class="leave-form">
           <div class="form-row">
             <div class="form-group full-width">
-              <label>พนักงานผู้ลา *:</label>
-              <select v-model="form.employee" class="select-input">
-                <option disabled value="">เลือกพนักงานลา</option>
-                <option v-for="emp in employees" :key="emp.id" :value="emp.name">
-                  {{ emp.name }}
-                </option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label>ประเภทการลา :</label>
+              <label>ประเภทการลา *</label>
               <div class="radio-group">
-                <label><input type="radio" value="ลากิจ" v-model="form.leaveType" /> ลากิจ</label>
-                <label><input type="radio" value="ลาป่วย" v-model="form.leaveType" /> ลาป่วย</label>
-                <label><input type="radio" value="ลาพักร้อน" v-model="form.leaveType" /> ลาพักร้อน</label>
+                <label v-for="type in leaveTypes" :key="type.id">
+                  <input type="radio" :value="type.name" v-model="form.leaveType" /> {{ type.name }}
+                </label>
               </div>
             </div>
           </div>
@@ -134,12 +134,12 @@
           </div>
 
           <div class="form-row">
-            <div class="form-group">
-              <label>ช่วงเวลา :</label>
+            <div class="form-group full-width">
+              <label>ช่วงเวลาการลา *</label>
               <div class="radio-group">
-                <label><input type="radio" value="ครึ่งวันเช้า" v-model="form.period" /> ครึ่งวันเช้า</label>
-                <label><input type="radio" value="ครึ่งวันบ่าย" v-model="form.period" /> ครึ่งวันบ่าย</label>
-                <label><input type="radio" value="ทั้งวัน" v-model="form.period" /> ทั้งวัน</label>
+                <label v-for="(label, key) in HALF_CHOICES" :key="key">
+                  <input type="radio" :value="key" v-model="form.period" /> {{ label }}
+                </label>
               </div>
             </div>
           </div>
@@ -187,10 +187,77 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import axios from 'axios'; 
+import axios from 'axios';
+
+const HALF_CHOICES: Record<string, string> = {
+  full: 'ทั้งวัน',
+  morning: 'ครึ่งเช้า',
+  afternoon: 'ครึ่งบ่าย'
+};
+
+const form = ref({
+  employeeId: '',     // id ของพนักงานผู้ลา
+  leaveTypeId: '',    // id ของประเภทการลา
+  startDate: '',
+  endDate: '',
+  period: 'full',
+  reason: '',
+  approverId: '',
+  substituteId: ''
+});
+
+const router = useRouter();
+const route = useRoute();
 
 const user = ref<any>(null);
-const token = ref<string | null>(null);
+const employees = ref<any[]>([]);
+const approvers = ref<any[]>([]);
+const substitutes = ref<any[]>([]);
+const leaveTypes = ref<any[]>([]);
+
+const loadUsers = async () => {
+  try {
+    const response = await axios.get("http://localhost:8000/api/users/", {
+      headers: { Authorization: `Token ${localStorage.getItem("token")}` }
+    });
+
+    const allUsers = response.data;
+
+    employees.value = allUsers
+      .filter((u: any) => u.role === "employee")
+      .map((u: any) => ({
+        id: u.id,
+        name: `${u.prefix_th || ""} ${u.firstname_th} ${u.lastname_th}`.trim(),
+      }));
+
+    approvers.value = allUsers
+      .filter((u: any) => u.role === "manager" || u.role === "admin")
+      .map((u: any) => ({
+        id: u.id,
+        name: `${u.prefix_th || ""} ${u.firstname_th} ${u.lastname_th}`.trim(),
+      }));
+
+    substitutes.value = allUsers
+      .filter((u: any) => u.role === "employee")
+      .map((u: any) => ({
+        id: u.id,
+        name: `${u.prefix_th || ""} ${u.firstname_th} ${u.lastname_th}`.trim(),
+      }));
+  } catch (error: any) {
+    console.error("โหลด users ไม่ได้:", error.response?.data || error);
+  }
+};
+
+const loadLeaveTypes = async () => {
+  try {
+    const response = await axios.get("http://localhost:8000/api/leave/leave-types/", {
+      headers: { Authorization: `Token ${localStorage.getItem("token")}` }
+    });
+    leaveTypes.value = response.data;
+  } catch (error: any) {
+    console.error("โหลดประเภทการลาไม่สำเร็จ:", error.response?.data || error);
+  }
+};
 
 onMounted(async () => {
   const tokenStored = localStorage.getItem("token");
@@ -203,82 +270,55 @@ onMounted(async () => {
   try {
     const response = await axios.get("http://localhost:8000/api/users/me/");
     user.value = response.data;
-    if (user.value.role !== "employee") {
-      router.push("/login");
-    }
+
+    if (user.value.role !== "employee") router.push("/login");
+    else await Promise.all([loadUsers(), loadLeaveTypes()]);
   } catch (err) {
     console.error(err);
     router.push("/login");
   }
 });
 
-const showProfileMenu = ref(false);
-function toggleProfileMenu() {
-  showProfileMenu.value = !showProfileMenu.value;
-}
-function handleBodyClick(event: MouseEvent) {
-  if (showProfileMenu.value && !(event.target as HTMLElement).closest('.user-profile')) {
-    showProfileMenu.value = false;
+const submitForm = async () => {
+  try {
+    const payload = {
+      on_behalf_of_id: form.value.employeeId,
+      leave_type_id: form.value.leaveTypeId,
+      start_date: form.value.startDate,
+      end_date: form.value.endDate,
+      period: form.value.period,
+      reason: form.value.reason,
+      approver_id: form.value.approverId,
+      substitute_id: form.value.substituteId || null
+    };
+
+    if (!payload.on_behalf_of_id || !payload.leave_type_id || !payload.start_date ||
+        !payload.end_date || !payload.period || !payload.reason || !payload.approver_id) {
+      alert("กรุณากรอกข้อมูลให้ครบทุกช่องที่จำเป็น");
+      return;
+    }
+
+    await axios.post("http://localhost:8000/api/leave/leave-requests/", payload);
+    alert('ส่งคำขอลาสำเร็จ!');
+    router.push('/user4');
+  } catch (error: any) {
+    console.error(error);
+    alert(`เกิดข้อผิดพลาด: ${JSON.stringify(error.response?.data)}`);
   }
-}
-onMounted(() => {
-  document.addEventListener('click', handleBodyClick);
-});
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleBodyClick);
-});
-
-const router = useRouter();
-const route = useRoute();
-
-function goTo(path: string) {
-  router.push(path);
-}
-function logout() {
-  localStorage.removeItem("token")
-  delete axios.defaults.headers.common['Authorization']
-  router.push("/login")
-}
-
-const form = ref({
-  employee: '',
-  leaveType: 'ลากิจ',
-  startDate: '',
-  endDate: '',
-  period: 'ครึ่งวันเช้า',
-  reason: '',
-  approver: '',
-  substitute: ''
-});
-
-const employees = ref([
-  { id: 1, name: 'นาย พนักงาน 1' },
-  { id: 2, name: 'นาย พนักงาน 2' },
-  { id: 3, name: 'นาย พนักงาน 3' }
-]);
-
-const approvers = ref([
-  { id: 1, name: 'หัวหน้า A' },
-  { id: 2, name: 'หัวหน้า B' }
-]);
-
-const substitutes = ref([
-  { id: 1, name: 'ผู้ปฏิบัติงานแทน 1' },
-  { id: 2, name: 'ผู้ปฏิบัติงานแทน 2' }
-]);
-
-const submitForm = () => {
-  console.log('ส่งฟอร์มการลาแทน:', form.value);
-  alert('ส่งคำขอสำเร็จ!');
-
-  router.push('/user4');
 };
 
-const cancelForm = () => {
-  console.log('ยกเลิกฟอร์ม');
+const cancelAndGoHome = () => router.push('/user');
 
-  router.push('/user');
-};
+const showProfileMenu = ref(false);
+function toggleProfileMenu() { showProfileMenu.value = !showProfileMenu.value; }
+function handleBodyClick(event: MouseEvent) {
+  if (showProfileMenu.value && !(event.target as HTMLElement).closest('.user-profile')) showProfileMenu.value = false;
+}
+onMounted(() => document.addEventListener('click', handleBodyClick));
+onBeforeUnmount(() => document.removeEventListener('click', handleBodyClick));
+
+function goTo(path: string) { router.push(path); }
+function logout() { localStorage.removeItem("token"); delete axios.defaults.headers.common['Authorization']; router.push("/login"); }
 
 const breadcrumbs = computed(() => {
   switch (route.path) {

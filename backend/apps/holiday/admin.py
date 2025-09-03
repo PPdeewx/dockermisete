@@ -3,5 +3,6 @@ from .models import Holiday
 
 @admin.register(Holiday)
 class HolidayAdmin(admin.ModelAdmin):
-    list_display = ('name', 'date')
+    list_display = ('name', 'date', 'holiday_type')
+    list_filter = ('holiday_type',)
     ordering = ('date',)

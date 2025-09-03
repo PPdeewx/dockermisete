@@ -12,9 +12,11 @@ class LeaveTypeSerializer(serializers.ModelSerializer):
 
 class LeaveQuotaSerializer(serializers.ModelSerializer):
     leave_type = LeaveTypeSerializer(read_only=True)
+    user = UserSerializerShort(read_only=True, allow_null=True)
+    
     class Meta:
         model = LeaveQuota
-        fields = ['id','leave_type','year','quota_total','quota_used']
+        fields = ['id', 'user', 'leave_type', 'year', 'quota_total', 'quota_used']
 
 class LeaveRequestSerializer(serializers.ModelSerializer):
     user = UserSerializerShort(read_only=True)
