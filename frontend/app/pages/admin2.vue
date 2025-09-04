@@ -60,7 +60,7 @@
         <div class="search-and-table-container">
           <div class="search-bar-container">
             <label for="search">SEARCH :</label>
-            <input type="text" id="search" placeholder="" class="search-input">
+            <input v-model="search" type="text" id="search" class="search-input" placeholder="ค้นหา...">
           </div>
 
           <div class="responsive-table-wrapper">
@@ -78,15 +78,21 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="i in 10" :key="i">
-                  <td>{{ i }}</td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
+                <tr v-for="(emp, index) in filteredEmployees" :key="emp.id">
+                  <td>{{ index + 1 }}</td>
+                  <td>{{ emp.employee_code }}</td>
+                  <td>{{ emp.username }}</td>
+                  <td>{{ emp.department?.name || '-' }}</td>
+                  <td>{{ emp.firstname_th }} {{ emp.lastname_th }}</td>
+                  <td>{{ emp.phone_number }}</td>
+                  <td>{{ emp.email }}</td>
+                  <td>
+                    <button>✏️</button>
+                    <button>❌</button>
+                  </td>
+                </tr>
+                <tr v-if="filteredEmployees.length === 0">
+                  <td colspan="8" style="text-align:center;">ไม่พบข้อมูล</td>
                 </tr>
               </tbody>
             </table>
@@ -98,13 +104,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 
 const router = useRouter()
 const showDropdown = ref(false)
 const token = ref<string | null>(null)
+
+const employees = ref<any[]>([])
+const search = ref("")
 
 onMounted(async () => {
   if (typeof window !== "undefined") {
@@ -122,11 +131,25 @@ onMounted(async () => {
     const response = await axios.get('http://localhost:8000/api/users/me/')
     if (response.data.role !== 'admin') {
       router.push('/login')
+      return
     }
+
+    // โหลดพนักงานปัจจุบัน
+    const res = await axios.get('http://localhost:8000/api/users/filter/?status=active')
+    employees.value = res.data
   } catch (err) {
     console.error(err)
     router.push('/login')
   }
+})
+
+const filteredEmployees = computed(() => {
+  if (!search.value) return employees.value
+  return employees.value.filter(emp =>
+    (emp.firstname_th + " " + emp.lastname_th).includes(search.value) ||
+    emp.email.includes(search.value) ||
+    (emp.employee_code || "").includes(search.value)
+  )
 })
 
 const toggleDropdown = () => { showDropdown.value = !showDropdown.value }

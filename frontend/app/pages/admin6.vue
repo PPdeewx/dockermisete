@@ -137,7 +137,7 @@
               <select id="position" v-model="form.position" required>
                 <option value="">กรุณาเลือก</option>
                 <option v-for="position in positionOptions" :key="position" :value="position">
-                  {{ position }}
+                  {{ position.label }}
                 </option>
               </select>
             </div>
@@ -146,7 +146,7 @@
               <select id="employment-type" v-model="form.employmentType" required>
                 <option value="">กรุณาเลือก</option>
                 <option v-for="type in employmentTypeOptions" :key="type" :value="type">
-                  {{ type }}
+                  {{ type.label }}
                 </option>
               </select>
             </div>
@@ -158,7 +158,7 @@
               <select id="personnel-type" v-model="form.personnelType" required>
                 <option value="">กรุณาเลือก</option>
                 <option v-for="type in personnelTypeOptions" :key="type" :value="type">
-                  {{ type }}
+                  {{ type.label }}
                 </option>
               </select>
             </div>
@@ -226,44 +226,60 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import axios from 'axios'
 
-const isDropdownOpen = ref(false);
+const thaiNamePrefixOptions = ['นาย', 'นาง', 'นางสาว']
+const englishNamePrefixOptions = ['Mr.', 'Mrs.', 'Ms.', 'Dr.']
 
-const toggleDropdown = () => {
-  isDropdownOpen.value = !isDropdownOpen.value;
-};
+// โหลดจาก backend หรือกำหนดตายตัวก็ได้
+const roomOptions = ref<string[]>([])
 
-const thaiNamePrefixOptions = ref(['นาย', 'นาง', 'นางสาว']);
-const englishNamePrefixOptions = ref(['Mr.', 'Mrs.', 'Ms.']);
-const roomOptions = ref([
-  'โครงการพัฒนาการศึกษาด้านพลังงาน[Energy Education Development Project: EEDP]',
-  'ห้องวิจัยพลังงานทดแทนและอนุรักษ์พลังงาน[Renewable Energy and Energy Conservation Laboratory - REEC]',
-  'ห้องวิจัยด้านวิศวกรรมและการบริหารจัดการการเปลี่ยนแปลงสภาพภูมิอากาศด้านพลังงาน[Climate Change Engineering and Management in Energy Sector Laboratory - CCEME]',
-]);
-const positionOptions = ref(['นักวิจัย', 'นักวิจัยอาวุโส', 'นักศึกษาช่วยงาน','รองหัวหน้าห้องวิจัย','วิศวกร','วิศวกรอาวุโส','หัวหน้างานธุรการ','หัวหน้าศูนย์ฯ','หัวหน้าห้องวิจัย','อาจารย์','เจ้าหน้าที่การเงิน','เจ้าหน้าที่บัญชี','เจ้าหน้าที่ประสานงาน',
-'เจ้าหน้าที่ประสานงานอาวุโส','เจ้าหน้าที่พัสดุ','แม่บ้าน']);
-const employmentTypeOptions = ref(['อาจารย์','พนักงานประจำ','พนักงานโครงการ','นักศึกษาปริญญาโท','นักศึกษาปริญญาเอก']);
-const personnelTypeOptions = ref(['อาจารย์', 'พนักงาน','นักศึกษา']);
+const positionOptions = [
+  { value: 'admin', label: 'Admin' },
+  { value: 'manager', label: 'หัวหน้าฝ่าย' },
+  { value: 'employee', label: 'พนักงาน' },
+]
 
+const employmentTypeOptions = [
+  { value: 'regular', label: 'พนักงานประจำ' },
+  { value: 'manager', label: 'ผู้บริหาร' },
+  { value: 'temporary', label: 'พนักงานชั่วคราว' },
+  { value: 'developer', label: 'Developer' },
+]
+
+const personnelTypeOptions = [
+  { value: 'active', label: 'พนักงานปัจจุบัน' },
+  { value: 'resigned', label: 'ลาออก' },
+]
+
+const departments = ref<any[]>([])
+
+const router = useRouter()
+const route = useRoute()
+
+const isDropdownOpen = ref(false)
+const toggleDropdown = () => { isDropdownOpen.value = !isDropdownOpen.value }
 
 const form = reactive({
+  id: null,
   username: '',
   password: '',
   confirmPassword: '',
   email: '',
-  tafCode: '',
+  tafCode: '', // => map ไป time_attendance_code
   thaiNamePrefix: '',
-  englishNamePrefix: '',
   thaiName: '',
   thaiSurname: '',
+  englishNamePrefix: '',
   englishName: '',
   englishSurname: '',
-  room: '',
+  room: '', // => map ไป department (id)
   position: '',
   employmentType: '',
   personnelType: '',
-  userLevel: 'admin',
+  userLevel: 'user', // => map ไป role
   startDate: '',
   initialLeave: 'yes',
   isHR: 'no',
@@ -271,49 +287,86 @@ const form = reactive({
   sickLeave: 30.0,
   personalLeave: 10.0,
   otherLeave: 0.0,
-});
+})
 
-const submitForm = () => {
-  if (form.password !== form.confirmPassword) {
-    alert('รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน');
-    return;
+// โหลดข้อมูลถ้าเป็นโหมดแก้ไข
+onMounted(async () => {
+  const token = localStorage.getItem('token')
+  axios.defaults.headers.common['Authorization'] = `Token ${token}`
+
+  if (route.params.id) {
+    const res = await axios.get(`http://localhost:8000/api/users/${route.params.id}/`)
+    const user = res.data
+    form.id = user.id
+    form.username = user.username
+    form.email = user.email
+    form.tafCode = user.time_attendance_code
+    form.thaiNamePrefix = user.prefix_th
+    form.thaiName = user.firstname_th
+    form.thaiSurname = user.lastname_th
+    form.englishNamePrefix = user.prefix_en
+    form.englishName = user.firstname_en
+    form.englishSurname = user.lastname_en
+    form.room = user.department
+    form.userLevel = user.role
+    form.startDate = user.start_date
+    form.vacationLeave = user.quota_vacation
+    form.sickLeave = user.quota_sick
+    form.personalLeave = user.quota_casual
   }
-  console.log('Form data submitted:', form);
-};
+})
+
+const submitForm = async () => {
+  if (form.password && form.password !== form.confirmPassword) {
+    alert('รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน')
+    return
+  }
+
+  const payload = {
+    employee_code: form.username,  // ใช้ username เป็น employee_code
+    time_attendance_code: form.tafCode,
+    prefix_th: form.thaiNamePrefix,
+    firstname_th: form.thaiName,
+    lastname_th: form.thaiSurname,
+    prefix_en: form.englishNamePrefix,
+    firstname_en: form.englishName,
+    lastname_en: form.englishSurname,
+    email: form.email,
+    department: form.room || null,
+    user_level: form.userLevel,
+    role: form.position,                       // ROLE_CHOICES
+    employment_type: form.employmentType,  // GROUP_CHOICES
+    status: form.personnelType,  
+    start_date: form.startDate,
+    quota_vacation: form.vacationLeave,
+    quota_sick: form.sickLeave,
+    quota_casual: form.personalLeave,
+    status: "active",
+    password: form.password || undefined, // ส่งไปเฉพาะตอนเพิ่ม user
+  }
+
+  try {
+    if (form.id) {
+      // แก้ไข
+      await axios.put(`http://localhost:8000/api/users/${form.id}/`, payload)
+      alert("อัปเดตข้อมูลสำเร็จ")
+    } else {
+      // เพิ่มใหม่
+      await axios.post('http://localhost:8000/api/users/create/', payload)
+      alert("เพิ่มพนักงานสำเร็จ")
+    }
+    router.push('/admin2') // กลับไปหน้ารายการพนักงาน
+  } catch (err: any) {
+    console.error(err.response?.data || err)
+    alert("เกิดข้อผิดพลาด")
+  }
+}
 
 const cancelForm = () => {
-  resetForm();
-  console.log('Form has been canceled.');
-};
-
-const resetForm = () => {
-  Object.assign(form, {
-    username: '',
-    password: '',
-    confirmPassword: '',
-    email: '',
-    tafCode: '',
-    thaiNamePrefix: '',
-    englishNamePrefix: '',
-    thaiName: '',
-    thaiSurname: '',
-    englishName: '',
-    englishSurname: '',
-    room: '',
-    position: '',
-    employmentType: '',
-    personnelType: '',
-    userLevel: 'admin',
-    startDate: '',
-    initialLeave: 'yes',
-    isHR: 'no',
-    vacationLeave: 5.0,
-    sickLeave: 30.0,
-    personalLeave: 10.0,
-    otherLeave: 0.0,
-  });
-};
+  router.push('/admin2')
+}
 </script>
+
 
 <style scoped>
 
