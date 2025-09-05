@@ -21,7 +21,7 @@ User = get_user_model()
 class UserListView(generics.ListAPIView):
     queryset = CustomUser.objects.all().exclude(role='developer')
     serializer_class = CustomUserSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated]
 
 class UserFilterView(generics.ListAPIView):
     serializer_class = CustomUserSerializer
@@ -238,3 +238,17 @@ class PasswordResetValidateView(APIView):
             "role": getattr(user, "role", None),
             "profile": getattr(user, "profile_image_url", None),
         })
+
+class UserForListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        users = CustomUser.objects.exclude(role='developer')
+        data = []
+        for u in users:
+            data.append({
+                "id": u.id,
+                "name": f"{u.prefix_th or ''} {u.firstname_th} {u.lastname_th}".strip(),
+                "role": u.role
+            })
+        return Response(data)
