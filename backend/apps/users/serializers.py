@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.models import Group
 from django.contrib.auth.password_validation import validate_password
-from .models import CustomUser
+from .models import CustomUser, Department
 
 class CustomUserSerializer(serializers.ModelSerializer):
     groups = serializers.SlugRelatedField(
@@ -100,3 +100,26 @@ class UserSerializerShort(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['id', 'employee_code', 'firstname_th', 'lastname_th', 'email']
+
+class DepartmentSerializer(serializers.ModelSerializer):
+    head = serializers.SerializerMethodField()
+    personnel = serializers.SerializerMethodField()
+    total_users = serializers.SerializerMethodField()
+    approvers = UserSerializerShort(many=True, read_only=True)
+
+    class Meta:
+        model = Department
+        fields = ["id", "name_th", "name_en", "head", "personnel", "total_users", "approvers"]
+
+    def get_head(self, obj):
+        # สมมติเอา approvers คนแรกเป็นหัวหน้า
+        if obj.approvers.exists():
+            return f"{obj.approvers.first().firstname_th} {obj.approvers.first().lastname_th}"
+        return None
+
+    def get_personnel(self, obj):
+        users = CustomUser.objects.filter(department=obj)
+        return [f"{u.firstname_th} {u.lastname_th}" for u in users]
+    
+    def get_total_users(self, obj):
+        return CustomUser.objects.filter(department=obj).count()

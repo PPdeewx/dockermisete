@@ -59,25 +59,25 @@
         </div>
         
         <div class="room-list">
-          <div v-for="(room, index) in researchRooms" :key="index" class="room-card">
+          <div v-for="dept in departments" :key="dept.id" class="room-card">
             <div class="room-card-header">
               <h3>
-                {{ room.nameThai }}<br>
-                <small>{{ room.nameEnglish }}</small>
+                {{ dept.name_th }}<br>
+                <small>{{ dept.name_en }}</small>
               </h3>
               <div class="room-actions">
-                <button class="btn-action edit" @click="editRoom(room)"><i class="fas fa-edit"></i></button>
-                <button class="btn-action delete" @click="deleteRoom(room)"><i class="fas fa-times"></i></button>
+                <button class="btn-action edit" @click="editDepartment(dept)"><i class="fas fa-edit"></i></button>
+                <button class="btn-action delete" @click="deleteDepartment(dept)"><i class="fas fa-times"></i></button>
               </div>
             </div>
             <div class="room-card-body">
               <p>
-                <strong>หัวหน้าห้องวิจัย : </strong>{{ room.head }}
+                <strong>หัวหน้าห้องวิจัย : </strong>{{ dept.head || '-' }}
               </p>
               <div class="personnel-list">
                 <strong>บุคลากร :</strong>
-                <ol>
-                  <li v-for="(person, pIndex) in room.personnel" :key="pIndex">{{ person }}</li>
+                <ol v-if="dept.personnel && dept.personnel.length">
+                  <li v-for="(person, pIndex) in dept.personnel" :key="pIndex">{{ person }}</li>
                 </ol>
               </div>
             </div>
@@ -89,57 +89,45 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
 
-const isDropdownOpen = ref(false);
+const isDropdownOpen = ref(false)
+const toggleDropdown = () => { isDropdownOpen.value = !isDropdownOpen.value }
 
-const toggleDropdown = () => {
-  isDropdownOpen.value = !isDropdownOpen.value;
-};
+const departments = ref<any[]>([])
 
-const researchRooms = reactive([
-  {
-    nameThai: 'ห้องวิจัยพลังงานทดแทนและอนุรักษ์พลังงาน',
-    nameEnglish: '[Renewable Energy and Energy Conservation Laboratory - REEC]',
-    head: 'ผศ.ดร.ชัยวาส อัยยนะ',
-    personnel: [
-      
-    ]
-  },
-  {
-    nameThai: 'ห้องวิจัยด้านวิศวกรรมและการบริหารจัดการการเปลี่ยนแปลงสภาพภูมิอากาศด้านพลังงาน',
-    nameEnglish: '[Climate Change Engineering and Management in Energy Sector Laboratory - CCEME]',
-    head: 'ผศ.วงกต วงศ์อภัย',
-    personnel: [
-      
-    ]
-  },
-  {
-    nameThai: 'โครงการพัฒนาการศึกษาด้านพลังงาน',
-    nameEnglish: '[Energy Education Development Project: EEDP]',
-    head: 'รศ.ดร.ธงชัย ฟองสมุทร',
-    personnel: [
-      
-    ]
+onMounted(async () => {
+  try {
+    const res = await axios.get('http://localhost:8000/api/users/departments/', {
+      headers: { Authorization: `Token ${localStorage.getItem('token')}` }
+    })
+    departments.value = res.data
+  } catch (err) {
+    console.error(err)
   }
-]);
+})
 
-const addRoom = () => {
-  alert('ฟังก์ชันสำหรับเพิ่มห้องวิจัย');
-};
+const addDepartment = () => {
+  alert('ฟังก์ชันสำหรับเพิ่ม Department')
+}
 
-const editRoom = (room: any) => {
-  alert(`แก้ไขข้อมูลห้องวิจัย: ${room.nameThai}`);
-};
+const editDepartment = (dept: any) => {
+  alert(`แก้ไขข้อมูลห้องวิจัย: ${dept.name_th}`)
+}
 
-const deleteRoom = (room: any) => {
-  if (confirm(`คุณต้องการลบห้องวิจัย ${room.nameThai} หรือไม่?`)) {
-    const index = researchRooms.findIndex(r => r === room);
-    if (index > -1) {
-      researchRooms.splice(index, 1);
+const deleteDepartment = async (dept: any) => {
+  if (confirm(`คุณต้องการลบห้องวิจัย ${dept.name_th} หรือไม่?`)) {
+    try {
+      await axios.delete(`http://localhost:8000/api/users/departments/${dept.id}/`, {
+        headers: { Authorization: `Token ${localStorage.getItem('token')}` }
+      })
+      departments.value = departments.value.filter(d => d.id !== dept.id)
+    } catch (err: any) {
+      alert(err.response?.data?.detail || 'ลบไม่สำเร็จ')
     }
   }
-};
+}
 </script>
 
 <style scoped>

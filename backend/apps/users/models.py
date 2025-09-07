@@ -4,11 +4,12 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 
 class Department(models.Model):
-    name = models.CharField(max_length=100)
+    name_th = models.CharField(max_length=200, verbose_name="ชื่อห้องวิจัย (ไทย)", default="-")
+    name_en = models.CharField(max_length=200, verbose_name="ชื่อห้องวิจัย (อังกฤษ)", default="-")
     approvers = models.ManyToManyField('CustomUser', related_name='approver_departments', blank=True)
 
     def __str__(self):
-        return self.name
+        return f"{self.name_th} ({self.name_en})"
 
 class CustomUser(AbstractUser):
     ROLE_CHOICES = (

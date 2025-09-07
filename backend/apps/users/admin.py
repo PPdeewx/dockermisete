@@ -21,5 +21,8 @@ class CustomUserAdmin(UserAdmin):
 
 @admin.register(Department)
 class DepartmentAdmin(admin.ModelAdmin):
-    list_display = ('name',)
-    search_fields = ('name',)
+    list_display = ('full_name',)
+
+    def full_name(self, obj):
+        return f"{obj.name_th} ({obj.name_en})"
+    full_name.short_description = "ห้องวิจัย"

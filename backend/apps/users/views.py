@@ -2,8 +2,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import generics, status
 from rest_framework.decorators import api_view
-from .models import CustomUser
-from .serializers import CustomUserSerializer
+from .models import CustomUser, Department
+from .serializers import CustomUserSerializer, DepartmentSerializer
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 from django.contrib.auth.tokens import default_token_generator
 from rest_framework.authtoken.models import Token
@@ -252,3 +252,18 @@ class UserForListView(APIView):
                 "role": u.role
             })
         return Response(data)
+    
+class DepartmentListCreateView(generics.ListCreateAPIView):
+    queryset = Department.objects.all()
+    serializer_class = DepartmentSerializer
+    permission_classes = [IsAdminUser]
+
+class DepartmentDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Department.objects.all()
+    serializer_class = DepartmentSerializer
+    permission_classes = [IsAdminUser]
+
+    def perform_destroy(self, instance):
+        if CustomUser.objects.filter(department=instance).exists():
+            raise ValidationError("ไม่สามารถลบ Department ได้เนื่องจากยังมีพนักงานอยู่ในแผนกนี้")
+        instance.delete()
