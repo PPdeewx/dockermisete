@@ -265,5 +265,5 @@ class DepartmentDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def perform_destroy(self, instance):
         if CustomUser.objects.filter(department=instance).exists():
-            raise ValidationError("ไม่สามารถลบ Department ได้เนื่องจากยังมีพนักงานอยู่ในแผนกนี้")
+            raise ValidationError("ไม่สามารถลบห้องวิจัย ได้เนื่องจากยังมีพนักงานอยู่ในแผนกนี้")
         instance.delete()

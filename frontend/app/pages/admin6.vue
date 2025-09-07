@@ -33,17 +33,30 @@
           <span><i class="fas fa-home"></i> หน้าหลัก > บุคลากร > เพิ่ม/แก้ไข พนักงาน</span>
         </div>
         <div class="user-profile-container">
-          <div class="user-profile" @click="toggleDropdown">
+          <div class="user-profile" @click="toggleProfileMenu">
             <i class="fas fa-bell"></i>
             <i class="fas fa-user-circle"></i>
-            <span class="username">Username ตำแหน่ง: Admin</span>
-            <i class="fas fa-chevron-down" :class="{ 'rotate': isDropdownOpen }"></i>
-          </div>
-          <div class="dropdown-menu" v-if="isDropdownOpen">
-            <a href="#" class="dropdown-item"><i class="fas fa-user"></i> ดูข้อมูลส่วนตัว</a>
-            <a href="#" class="dropdown-item"><i class="fas fa-user-edit"></i> แก้ไขข้อมูลส่วนตัว</a>
-            <a href="#" class="dropdown-item"><i class="fas fa-fingerprint"></i> เปลี่ยนรหัสผ่าน</a>
-            <a href="#" class="dropdown-item"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</a>
+            <span class="username">{{ currentUser?.username }} ตำแหน่ง: {{ currentUser?.role }}</span>
+            <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
+
+            <div class="user-profile-menu" v-if="showProfileMenu">
+              <button class="menu-item" @click.stop="goTo('/admin')">
+                <i class="fas fa-user"></i>
+                <span>ดูข้อมูลส่วนตัว</span>
+              </button>
+              <button class="menu-item" @click.stop="goTo('/admin')">
+                <i class="fas fa-edit"></i>
+                <span>แก้ไขข้อมูลส่วนตัว</span>
+              </button>
+              <button class="menu-item" @click.stop="goTo('/admin')">
+                <i class="fas fa-lock"></i>
+                <span>เปลี่ยนรหัสผ่าน</span>
+              </button>
+              <button class="menu-item" @click.stop="logout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>ออกจากระบบ</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -67,7 +80,7 @@
             </div>
             <div class="form-group">
               <label for="confirm-password">Phone *</label>
-              <input type="Phone" id="Phone" v-model="form.Phone" required/>
+              <input type="phone" id="phone" v-model="form.phone" required/>
             </div>
             <div class="form-group">
               <label for="email">Email *</label>
@@ -122,31 +135,31 @@
               <input type="text" id="english-surname" v-model="form.englishSurname"/>
             </div>
           </div>
-          
+
           <div class="form-row">
             <div class="form-group">
-              <label for="room">ห้องวิจัย *</label>
-              <select id="room" v-model="form.room">
-                <option value="">เลือกห้องวิจัย</option>
-                <option v-for="room in roomOptions" :key="room" :value="room">
-                  {{ room }}
-                </option>
-              </select>
+              <label for="position">ที่อยุ่ *</label>
+              <input type="text" id="position" v-model="form.position"/>
             </div>
           </div>
           
           <div class="form-row">
-            <div class="form-group">
-              <label for="position">ที่อยุ่ *</label>
-              <select id="position" v-model="form.position" required>
-              </select>
-            </div>
             <div class="form-group">
               <label for="employment-type">ประเภทการจ้างงาน *</label>
               <select id="employment-type" v-model="form.group" required>
                 <option value="">กรุณาเลือก</option>
                 <option v-for="group in groupOptions" :key="group.value" :value="group.value">
                   {{ group.label }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="room">ห้องวิจัย *</label>
+              <select id="room" v-model="form.room">
+                <option value="">เลือกห้องวิจัย</option>
+                <option v-for="room in roomOptions" :key="room" :value="room">
+                  {{ room }}
                 </option>
               </select>
             </div>
@@ -166,7 +179,7 @@
               <label>ระดับผู้ใช้ *</label>
               <div class="radio-group">
                 <label><input type="radio" name="user-level" value="admin" v-model="form.userLevel" /> Admin</label>
-                <label><input type="radio" name="user-level" value="user" v-model="form.userLevel" /> User</label>
+                <label><input type="radio" name="user-level" value="employee" v-model="form.userLevel" /> User</label>
               </div>
             </div>
           </div>
@@ -217,13 +230,7 @@ import axios from 'axios'
 const thaiNamePrefixOptions = ['นาย', 'นาง', 'นางสาว']
 const englishNamePrefixOptions = ['Mr.', 'Mrs.', 'Ms.', 'Dr.']
 
-
 const roomOptions = ref<string[]>([])
-
-const positionOptions = [
-  { value: 'admin', label: 'Admin' },
-  { value: 'employee', label: 'พนักงาน' },
-]
 
 const groupOptions = [
   { value: 'regular', label: 'พนักงานประจำ' },
@@ -242,8 +249,13 @@ const departments = ref<any[]>([])
 const router = useRouter()
 const route = useRoute()
 
-const isDropdownOpen = ref(false)
-const toggleDropdown = () => { isDropdownOpen.value = !isDropdownOpen.value }
+const currentUser = ref<any>(null)
+
+const token = ref<string | null>(null);
+const showProfileMenu = ref(false)
+const toggleProfileMenu = () => {
+  showProfileMenu.value = !showProfileMenu.value
+}
 
 const form = reactive({
   id: null,
@@ -251,6 +263,7 @@ const form = reactive({
   password: '',
   phone: '',
   email: '',
+  empCode: '',
   tafCode: '', 
   thaiNamePrefix: '',
   thaiName: '',
@@ -265,7 +278,6 @@ const form = reactive({
   userLevel: 'user', 
   startDate: '',
   initialLeave: 'yes',
-  isHR: 'no',
   vacationLeave: 5.0,
   sickLeave: 30.0,
   personalLeave: 10.0,
@@ -274,8 +286,37 @@ const form = reactive({
 
 
 onMounted(async () => {
-  const token = localStorage.getItem('token')
-  axios.defaults.headers.common['Authorization'] = `Token ${token}`
+  if (typeof window !== "undefined") {
+    token.value = localStorage.getItem("token")
+  }
+
+  if (!token.value) {
+    router.push('/login')
+    return
+  }
+
+  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`
+
+  try {
+    const me = await axios.get('http://localhost:8000/api/users/me/')
+    currentUser.value = me.data
+
+    if (currentUser.value.role !== 'admin') {
+      router.push('/login')
+      return
+    }
+  } catch (err) {
+    console.error(err)
+    router.push('/login')
+  }
+
+  try {
+    const res = await axios.get('http://localhost:8000/api/users/departments/')
+    const departmentsData = res.data
+    roomOptions.value = departmentsData.map((d: any) => `${d.name_th}`)
+  } catch (err) {
+    console.error("Failed to load departments:", err)
+  }
 
   if (route.params.id) {
     const res = await axios.get(`http://localhost:8000/api/users/${route.params.id}/`)
@@ -284,7 +325,7 @@ onMounted(async () => {
     form.username = user.username
     form.phone = user.phone_number
     form.email = user.email
-    from.empCode = user.time_attendance_code
+    form.empCode = user.employee_code
     form.tafCode = user.time_attendance_code
     form.thaiNamePrefix = user.prefix_th
     form.thaiName = user.firstname_th
@@ -292,7 +333,7 @@ onMounted(async () => {
     form.englishNamePrefix = user.prefix_en
     form.englishName = user.firstname_en
     form.englishSurname = user.lastname_en
-    form.room = user.department
+    form.room = user.department ? `${user.department.name_th}` : ''
     form.userLevel = user.role
     form.startDate = user.start_date
     form.vacationLeave = user.quota_vacation
@@ -309,7 +350,7 @@ const submitForm = async () => {
 
   const payload = {
     username: form.username,
-    employee_code: form.username,
+    employee_code: form.empCode,
     time_attendance_code: form.tafCode,
     prefix_th: form.thaiNamePrefix,
     firstname_th: form.thaiName,
@@ -320,8 +361,7 @@ const submitForm = async () => {
     phone_number: form.phone,
     email: form.email,
     department: form.room || null,
-    user_level: form.userLevel,
-    role: form.position.value,                    
+    role: form.userLevel,                    
     group: form.group,  
     start_date: form.startDate,
     quota_vacation: form.vacationLeave,
@@ -479,6 +519,7 @@ const cancelForm = () => {
 }
 
 .user-profile {
+  position: relative;
   display: flex;
   align-items: center;
   cursor: pointer;
@@ -641,5 +682,40 @@ const cancelForm = () => {
 
 .btn-submit:hover {
   background-color: #45a049;
+}
+
+.user-profile-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 220px;
+  z-index: 1000;
+  padding: 6px;
+}
+
+.menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.menu-item:hover {
+  background-color: #f0f2f5;
+}
+
+.menu-item i {
+  width: 20px;
+  text-align: center;
 }
 </style>

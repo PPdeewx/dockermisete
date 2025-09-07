@@ -11,6 +11,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
         required=False,
         many=True
     )
+    department = serializers.SerializerMethodField()
 
     employee_code = serializers.CharField(
         validators=[UniqueValidator(queryset=CustomUser.objects.all())]
@@ -40,6 +41,14 @@ class CustomUserSerializer(serializers.ModelSerializer):
             'quota_vacation': {'required': True},
             'status': {'required': True},
         }
+
+    def get_department(self, obj):
+        if obj.department:
+            return {
+                "id": obj.department.id,
+                "name_th": obj.department.name_th,
+            }
+        return None
 
     def validate(self, attrs):
         status = attrs.get('status', None)

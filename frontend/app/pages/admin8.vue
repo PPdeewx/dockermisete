@@ -33,17 +33,30 @@
           <span><i class="fas fa-home"></i> หน้าหลัก > บุคลากร > เปลี่ยนสถานะพนักงาน</span>
         </div>
         <div class="user-profile-container">
-          <div class="user-profile" @click="toggleDropdown">
+          <div class="user-profile" @click="toggleProfileMenu">
             <i class="fas fa-bell"></i>
             <i class="fas fa-user-circle"></i>
-            <span class="username">Username ตำแหน่ง: Admin</span>
-            <i class="fas fa-chevron-down" :class="{ 'rotate': isDropdownOpen }"></i>
-          </div>
-          <div class="dropdown-menu" v-if="isDropdownOpen">
-            <a href="#" class="dropdown-item"><i class="fas fa-user"></i> ดูข้อมูลส่วนตัว</a>
-            <a href="#" class="dropdown-item"><i class="fas fa-user-edit"></i> แก้ไขข้อมูลส่วนตัว</a>
-            <a href="#" class="dropdown-item"><i class="fas fa-fingerprint"></i> เปลี่ยนรหัสผ่าน</a>
-            <a href="#" class="dropdown-item"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</a>
+            <span class="username">{{ currentUser?.username }} ตำแหน่ง: {{ currentUser?.role }}</span>
+            <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
+
+            <div class="user-profile-menu" v-if="showProfileMenu">
+              <button class="menu-item" @click.stop="goTo('/admin')">
+                <i class="fas fa-user"></i>
+                <span>ดูข้อมูลส่วนตัว</span>
+              </button>
+              <button class="menu-item" @click.stop="goTo('/admin')">
+                <i class="fas fa-edit"></i>
+                <span>แก้ไขข้อมูลส่วนตัว</span>
+              </button>
+              <button class="menu-item" @click.stop="goTo('/admin')">
+                <i class="fas fa-lock"></i>
+                <span>เปลี่ยนรหัสผ่าน</span>
+              </button>
+              <button class="menu-item" @click.stop="logout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>ออกจากระบบ</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -76,18 +89,18 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(employee, index) in filteredEmployees" :key="index">
+              <tr v-for="(employee, index) in filteredEmployees" :key="employee.id">
                 <td>{{ index + 1 }}</td>
-                <td>{{ employee.id }}</td>
-                <td>{{ employee.name }}</td>
+                <td>{{ employee.employee_code }}</td>
+                <td>{{ employee.firstname_th }} {{ employee.lastname_th }}</td>
                 <td>{{ employee.email }}</td>
-                <td>{{ employee.position }}</td>
-                <td>{{ employee.phone }}</td>
-                <td>{{ employee.currentStatus }}</td>
+                <td>{{ employee.groupName || '-' }}</td>
+                <td>{{ employee.phone_number }}</td>
+                <td>{{ employee.status === 'active' ? 'พนักงานปัจจุบัน' : 'ลาออก' }}</td>
                 <td>
                   <select v-model="employee.newStatus">
-                    <option value="ปฏิบัติงาน">ปฏิบัติงาน</option>
-                    <option value="ลาออก">ลาออก</option>
+                    <option value="active">พนักงานปัจจุบัน</option>
+                    <option value="resigned">ลาออก</option>
                   </select>
                 </td>
               </tr>
@@ -100,80 +113,107 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router'
+import axios from 'axios';
 
-const isDropdownOpen = ref(false);
 const searchQuery = ref('');
+const employees = ref([]);
 
-const toggleDropdown = () => {
-  isDropdownOpen.value = !isDropdownOpen.value;
+const router = useRouter()
+const token = ref<string | null>(null)
+const currentUser = ref<any>(null)
+
+const showProfileMenu = ref(false)
+const toggleProfileMenu = () => {
+  showProfileMenu.value = !showProfileMenu.value
+}
+
+// โหลดพนักงานจาก backend
+const loadEmployees = async () => {
+  try {
+    const res = await axios.get('http://localhost:8000/api/users/filter/', {
+      headers: {
+        Authorization: `Token ${localStorage.getItem('token')}`,
+      },
+      params: { status: '' },
+    });
+    employees.value = res.data.map(emp => ({
+      ...emp,
+      newStatus: emp.status,
+      groupName: emp.groups?.[0] || '-',
+    }));
+  } catch (err) {
+    console.error('Error loading employees:', err);
+  }
 };
 
-const employees = reactive([
-  {
-    id: 'E-001',
-    name: 'สมชาย เจริญสุข',
-    email: 'somchai@example.com',
-    position: 'นักวิจัย',
-    phone: '081-123-4567',
-    currentStatus: 'ปฏิบัติงาน',
-    newStatus: 'ปฏิบัติงาน',
-  },
-  {
-    id: 'E-002',
-    name: 'สมหญิง รักดี',
-    email: 'somying@example.com',
-    position: 'วิศวกรอาวุโส',
-    phone: '089-765-4321',
-    currentStatus: 'ปฏิบัติงาน',
-    newStatus: 'ปฏิบัติงาน',
-  },
-  {
-    id: 'E-003',
-    name: 'เอกชัย มีชัย',
-    email: 'aekachai@example.com',
-    position: 'เจ้าหน้าที่ประสานงาน',
-    phone: '098-111-2222',
-    currentStatus: 'ปฏิบัติงาน',
-    newStatus: 'ปฏิบัติงาน',
-  },
-  {
-    id: 'E-004',
-    name: 'อรุณี สว่างจิต',
-    email: 'arunee@example.com',
-    position: 'นักวิจัย',
-    phone: '081-999-8888',
-    currentStatus: 'ปฏิบัติงาน',
-    newStatus: 'ปฏิบัติงาน',
-  },
-]);
-
+// ฟิลเตอร์ค้นหา
 const filteredEmployees = computed(() => {
-  if (!searchQuery.value) {
-    return employees;
-  }
+  if (!searchQuery.value) return employees.value;
   const query = searchQuery.value.toLowerCase();
-  return employees.filter(employee => {
-    return (
-      employee.name.toLowerCase().includes(query) ||
-      employee.id.toLowerCase().includes(query) ||
-      employee.email.toLowerCase().includes(query)
-    );
-  });
+  return employees.value.filter(emp =>
+    emp.firstname_th.toLowerCase().includes(query) ||
+    emp.lastname_th.toLowerCase().includes(query) ||
+    emp.employee_code.toLowerCase().includes(query) ||
+    emp.email.toLowerCase().includes(query) ||
+    emp.groupName.toLowerCase().includes(query) ||
+    emp.phone_number.toLowerCase().includes(query)
+  );
 });
 
-const saveChanges = () => {
-  const changes = employees.filter(emp => emp.currentStatus !== emp.newStatus);
-  if (changes.length > 0) {
-    console.log('Changes to be saved:', changes);
-    alert('บันทึกการเปลี่ยนแปลงเรียบร้อยแล้ว');
-    changes.forEach(emp => {
-      emp.currentStatus = emp.newStatus;
-    });
-  } else {
+// บันทึกการเปลี่ยนสถานะ
+const saveChanges = async () => {
+  const changes = employees.value.filter(emp => emp.status !== emp.newStatus);
+  if (changes.length === 0) {
     alert('ไม่มีการเปลี่ยนแปลงสถานะพนักงาน');
+    return;
+  }
+  try {
+    for (const emp of changes) {
+      const payload: any = { status: emp.newStatus };
+      if (emp.newStatus === 'resigned') {
+        payload.exit_date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+      }
+      await axios.patch(`http://localhost:8000/api/users/${emp.id}/`, payload, {
+        headers: { Authorization: `Token ${localStorage.getItem('token')}` },
+      });
+      emp.status = emp.newStatus;
+    }
+    alert('บันทึกการเปลี่ยนแปลงเรียบร้อยแล้ว');
+  } catch (err) {
+    console.error('Error saving changes:', err);
+    alert('เกิดข้อผิดพลาดในการบันทึก');
   }
 };
+
+onMounted(async() => {
+  loadEmployees();
+
+  if (typeof window !== "undefined") {
+    token.value = localStorage.getItem("token")
+  }
+
+  if (!token.value) {
+    router.push('/login')
+    return
+  }
+
+  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`
+
+  try {
+    const me = await axios.get('http://localhost:8000/api/users/me/')
+    currentUser.value = me.data
+
+    if (currentUser.value.role !== 'admin') {
+      router.push('/login')
+      return
+    }
+  } catch (err) {
+    console.error(err)
+    router.push('/login')
+  }
+});
 </script>
 
 <style scoped>
@@ -300,6 +340,7 @@ const saveChanges = () => {
 }
 
 .user-profile {
+  position: relative;
   display: flex;
   align-items: center;
   cursor: pointer;
@@ -447,5 +488,40 @@ select {
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 5px;
+}
+
+.user-profile-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 220px;
+  z-index: 1000;
+  padding: 6px;
+}
+
+.menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.menu-item:hover {
+  background-color: #f0f2f5;
+}
+
+.menu-item i {
+  width: 20px;
+  text-align: center;
 }
 </style>
