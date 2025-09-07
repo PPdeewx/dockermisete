@@ -74,6 +74,10 @@
               <input type="email" id="email" v-model="form.email" required />
             </div>
             <div class="form-group">
+              <label for="emp-code">EMP Code *</label>
+              <input type="text" id="emp-code" v-model="form.empCode" required />
+            </div>
+             <div class="form-group">
               <label for="taf-code">TAF Code *</label>
               <input type="text" id="taf-code" v-model="form.tafCode" required />
             </div>
@@ -133,12 +137,8 @@
           
           <div class="form-row">
             <div class="form-group">
-              <label for="position">ตำแหน่ง *</label>
+              <label for="position">ที่อยุ่ *</label>
               <select id="position" v-model="form.position" required>
-                <option value="">กรุณาเลือก</option>
-                <option v-for="position in positionOptions" :key="position" :value="position">
-                  {{ position.label }}
-                </option>
               </select>
             </div>
             <div class="form-group">
@@ -217,7 +217,7 @@ import axios from 'axios'
 const thaiNamePrefixOptions = ['นาย', 'นาง', 'นางสาว']
 const englishNamePrefixOptions = ['Mr.', 'Mrs.', 'Ms.', 'Dr.']
 
-// โหลดจาก backend หรือกำหนดตายตัวก็ได้
+
 const roomOptions = ref<string[]>([])
 
 const positionOptions = [
@@ -251,18 +251,18 @@ const form = reactive({
   password: '',
   phone: '',
   email: '',
-  tafCode: '', // => map ไป time_attendance_code
+  tafCode: '', 
   thaiNamePrefix: '',
   thaiName: '',
   thaiSurname: '',
   englishNamePrefix: '',
   englishName: '',
   englishSurname: '',
-  room: '', // => map ไป department (id)
+  room: '', 
   position: '',
   group: '',
   status: '',
-  userLevel: 'user', // => map ไป role
+  userLevel: 'user', 
   startDate: '',
   initialLeave: 'yes',
   isHR: 'no',
@@ -272,7 +272,7 @@ const form = reactive({
   otherLeave: 0.0,
 })
 
-// โหลดข้อมูลถ้าเป็นโหมดแก้ไข
+
 onMounted(async () => {
   const token = localStorage.getItem('token')
   axios.defaults.headers.common['Authorization'] = `Token ${token}`
@@ -284,6 +284,7 @@ onMounted(async () => {
     form.username = user.username
     form.phone = user.phone_number
     form.email = user.email
+    from.empCode = user.time_attendance_code
     form.tafCode = user.time_attendance_code
     form.thaiNamePrefix = user.prefix_th
     form.thaiName = user.firstname_th
@@ -320,27 +321,27 @@ const submitForm = async () => {
     email: form.email,
     department: form.room || null,
     user_level: form.userLevel,
-    role: form.position.value,                     // ROLE_CHOICES
-    group: form.group,  // GROUP_CHOICES 
+    role: form.position.value,                    
+    group: form.group,  
     start_date: form.startDate,
     quota_vacation: form.vacationLeave,
     quota_sick: form.sickLeave,
     quota_casual: form.personalLeave,
     status: form.status,
-    password: form.password || undefined, // ส่งไปเฉพาะตอนเพิ่ม user
+    password: form.password || undefined, 
   }
 
   try {
     if (form.id) {
-      // แก้ไข
+      
       await axios.put(`http://localhost:8000/api/users/${form.id}/`, payload)
       alert("อัปเดตข้อมูลสำเร็จ")
     } else {
-      // เพิ่มใหม่
+      
       await axios.post('http://localhost:8000/api/users/create/', payload)
       alert("เพิ่มพนักงานสำเร็จ")
     }
-    router.push('/admin2') // กลับไปหน้ารายการพนักงาน
+    router.push('/admin2') 
   } catch (err: any) {
     console.error(err.response?.data || err)
     alert("เกิดข้อผิดพลาด")
