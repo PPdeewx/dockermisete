@@ -66,8 +66,8 @@
               <input type="password" id="password" v-model="form.password" required />
             </div>
             <div class="form-group">
-              <label for="confirm-password">Confirm Password *</label>
-              <input type="password" id="confirm-password" v-model="form.confirmPassword" required />
+              <label for="confirm-password">Phone *</label>
+              <input type="Phone" id="Phone" v-model="form.Phone" required/>
             </div>
             <div class="form-group">
               <label for="email">Email *</label>
@@ -102,7 +102,7 @@
           <div class="form-row">
             <div class="form-group">
               <label for="english-name-prefix">คำนำหน้าชื่ออังกฤษ *</label>
-              <select id="english-name-prefix" v-model="form.englishNamePrefix" required>
+              <select id="english-name-prefix" v-model="form.englishNamePrefix">
                 <option value="">กรุณาเลือก</option>
                 <option v-for="prefix in englishNamePrefixOptions" :key="prefix" :value="prefix">
                   {{ prefix }}
@@ -111,18 +111,18 @@
             </div>
             <div class="form-group">
               <label for="english-name">ชื่อภาษาอังกฤษ *</label>
-              <input type="text" id="english-name" v-model="form.englishName" required />
+              <input type="text" id="english-name" v-model="form.englishName"/>
             </div>
             <div class="form-group">
               <label for="english-surname">นามสกุลภาษาอังกฤษ *</label>
-              <input type="text" id="english-surname" v-model="form.englishSurname" required />
+              <input type="text" id="english-surname" v-model="form.englishSurname"/>
             </div>
           </div>
           
           <div class="form-row">
             <div class="form-group">
               <label for="room">ห้องวิจัย *</label>
-              <select id="room" v-model="form.room" required>
+              <select id="room" v-model="form.room">
                 <option value="">เลือกห้องวิจัย</option>
                 <option v-for="room in roomOptions" :key="room" :value="room">
                   {{ room }}
@@ -143,10 +143,10 @@
             </div>
             <div class="form-group">
               <label for="employment-type">ประเภทการจ้างงาน *</label>
-              <select id="employment-type" v-model="form.employmentType" required>
+              <select id="employment-type" v-model="form.group" required>
                 <option value="">กรุณาเลือก</option>
-                <option v-for="type in employmentTypeOptions" :key="type" :value="type">
-                  {{ type.label }}
+                <option v-for="group in groupOptions" :key="group.value" :value="group.value">
+                  {{ group.label }}
                 </option>
               </select>
             </div>
@@ -154,11 +154,11 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label for="personnel-type">ประเภทบุคลากร *</label>
-              <select id="personnel-type" v-model="form.personnelType" required>
+              <label for="personnel-type">สถานะ *</label>
+              <select id="personnel-type" v-model="form.status" required>
                 <option value="">กรุณาเลือก</option>
-                <option v-for="type in personnelTypeOptions" :key="type" :value="type">
-                  {{ type.label }}
+                <option v-for="status in statusOptions" :key="status.value" :value="status.value">
+                  {{ status.label }}
                 </option>
               </select>
             </div>
@@ -178,22 +178,6 @@
             </div>
           </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label>อนุมัติการลาเบื้องต้น *</label>
-              <div class="radio-group">
-                <label><input type="radio" name="initial-leave" value="yes" v-model="form.initialLeave" /> ได้</label>
-                <label><input type="radio" name="initial-leave" value="no" v-model="form.initialLeave" /> ไม่ได้</label>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>เป็น HR หรือไม่ :</label>
-              <div class="radio-group">
-                <label><input type="radio" name="is-hr" value="yes" v-model="form.isHR" /> ใช่</label>
-                <label><input type="radio" name="is-hr" value="no" v-model="form.isHR" /> ไม่ใช่</label>
-              </div>
-            </div>
-          </div>
 
           <p class="small-text">กรณีเป็นหัวหน้าพนักงาน</p>
 
@@ -238,18 +222,17 @@ const roomOptions = ref<string[]>([])
 
 const positionOptions = [
   { value: 'admin', label: 'Admin' },
-  { value: 'manager', label: 'หัวหน้าฝ่าย' },
   { value: 'employee', label: 'พนักงาน' },
 ]
 
-const employmentTypeOptions = [
+const groupOptions = [
   { value: 'regular', label: 'พนักงานประจำ' },
   { value: 'manager', label: 'ผู้บริหาร' },
   { value: 'temporary', label: 'พนักงานชั่วคราว' },
   { value: 'developer', label: 'Developer' },
 ]
 
-const personnelTypeOptions = [
+const statusOptions = [
   { value: 'active', label: 'พนักงานปัจจุบัน' },
   { value: 'resigned', label: 'ลาออก' },
 ]
@@ -266,7 +249,7 @@ const form = reactive({
   id: null,
   username: '',
   password: '',
-  confirmPassword: '',
+  phone: '',
   email: '',
   tafCode: '', // => map ไป time_attendance_code
   thaiNamePrefix: '',
@@ -277,8 +260,8 @@ const form = reactive({
   englishSurname: '',
   room: '', // => map ไป department (id)
   position: '',
-  employmentType: '',
-  personnelType: '',
+  group: '',
+  status: '',
   userLevel: 'user', // => map ไป role
   startDate: '',
   initialLeave: 'yes',
@@ -299,6 +282,7 @@ onMounted(async () => {
     const user = res.data
     form.id = user.id
     form.username = user.username
+    form.phone = user.phone_number
     form.email = user.email
     form.tafCode = user.time_attendance_code
     form.thaiNamePrefix = user.prefix_th
@@ -317,13 +301,14 @@ onMounted(async () => {
 })
 
 const submitForm = async () => {
-  if (form.password && form.password !== form.confirmPassword) {
-    alert('รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน')
+  if (form.password && form.password) {
+    alert('รหัสผ่านไม่ถูกต้อง')
     return
   }
 
   const payload = {
-    employee_code: form.username,  // ใช้ username เป็น employee_code
+    username: form.username,
+    employee_code: form.username,
     time_attendance_code: form.tafCode,
     prefix_th: form.thaiNamePrefix,
     firstname_th: form.thaiName,
@@ -331,17 +316,17 @@ const submitForm = async () => {
     prefix_en: form.englishNamePrefix,
     firstname_en: form.englishName,
     lastname_en: form.englishSurname,
+    phone_number: form.phone,
     email: form.email,
     department: form.room || null,
     user_level: form.userLevel,
-    role: form.position,                       // ROLE_CHOICES
-    employment_type: form.employmentType,  // GROUP_CHOICES
-    status: form.personnelType,  
+    role: form.position.value,                     // ROLE_CHOICES
+    group: form.group,  // GROUP_CHOICES 
     start_date: form.startDate,
     quota_vacation: form.vacationLeave,
     quota_sick: form.sickLeave,
     quota_casual: form.personalLeave,
-    status: "active",
+    status: form.status,
     password: form.password || undefined, // ส่งไปเฉพาะตอนเพิ่ม user
   }
 

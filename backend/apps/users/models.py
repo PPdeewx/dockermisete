@@ -13,7 +13,6 @@ class Department(models.Model):
 class CustomUser(AbstractUser):
     ROLE_CHOICES = (
         ('admin', 'Admin'),
-        ('manager', 'Head of Department'),
         ('employee', 'Employee'),
     )
     STATUS_CHOICES = (
