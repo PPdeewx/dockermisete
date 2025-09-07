@@ -21,10 +21,10 @@
             <li><a href="#" class="submenu-link">กำหนดโควต้าลา(ทั้งหมด)</a></li>
           </ul>
         </li>
-        <li class="nav-item active">
+        <li class="nav-item">
           <a href="#" class="nav-link"><i class="fas fa-flask"></i> ห้องวิจัย</a>
         </li>
-        <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-calendar-alt"></i> วันหยุด</a></li>
+        <li class="nav-item active"><a href="#" class="nav-link"><i class="fas fa-calendar-alt"></i> วันหยุด</a></li>
         <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-cog"></i> ระบบการปฏิบัติงาน</a></li>
       </ul>
     </div>
@@ -32,7 +32,7 @@
     <div class="main-content">
       <div class="top-bar">
         <div class="breadcrumbs">
-          <span><i class="fas fa-home"></i> หน้าหลัก > ห้องวิจัย</span>
+          <span><i class="fas fa-home"></i> หน้าหลัก > วันหยุด</span>
         </div>
         <div class="user-profile-container">
           <div class="user-profile" @click="toggleDropdown">
@@ -52,36 +52,29 @@
 
       <div class="content-container">
         <div class="header-with-button">
-          <h2><i class="fas fa-flask"></i> ห้องวิจัย</h2>
-          <button class="btn-add-room" @click="addRoom">
-            <i class="fas fa-plus"></i> เพิ่มห้องวิจัย
+          <h2><i class="fas fa-calendar-alt"></i> วันหยุด/ตาราง</h2>
+          <button class="btn-add-room" @click="toggleView">
+            <i class="fas fa-calendar-alt"></i> สลับเป็นรูปแบบปฏิทิน
           </button>
         </div>
         
-        <div class="room-list">
-          <div v-for="(room, index) in researchRooms" :key="index" class="room-card">
-            <div class="room-card-header">
-              <h3>
-                {{ room.nameThai }}<br>
-                <small>{{ room.nameEnglish }}</small>
-              </h3>
-              <div class="room-actions">
-                <button class="btn-action edit" @click="editRoom(room)"><i class="fas fa-edit"></i></button>
-                <button class="btn-action delete" @click="deleteRoom(room)"><i class="fas fa-times"></i></button>
-              </div>
-            </div>
-            <div class="room-card-body">
-              <p>
-                <strong>หัวหน้าห้องวิจัย : </strong>{{ room.head }}
-              </p>
-              <div class="personnel-list">
-                <strong>บุคลากร :</strong>
-                <ol>
-                  <li v-for="(person, pIndex) in room.personnel" :key="pIndex">{{ person }}</li>
-                </ol>
-              </div>
-            </div>
-          </div>
+        <div class="holiday-table-container">
+          <table class="holiday-table">
+            <thead>
+              <tr>
+                <th>วันที่</th>
+                <th>ชื่อวันหยุด</th>
+                <th>ประเภทวันหยุด</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(holiday, index) in holidayList" :key="index">
+                <td>{{ holiday.date }}</td>
+                <td>{{ holiday.name }}</td>
+                <td>{{ holiday.type }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -97,49 +90,16 @@ const toggleDropdown = () => {
   isDropdownOpen.value = !isDropdownOpen.value;
 };
 
-const researchRooms = reactive([
-  {
-    nameThai: 'ห้องวิจัยพลังงานทดแทนและอนุรักษ์พลังงาน',
-    nameEnglish: '[Renewable Energy and Energy Conservation Laboratory - REEC]',
-    head: 'ผศ.ดร.ชัยวาส อัยยนะ',
-    personnel: [
-      
-    ]
-  },
-  {
-    nameThai: 'ห้องวิจัยด้านวิศวกรรมและการบริหารจัดการการเปลี่ยนแปลงสภาพภูมิอากาศด้านพลังงาน',
-    nameEnglish: '[Climate Change Engineering and Management in Energy Sector Laboratory - CCEME]',
-    head: 'ผศ.วงกต วงศ์อภัย',
-    personnel: [
-      
-    ]
-  },
-  {
-    nameThai: 'โครงการพัฒนาการศึกษาด้านพลังงาน',
-    nameEnglish: '[Energy Education Development Project: EEDP]',
-    head: 'รศ.ดร.ธงชัย ฟองสมุทร',
-    personnel: [
-      
-    ]
-  }
+const viewMode = ref('table');
+
+const toggleView = () => {
+  viewMode.value = viewMode.value === 'table' ? 'calendar' : 'table';
+  alert(`สลับไปที่มุมมอง: ${viewMode.value}`);
+};
+
+const holidayList = ref([
+  { date: '2025-01-01', name: 'วันหยุดปีใหม่ 2568', type: 'นักขัตฤกษ์' },
 ]);
-
-const addRoom = () => {
-  alert('ฟังก์ชันสำหรับเพิ่มห้องวิจัย');
-};
-
-const editRoom = (room: any) => {
-  alert(`แก้ไขข้อมูลห้องวิจัย: ${room.nameThai}`);
-};
-
-const deleteRoom = (room: any) => {
-  if (confirm(`คุณต้องการลบห้องวิจัย ${room.nameThai} หรือไม่?`)) {
-    const index = researchRooms.findIndex(r => r === room);
-    if (index > -1) {
-      researchRooms.splice(index, 1);
-    }
-  }
-};
 </script>
 
 <style scoped>
@@ -159,7 +119,7 @@ const deleteRoom = (room: any) => {
 }
 
 .sidebar {
-  width: 350px;
+  width: 250px;
   background-color: #ffffff;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
   padding: 10px;
@@ -359,88 +319,29 @@ const deleteRoom = (room: any) => {
   background-color: #45a049;
 }
 
-.room-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+.holiday-table-container {
+  overflow-x: auto;
 }
 
-.room-card {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 20px;
-  background-color: #fff;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+.holiday-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
 }
 
-.room-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 15px;
+.holiday-table th,
+.holiday-table td {
+  border: 1px solid #e0e0e0;
+  padding: 12px 15px;
+  text-align: left;
 }
 
-.room-card-header h3 {
-  margin: 0;
-  font-size: 1.2em;
+.holiday-table th {
+  background-color: #f2f2f2;
   font-weight: bold;
-  line-height: 1.4;
 }
 
-.room-card-header small {
-  color: #666;
-  font-size: 0.9em;
-  font-weight: normal;
-}
-
-.room-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.btn-action {
-  background: none;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 1em;
-}
-
-.btn-action.edit {
-  color: #1890ff;
-  border-color: #1890ff;
-}
-
-.btn-action.edit:hover {
-  background-color: #e6f7ff;
-}
-
-.btn-action.delete {
-  color: #f5222d;
-  border-color: #f5222d;
-}
-
-.btn-action.delete:hover {
-  background-color: #fff1f0;
-}
-
-.room-card-body p {
-  margin: 0 0 10px 0;
-}
-
-.personnel-list {
-  font-size: 0.9em;
-  line-height: 1.6;
-}
-
-.personnel-list ol {
-  padding-left: 25px;
-  margin-top: 5px;
-}
-
-.personnel-list li {
-  margin-bottom: 2px;
+.holiday-table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
 }
 </style>

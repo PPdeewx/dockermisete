@@ -226,7 +226,7 @@ const saveQuotaChanges = () => {
 }
 
 .sidebar {
-  width: 250px;
+  width: 300px;
   background-color: #ffffff;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
   padding: 10px;
