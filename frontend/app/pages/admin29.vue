@@ -30,7 +30,7 @@
     <div class="main-content">
       <div class="top-bar">
         <div class="breadcrumbs">
-          <span><i class="fas fa-home"></i> หน้าหลัก > ดูข้อมูลส่วนตัว</span>
+          <span><i class="fas fa-home"></i> หน้าหลัก > แก้ไขข้อมูลส่วนตัว</span>
         </div>
         <div class="user-profile-container">
           <div class="user-profile" @click="toggleDropdown">
@@ -49,52 +49,82 @@
 
       <div class="content-container">
         <div class="header-with-icon">
-          <i class="fas fa-user"></i>
-          <h2>ดูข้อมูลส่วนตัว</h2>
+          <i class="fas fa-user-edit"></i>
+          <h2>แก้ไขข้อมูลส่วนตัว</h2>
         </div>
+        <p class="form-description">กรุณากรอกข้อมูลในช่องว่างที่ มีเครื่องหมาย *</p>
 
-        <div class="profile-layout">
-          <div class="profile-info-section">
+        <div class="edit-profile-form">
+          <div class="form-column">
             <div class="form-row">
-              <label>ชื่อภาษาไทย :</label>
-              <input type="text" v-model="profile.nameTh" class="form-input" disabled>
+              <label>คำนำหน้าชื่อ <span class="required">*</span>:</label>
+              <div class="form-input-container">
+                <select class="form-select">
+                  <option>กรุณาเลือก</option>
+                  <option>นาย</option>
+                  <option>นาง</option>
+                  <option>นางสาว</option>
+                </select>
+                <small class="inline-desc">Labels can have inline descriptions</small>
+              </div>
             </div>
             <div class="form-row">
-              <label>ชื่อภาษาอังกฤษ :</label>
-              <input type="text" v-model="profile.nameEn" class="form-input" disabled>
+              <label>ชื่อภาษาไทย <span class="required">*</span>:</label>
+              <div class="form-input-container">
+                <input type="text" class="form-input" />
+                <small class="inline-desc">Labels can have inline descriptions</small>
+              </div>
             </div>
             <div class="form-row">
-              <label>ตำแหน่ง :</label>
-              <input type="text" v-model="profile.position" class="form-input" disabled>
+              <label>นามสกุลภาษาไทย <span class="required">*</span>:</label>
+              <div class="form-input-container">
+                <input type="text" class="form-input" />
+                <small class="inline-desc">Labels can have inline descriptions</small>
+              </div>
+            </div>
+            <div class="form-row">
+              <label>ชื่อภาษาอังกฤษ <span class="required">*</span>:</label>
+              <div class="form-input-container">
+                <input type="text" class="form-input" />
+                <small class="inline-desc">Labels can have inline descriptions</small>
+              </div>
+            </div>
+            <div class="form-row">
+              <label>นามสกุลภาษาอังกฤษ <span class="required">*</span>:</label>
+              <div class="form-input-container">
+                <input type="text" class="form-input" />
+                <small class="inline-desc">Labels can have inline descriptions</small>
+              </div>
+            </div>
+            <div class="form-row">
+              <label>Email <span class="required">*</span>:</label>
+              <input type="email" class="form-input" />
+            </div>
+            <div class="form-row">
+              <label>เบอร์โทรศัพท์ <span class="required">*</span>:</label>
+              <input type="tel" class="form-input" />
+            </div>
+            <div class="form-row">
+              <label>วันเกิด <span class="required">*</span>:</label>
+              <input type="date" class="form-input" />
+            </div>
+            <div class="form-row textarea-row">
+              <label>ที่อยู่ติดต่อสะดวก <span class="required">*</span>:</label>
+              <textarea class="form-textarea"></textarea>
             </div>
           </div>
           <div class="profile-image-section">
             <div class="profile-placeholder">
               Profile
             </div>
+            <input type="file" id="chooseFile" class="file-input" />
+            <label for="chooseFile" class="btn-choose-file">Choose File</label>
           </div>
         </div>
 
-        <div class="data-boxes-container">
-          <div class="data-box">
-            <div class="box-title">ประเภทการจ้างงาน :</div>
-            <div class="box-content">
-              <span>วันที่เริ่มทำงาน : {{ profile.startDate }}</span>
-              <span>วันเกิด : {{ profile.dob }}</span>
-              <span>ที่อยู่ : {{ profile.address }}</span>
-              <span>Email : {{ profile.email }}</span>
-              <span>เบอร์โทรศัพท์ : {{ profile.phone }}</span>
-            </div>
-          </div>
-          <div class="data-box">
-            <div class="box-title">รหัสเครื่องสแกนลายนิ้วมือ :</div>
-            <div class="box-content">
-              <span>วันลากิจคงเหลือ : {{ profile.leave.personal }} วัน</span>
-              <span>วันลาป่วยคงเหลือ : {{ profile.leave.sick }} วัน</span>
-              <span>วันลาพักร้อนคงเหลือ : {{ profile.leave.vacation }} วัน</span>
-              <span>วันลาอื่นๆคงเหลือ : {{ profile.leave.other }} วัน</span>
-            </div>
-          </div>
+        <div class="form-actions">
+          <button class="btn-submit">บันทึกข้อมูล</button>
+          <button class="btn-cancel">ยกเลิก</button>
         </div>
       </div>
     </div>
@@ -102,30 +132,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref } from 'vue';
 
 const isDropdownOpen = ref(false);
 
-const profile = reactive({
-  nameTh: 'นายแอดมิน แอดมิน',
-  nameEn: 'Admin Admin',
-  position: 'Admin',
-  labHead: 'นายหัวหน้า หัวหน้า',
-  startDate: '01/01/2568',
-  dob: '01/01/2540',
-  address: 'เลขที่ 123 ถนนบางนา',
-  email: 'admin.admin@mis.com',
-  phone: '081-123-4567',
-  leave: {
-    personal: 5,
-    sick: 30,
-    vacation: 10,
-    other: 0,
-  }
-});
-
 const toggleDropdown = () => {
   isDropdownOpen.value = !isDropdownOpen.value;
+};
+
+// สามารถเพิ่ม logic สำหรับการบันทึกข้อมูลและยกเลิกได้ที่นี่
+const saveProfile = () => {
+  // Logic to save data to the backend
+  console.log('บันทึกข้อมูลแล้ว');
+};
+
+const cancelEdit = () => {
+  // Logic to cancel and return to previous page
+  console.log('ยกเลิกการแก้ไข');
 };
 </script>
 
@@ -320,7 +343,7 @@ const toggleDropdown = () => {
   gap: 10px;
   border-bottom: 1px solid #eee;
   padding-bottom: 15px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .header-with-icon h2 {
@@ -330,17 +353,21 @@ const toggleDropdown = () => {
 }
 
 .header-with-icon i {
-  color: #f44336;
+  color: #52c41a;
 }
 
-.profile-layout {
-  display: flex;
-  gap: 20px;
+.form-description {
+  color: #888;
   margin-bottom: 20px;
+}
+
+.edit-profile-form {
+  display: flex;
+  gap: 40px;
   align-items: flex-start;
 }
 
-.profile-info-section {
+.form-column {
   flex: 2;
   display: flex;
   flex-direction: column;
@@ -350,30 +377,51 @@ const toggleDropdown = () => {
 .form-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 20px;
 }
 
 .form-row label {
+  min-width: 150px;
   font-weight: bold;
-  width: 150px;
   text-align: right;
   white-space: nowrap;
 }
 
-.form-input {
+.required {
+  color: #f44336;
+}
+
+.form-input-container {
   flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-input, .form-select, .form-textarea {
+  width: 100%;
   padding: 8px 12px;
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 1em;
-  background-color: #f5f5f5;
+  min-width: 250px;
+}
+
+.form-textarea {
+  min-height: 100px;
+}
+
+.inline-desc {
+  font-size: 0.8em;
+  color: #888;
 }
 
 .profile-image-section {
   flex: 1;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+  gap: 10px;
 }
 
 .profile-placeholder {
@@ -388,49 +436,60 @@ const toggleDropdown = () => {
   font-weight: bold;
 }
 
-.data-boxes-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
+.file-input {
+  display: none;
 }
 
-.data-box {
-  background-color: #f9f9f9;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 15px;
+.btn-choose-file {
+  background-color: #fff;
+  color: #555;
+  border: 1px solid #ccc;
+  padding: 8px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: all 0.2s;
 }
 
-.box-title {
-  font-weight: bold;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 10px;
-  margin-bottom: 10px;
+.btn-choose-file:hover {
+  background-color: #f5f5f5;
 }
 
-.box-content {
+.form-actions {
   display: flex;
-  flex-direction: column;
-  gap: 5px;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 30px;
+}
+
+.btn-submit {
+  background-color: #52c41a;
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn-cancel {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 5px;
+  cursor: pointer;
 }
 
 @media (max-width: 768px) {
-  .top-bar {
+  .top-bar, .header-with-button {
     flex-direction: column;
     align-items: flex-start;
     gap: 15px;
   }
-  .profile-layout {
+  .edit-profile-form {
     flex-direction: column;
   }
-  .profile-info-section {
-    order: 2;
-  }
-  .profile-image-section {
-    order: 1;
-  }
-  .form-row {
+  .form-row, .textarea-row {
     flex-direction: column;
     align-items: flex-start;
     gap: 5px;
@@ -438,6 +497,9 @@ const toggleDropdown = () => {
   .form-row label {
     text-align: left;
     width: 100%;
+  }
+  .form-actions {
+    justify-content: center;
   }
 }
 </style>

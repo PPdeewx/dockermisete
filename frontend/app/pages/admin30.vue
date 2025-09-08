@@ -30,7 +30,7 @@
     <div class="main-content">
       <div class="top-bar">
         <div class="breadcrumbs">
-          <span><i class="fas fa-home"></i> หน้าหลัก > ดูข้อมูลส่วนตัว</span>
+          <span><i class="fas fa-home"></i> หน้าหลัก > เปลี่ยนรหัสผ่าน</span>
         </div>
         <div class="user-profile-container">
           <div class="user-profile" @click="toggleDropdown">
@@ -50,51 +50,28 @@
       <div class="content-container">
         <div class="header-with-icon">
           <i class="fas fa-user"></i>
-          <h2>ดูข้อมูลส่วนตัว</h2>
+          <h2>เปลี่ยนรหัสผ่าน</h2>
         </div>
+        <p class="form-description">กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง</p>
 
-        <div class="profile-layout">
-          <div class="profile-info-section">
-            <div class="form-row">
-              <label>ชื่อภาษาไทย :</label>
-              <input type="text" v-model="profile.nameTh" class="form-input" disabled>
-            </div>
-            <div class="form-row">
-              <label>ชื่อภาษาอังกฤษ :</label>
-              <input type="text" v-model="profile.nameEn" class="form-input" disabled>
-            </div>
-            <div class="form-row">
-              <label>ตำแหน่ง :</label>
-              <input type="text" v-model="profile.position" class="form-input" disabled>
-            </div>
+        <div class="change-password-form">
+          <div class="form-row">
+            <label>รหัสผ่านเดิม :</label>
+            <input type="password" class="form-input" placeholder="กรอกรหัสผ่านเดิม">
           </div>
-          <div class="profile-image-section">
-            <div class="profile-placeholder">
-              Profile
-            </div>
+          <div class="form-row">
+            <label>รหัสผ่านใหม่ :</label>
+            <input type="password" class="form-input" placeholder="กรอกรหัสผ่านใหม่">
+          </div>
+          <div class="form-row">
+            <label>ยืนยันรหัสผ่านอีกครั้ง *:</label>
+            <input type="password" class="form-input" placeholder="ยืนยันรหัสผ่านใหม่อีกครั้ง">
           </div>
         </div>
 
-        <div class="data-boxes-container">
-          <div class="data-box">
-            <div class="box-title">ประเภทการจ้างงาน :</div>
-            <div class="box-content">
-              <span>วันที่เริ่มทำงาน : {{ profile.startDate }}</span>
-              <span>วันเกิด : {{ profile.dob }}</span>
-              <span>ที่อยู่ : {{ profile.address }}</span>
-              <span>Email : {{ profile.email }}</span>
-              <span>เบอร์โทรศัพท์ : {{ profile.phone }}</span>
-            </div>
-          </div>
-          <div class="data-box">
-            <div class="box-title">รหัสเครื่องสแกนลายนิ้วมือ :</div>
-            <div class="box-content">
-              <span>วันลากิจคงเหลือ : {{ profile.leave.personal }} วัน</span>
-              <span>วันลาป่วยคงเหลือ : {{ profile.leave.sick }} วัน</span>
-              <span>วันลาพักร้อนคงเหลือ : {{ profile.leave.vacation }} วัน</span>
-              <span>วันลาอื่นๆคงเหลือ : {{ profile.leave.other }} วัน</span>
-            </div>
-          </div>
+        <div class="form-actions">
+          <button class="btn-submit">บันทึกข้อมูล</button>
+          <button class="btn-cancel">ยกเลิก</button>
         </div>
       </div>
     </div>
@@ -102,27 +79,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref } from 'vue';
 
 const isDropdownOpen = ref(false);
-
-const profile = reactive({
-  nameTh: 'นายแอดมิน แอดมิน',
-  nameEn: 'Admin Admin',
-  position: 'Admin',
-  labHead: 'นายหัวหน้า หัวหน้า',
-  startDate: '01/01/2568',
-  dob: '01/01/2540',
-  address: 'เลขที่ 123 ถนนบางนา',
-  email: 'admin.admin@mis.com',
-  phone: '081-123-4567',
-  leave: {
-    personal: 5,
-    sick: 30,
-    vacation: 10,
-    other: 0,
-  }
-});
 
 const toggleDropdown = () => {
   isDropdownOpen.value = !isDropdownOpen.value;
@@ -320,7 +279,7 @@ const toggleDropdown = () => {
   gap: 10px;
   border-bottom: 1px solid #eee;
   padding-bottom: 15px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .header-with-icon h2 {
@@ -330,32 +289,31 @@ const toggleDropdown = () => {
 }
 
 .header-with-icon i {
-  color: #f44336;
+  color: #52c41a;
 }
 
-.profile-layout {
-  display: flex;
-  gap: 20px;
+.form-description {
+  color: #888;
   margin-bottom: 20px;
-  align-items: flex-start;
 }
 
-.profile-info-section {
-  flex: 2;
+.change-password-form {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 20px;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .form-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 20px;
 }
 
 .form-row label {
+  min-width: 150px;
   font-weight: bold;
-  width: 150px;
   text-align: right;
   white-space: nowrap;
 }
@@ -366,53 +324,31 @@ const toggleDropdown = () => {
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 1em;
-  background-color: #f5f5f5;
 }
 
-.profile-image-section {
-  flex: 1;
+.form-actions {
   display: flex;
+  gap: 10px;
   justify-content: center;
-  align-items: center;
+  margin-top: 30px;
 }
 
-.profile-placeholder {
-  width: 150px;
-  height: 150px;
-  background-color: #e0e0e0;
-  border-radius: 8px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: #888;
-  font-weight: bold;
+.btn-submit {
+  background-color: #52c41a;
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 5px;
+  cursor: pointer;
 }
 
-.data-boxes-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
-}
-
-.data-box {
-  background-color: #f9f9f9;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 15px;
-}
-
-.box-title {
-  font-weight: bold;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 10px;
-  margin-bottom: 10px;
-}
-
-.box-content {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
+.btn-cancel {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 5px;
+  cursor: pointer;
 }
 
 @media (max-width: 768px) {
@@ -420,15 +356,6 @@ const toggleDropdown = () => {
     flex-direction: column;
     align-items: flex-start;
     gap: 15px;
-  }
-  .profile-layout {
-    flex-direction: column;
-  }
-  .profile-info-section {
-    order: 2;
-  }
-  .profile-image-section {
-    order: 1;
   }
   .form-row {
     flex-direction: column;
