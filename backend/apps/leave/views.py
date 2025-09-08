@@ -38,6 +38,10 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
         return qs.none()
 
     def perform_create(self, serializer):
+        created_by_admin = serializer.validated_data.get('created_by_admin', False)
+        if created_by_admin:
+            serializer.save(user=self.request.user, created_by_admin=created_by_admin)
+
         on_behalf_of = serializer.validated_data.get('on_behalf_of')
         if on_behalf_of:
             serializer.save(user=self.request.user, on_behalf_of=on_behalf_of)

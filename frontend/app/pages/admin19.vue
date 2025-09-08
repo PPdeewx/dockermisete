@@ -92,7 +92,7 @@
             <div class="form-grid">
               <div class="form-group full-width">
                 <label for="employee-name">พนักงาน <span class="required">*</span></label>
-                <div class="read-only-text">นาย พ่อ admin usermesss</div>
+                <div class="read-only-text">{{ currentUser?.firstname_th }} {{ currentUser?.lastname_th }}</div>
               </div>
               
               <div class="form-group full-width">
@@ -129,25 +129,6 @@
                 <small>จำนวนสิทธิ์คงเหลือ:ลาป่วย 30 วัน , ลาพักร้อน 10 วัน , ลากิจ 5 วัน , ลาอื่นๆ 0 วัน</small>
               </div>
 
-              <div class="form-group full-width">
-                <label for="approver">ผู้อนุมัติการลา <span class="required">*</span></label>
-                <select id="approver" v-model="leaveForm.approver" class="form-select">
-                  <option value="">เลือกผู้อนุมัติการลา</option>
-                  <option v-for="approver in approverList" :key="approver.id" :value="approver.id">
-                    {{ approver.name }}
-                  </option>
-                </select>
-              </div>
-
-              <div class="form-group full-width">
-                <label for="substitute">ผู้ปฏิบัติงานแทน</label>
-                <select id="substitute" v-model="leaveForm.substitute" class="form-select">
-                  <option value="">เลือกผู้ปฏิบัติงานแทน</option>
-                  <option v-for="substitute in substituteList" :key="substitute.id" :value="substitute.id">
-                    {{ substitute.name }}
-                  </option>
-                </select>
-              </div>
             </div>
             
             <div class="form-actions">
@@ -186,19 +167,24 @@ const leaveForm = reactive({
   substitute: '',
 });
 
-const approverList = ref([
-  { id: 1, name: 'นาย A หัวหน้าห้องวิจัย' },
-  { id: 2, name: 'นางสาว B ผู้จัดการ' },
-]);
+const submitForm = async () => {
+  try {
+    const payload = {
+      leave_type_id: leaveForm.leaveType,  // ต้อง map id ของ leaveType
+      start_date: leaveForm.startDate,
+      end_date: leaveForm.endDate,
+      period: leaveForm.timePeriod,
+      reason: leaveForm.reason,
+      created_by_admin: true
+    };
 
-const substituteList = ref([
-  { id: 101, name: 'นาย C พนักงาน' },
-  { id: 102, name: 'นาง D พนักงาน' },
-]);
-
-const submitForm = () => {
-  alert('ทำการส่งแบบฟอร์มขออนุมัติการลา');
-  console.log('Form data:', leaveForm);
+    const res = await axios.post('http://localhost:8000/api/leave/leave-requests/', payload);
+    alert('ส่งคำขอเรียบร้อย');
+    console.log(res.data);
+  } catch (err) {
+    console.error(err);
+    alert('เกิดข้อผิดพลาด');
+  }
 };
 
 const cancelForm = () => {

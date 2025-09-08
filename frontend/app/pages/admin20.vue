@@ -139,16 +139,6 @@
               </div>
 
               <div class="form-group full-width">
-                <label for="approver">ผู้อนุมัติการลา <span class="required">*</span></label>
-                <select id="approver" v-model="leaveForm.approver" class="form-select">
-                  <option value="">เลือกผู้อนุมัติการลา</option>
-                  <option v-for="approver in approverList" :key="approver.id" :value="approver.id">
-                    {{ approver.name }}
-                  </option>
-                </select>
-              </div>
-
-              <div class="form-group full-width">
                 <label for="substitute">ผู้ปฏิบัติงานแทน</label>
                 <select id="substitute" v-model="leaveForm.substitute" class="form-select">
                   <option value="">เลือกผู้ปฏิบัติงานแทน</option>

@@ -97,8 +97,8 @@
             <div class="profile-icon"><i class="fas fa-user-circle"></i></div>
             <div class="profile-info">
               <div class="username-section">
-                <span>Username</span>
-                <span>รหัส: 0045900</span>
+                <span>{{ currentUser?.username }}</span>
+                <span>รหัส: {{ currentUser?.employee_code }}</span>
               </div>
             </div>
           </div>
@@ -147,7 +147,7 @@
                 <td>{{ leave.reason }}</td>
                 <td><span :class="`status-badge ${leave.status}`">{{ leave.status_th }}</span></td>
                 <td>
-                  <button class="btn-action btn-cancel" v-if="leave.status === 'pending'">
+                  <button class="btn-action btn-cancel" v-if="leave.status === 'pending'" @click="cancelLeave(leave.id)">
                     <i class="fas fa-times-circle"></i> ยกเลิก
                   </button>
                   <span v-else>-</span>
@@ -177,35 +177,39 @@ const toggleProfileMenu = () => {
   showProfileMenu.value = !showProfileMenu.value
 }
 
-const leaveHistory = ref([
-  {
-    id: 1,
-    date: '10/ส.ค./2568',
-    type: 'ลาป่วย',
-    duration: '0.5 วัน',
-    reason: 'ปวดหัว',
-    status: 'pending',
-    status_th: 'รอดำเนินการ'
-  },
-  {
-    id: 2,
-    date: '05/ส.ค./2568',
-    type: 'ลากิจ',
-    duration: '1 วัน',
-    reason: 'ธุระส่วนตัว',
-    status: 'approved',
-    status_th: 'อนุมัติแล้ว'
-  },
-  {
-    id: 3,
-    date: '01/ส.ค./2568',
-    type: 'ลาพักร้อน',
-    duration: '2 วัน',
-    reason: 'พักผ่อนประจำปี',
-    status: 'rejected',
-    status_th: 'ไม่อนุมัติ'
+const leaveHistory = ref<any[]>([]);
+
+const fetchLeaveHistory = async () => {
+  try {
+    const res = await axios.get('http://localhost:8000/api/leave/leave-requests/', {
+      params: { user_id: currentUser.value?.id }  // admin เห็นทุกคน, แต่เราจะกรอง admin ตัวเอง
+    });
+
+    // map ข้อมูลให้ตรงกับ frontend
+    leaveHistory.value = res.data.map((item: any) => ({
+      id: item.id,
+      date: `${item.start_date} - ${item.end_date}`,
+      type: item.leave_type.name,
+      duration: item.days + ' วัน',
+      reason: item.reason,
+      status: item.status,
+      status_th: statusMapping(item.status)
+    }));
+  } catch (err) {
+    console.error('ไม่สามารถดึงประวัติการลาได้', err);
   }
-]);
+};
+
+// แปลง status backend -> ภาษาไทย
+const statusMapping = (status: string) => {
+  switch(status) {
+    case 'pending': return 'รอดำเนินการ';
+    case 'approved': return 'อนุมัติแล้ว';
+    case 'rejected': return 'ไม่อนุมัติ';
+    case 'cancelled': return 'ยกเลิก';
+    default: return status;
+  }
+};
 
 const requestLeaveForOther = () => {
   alert('เปิดหน้าขอลาให้คนอื่น');
@@ -214,6 +218,20 @@ const requestLeaveForOther = () => {
 const requestLeave = () => {
   alert('เปิดหน้าขออนุมัติลา');
 };
+
+const cancelLeave = async (leaveId: number) => {
+  if (!confirm('ต้องการยกเลิกการลานี้?')) return;
+
+  try {
+    await axios.post(`http://localhost:8000/api/leave/leave-requests/${leaveId}/cancel/`);
+    alert('ยกเลิกเรียบร้อย');
+    await fetchLeaveHistory();  // refresh ตาราง
+  } catch (err) {
+    console.error(err);
+    alert('ไม่สามารถยกเลิกการลาได้');
+  }
+};
+
 
 const currentUser = ref<any>(null)
 
@@ -237,6 +255,9 @@ onMounted(async () => {
       router.push('/login');
       return;
     }
+
+    await fetchLeaveHistory();
+
   } catch (err) {
     console.error(err)
     router.push('/login')
