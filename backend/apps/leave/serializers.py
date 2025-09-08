@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import LeaveType, LeaveRequest, LeaveQuota, HALF_CHOICES
-from apps.users.serializers import UserSerializerShort
+from apps.users.serializers import UserSerializerShort , UserSerializerWithDepartment
 from decimal import Decimal
 from datetime import date, timedelta
 from apps.users.models import CustomUser
@@ -20,6 +20,7 @@ class LeaveQuotaSerializer(serializers.ModelSerializer):
 
 class LeaveRequestSerializer(serializers.ModelSerializer):
     user = UserSerializerShort(read_only=True)
+    user = UserSerializerWithDepartment(read_only=True)
     leave_type = LeaveTypeSerializer(read_only=True)
     approver_id = serializers.PrimaryKeyRelatedField(
         queryset=CustomUser.objects.none(),

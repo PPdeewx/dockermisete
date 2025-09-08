@@ -51,17 +51,30 @@
           <span><i class="fas fa-home"></i> หน้าหลัก > รายการอนุมัติการลา</span>
         </div>
         <div class="user-profile-container">
-          <div class="user-profile" @click="toggleDropdown">
+          <div class="user-profile" @click="toggleProfileMenu">
             <i class="fas fa-bell"></i>
             <i class="fas fa-user-circle"></i>
-            <span class="username">Username ตำแหน่ง: Admin</span>
-            <i class="fas fa-chevron-down" :class="{ 'rotate': isDropdownOpen }"></i>
-          </div>
-          <div class="dropdown-menu" v-if="isDropdownOpen">
-            <a href="#" class="dropdown-item"><i class="fas fa-user"></i> ดูข้อมูลส่วนตัว</a>
-            <a href="#" class="dropdown-item"><i class="fas fa-user-edit"></i> แก้ไขข้อมูลส่วนตัว</a>
-            <a href="#" class="dropdown-item"><i class="fas fa-fingerprint"></i> เปลี่ยนรหัสผ่าน</a>
-            <a href="#" class="dropdown-item"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</a>
+            <span class="username">{{ currentUser?.username }} ตำแหน่ง: {{ currentUser?.role }}</span>
+            <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
+
+            <div class="user-profile-menu" v-if="showProfileMenu">
+              <button class="menu-item" @click.stop="goTo('/admin')">
+                <i class="fas fa-user"></i>
+                <span>ดูข้อมูลส่วนตัว</span>
+              </button>
+              <button class="menu-item" @click.stop="goTo('/admin')">
+                <i class="fas fa-edit"></i>
+                <span>แก้ไขข้อมูลส่วนตัว</span>
+              </button>
+              <button class="menu-item" @click.stop="goTo('/admin')">
+                <i class="fas fa-lock"></i>
+                <span>เปลี่ยนรหัสผ่าน</span>
+              </button>
+              <button class="menu-item" @click.stop="logout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>ออกจากระบบ</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -94,6 +107,7 @@
               <tr>
                 <th>วันที่</th>
                 <th>ชื่อ - นามสกุล</th>
+                <th>ห้องวิจัย</th>
                 <th>ประเภทการลา</th>
                 <th>ช่วงเวลา</th>
                 <th>ผู้อนุมัติ</th>
@@ -105,6 +119,7 @@
               <tr v-for="(item, index) in filteredApprovalList" :key="index">
                 <td>{{ item.date }}</td>
                 <td>{{ item.name }}</td>
+                <td>{{ item.room }}</td>
                 <td>{{ item.type }}</td>
                 <td>{{ item.time }}</td>
                 <td>{{ item.approver }}</td>
@@ -114,7 +129,7 @@
                   </span>
                 </td>
                 <td>
-                  <select v-model="item.action" class="action-select">
+                  <select v-model="item.action" class="action-select" @change="updateApproval(item)">
                     <option value="pending">รออนุมัติ</option>
                     <option value="approve">อนุมัติ</option>
                     <option value="reject">ไม่อนุมัติ</option>
@@ -130,68 +145,140 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue';
+import { ref, onMounted, computed } from 'vue';
+import axios from 'axios';
+import { useRouter } from 'vue-router';
 
-const isDropdownOpen = ref(false);
+const router = useRouter();
+const token = ref<string | null>(null);
+
+const showProfileMenu = ref(false)
+const toggleProfileMenu = () => {
+  showProfileMenu.value = !showProfileMenu.value
+}
+
 const dateRange = ref('');
 const selectedRoom = ref('');
 
-const toggleDropdown = () => {
-  isDropdownOpen.value = !isDropdownOpen.value;
-};
+// ✅ ห้องวิจัยดึงจาก API
+const roomList = ref<any[]>([])
 
-const roomList = reactive([
-  { id: 'eedp', name: 'โครงการพัฒนาการศึกษาด้านพลังงาน' },
-  { id: 'reec', name: 'ห้องวิจัยพลังงานทดแทนและอนุรักษ์พลังงาน' },
-  { id: 'cceme', name: 'ห้องวิจัยด้านวิศวกรรมและการบริหารจัดการการเปลี่ยนแปลงสภาพภูมิอากาศด้านพลังงาน' },
-]);
-
-const approvalList = ref([
-  {
-    date: '13/ส.ค./2568',
-    name: 'นาย ก. ไก่',
-    type: 'ปฏิบัติงานนอกสถานที่',
-    time: 'ครึ่งวันเช้า',
-    approver: 'หัวหน้าห้องวิจัย',
-    status: 'pending',
-    status_th: 'รออนุมัติ',
-    action: 'pending',
-    room: 'reec'
-  },
-  {
-    date: '12/ส.ค./2568',
-    name: 'นาง ข. ไข่',
-    type: 'ปฏิบัติงานนอกสถานที่',
-    time: 'ทั้งวัน',
-    approver: 'หัวหน้าห้องวิจัย',
-    status: 'rejected',
-    status_th: 'ไม่ผ่าน',
-    action: 'reject',
-    room: 'eedp'
-  },
-  {
-    date: '11/ส.ค./2568',
-    name: 'นาย ค. ควาย',
-    type: 'ปฏิบัติงานนอกสถานที่',
-    time: 'ครึ่งวันบ่าย',
-    approver: 'หัวหน้าห้องวิจัย',
-    status: 'approved',
-    status_th: 'อนุมัติแล้ว',
-    action: 'approve',
-    room: 'reec'
-  }
-]);
+// ✅ รายการลา
+const approvalList = ref<any[]>([])
 
 const filteredApprovalList = computed(() => {
   return approvalList.value.filter(item => {
-    const roomMatch = !selectedRoom.value || item.room === selectedRoom.value;
+    const roomMatch = !selectedRoom.value || item.room_id === selectedRoom.value;
     return roomMatch;
   });
 });
 
 const search = () => {
-  alert('ทำการค้นหาข้อมูล');
+  fetchApprovals();
 };
+
+const currentUser = ref<any>(null)
+
+// ✅ โหลดห้องวิจัยจาก API
+async function fetchDepartments() {
+  try {
+    const res = await axios.get("http://localhost:8000/api/users/departments/");
+    roomList.value = res.data.map((d:any) => ({
+      id: d.id,
+      name: d.name_th
+    }));
+  } catch (err) {
+    console.error("โหลดห้องวิจัยไม่สำเร็จ", err)
+  }
+}
+
+// ✅ โหลดรายการการลา
+async function fetchApprovals() {
+  try {
+    const res = await axios.get("http://localhost:8000/api/leave/leave-requests/");
+    approvalList.value = res.data.map((item: any) => ({
+      id: item.id,
+      date: item.start_date === item.end_date 
+              ? item.start_date 
+              : `${item.start_date} - ${item.end_date}`,
+      name: item.on_behalf_of_name 
+            || `${item.user?.firstname_th || ''} ${item.user?.lastname_th || ''}`,
+      type: item.leave_type?.name || "-",
+      time: item.period,
+      approver: item.approver 
+        ? (item.approver.firstname_th || item.approver.lastname_th
+            ? `${item.approver.firstname_th || ''} ${item.approver.lastname_th || ''}`.trim()
+            : (item.approver.full_name || item.approver.username || "-"))
+        : (item.user?.department?.approvers?.map((a:any) => `${a.firstname_th} ${a.lastname_th}`).join(", ") || "หัวหน้าห้องวิจัย"),
+      status: item.status,
+      status_th: statusMap[item.status] || item.status,
+      action: item.status,
+      room: item.user?.department?.name_th 
+            || item.user?.department?.name 
+            || item.department_name 
+            || "-",
+      room_id: item.user?.department?.id || null
+    }));
+  } catch (err) {
+    console.error("โหลดรายการลาไม่สำเร็จ", err)
+  }
+}
+
+const statusMap: Record<string, string> = {
+  pending: "รออนุมัติ",
+  approved: "อนุมัติแล้ว",
+  rejected: "ไม่อนุมัติ",
+  cancelled: "ยกเลิก"
+};
+
+async function updateApproval(item: any) {
+  try {
+    if (item.action === "approve") {
+      await axios.post(`http://localhost:8000/api/leave/leave-requests/${item.id}/approve/`);
+    } else if (item.action === "reject") {
+      await axios.post(`http://localhost:8000/api/leave/leave-requests/${item.id}/reject/`);
+    }
+    fetchApprovals(); // รีโหลดใหม่
+  } catch (err) {
+    console.error("อัปเดตสถานะไม่สำเร็จ", err)
+  }
+}
+
+onMounted(async () => {
+  if (typeof window !== "undefined") {
+    token.value = localStorage.getItem("token")
+  }
+
+  if (!token.value) {
+    router.push('/login')
+    return
+  }
+
+  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`
+
+  try {
+    const me = await axios.get('http://localhost:8000/api/users/me/')
+    currentUser.value = me.data;
+
+    if (currentUser.value.role !== 'admin') {
+      router.push('/login');
+      return;
+    }
+    await fetchDepartments()
+    await fetchApprovals()
+  } catch (err) {
+    console.error(err)
+    router.push('/login')
+  }
+})
+
+function logout() {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("token")
+  }
+  delete axios.defaults.headers.common['Authorization']
+  router.push("/login")
+}
 </script>
 
 <style scoped>
@@ -500,5 +587,40 @@ const search = () => {
   padding: 6px 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
+}
+
+.user-profile-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 220px;
+  z-index: 1000;
+  padding: 6px;
+}
+
+.menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.menu-item:hover {
+  background-color: #f0f2f5;
+}
+
+.menu-item i {
+  width: 20px;
+  text-align: center;
 }
 </style>

@@ -4,6 +4,49 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.password_validation import validate_password
 from .models import CustomUser, Department
 
+
+class UserSerializerShort(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'employee_code', 'firstname_th', 'lastname_th', 'email']
+
+class UserSerializerWithDepartment(serializers.ModelSerializer):
+    department = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CustomUser
+        fields = ['id','firstname_th','lastname_th','department']
+
+    def get_department(self, obj):
+        if obj.department:
+            return DepartmentSerializer(obj.department).data
+            return {"id": obj.department.id, "name_th": obj.department.name_th}
+        return None
+
+
+class DepartmentSerializer(serializers.ModelSerializer):
+    head = serializers.SerializerMethodField()
+    personnel = serializers.SerializerMethodField()
+    total_users = serializers.SerializerMethodField()
+    approvers = UserSerializerShort(many=True, read_only=True)
+
+    class Meta:
+        model = Department
+        fields = ["id", "name_th", "name_en", "head", "personnel", "total_users", "approvers"]
+
+    def get_head(self, obj):
+        # สมมติเอา approvers คนแรกเป็นหัวหน้า
+        if obj.approvers.exists():
+            return f"{obj.approvers.first().firstname_th} {obj.approvers.first().lastname_th}"
+        return None
+
+    def get_personnel(self, obj):
+        users = CustomUser.objects.filter(department=obj)
+        return [f"{u.firstname_th} {u.lastname_th}" for u in users]
+    
+    def get_total_users(self, obj):
+        return CustomUser.objects.filter(department=obj).count()
+
 class CustomUserSerializer(serializers.ModelSerializer):
     groups = serializers.SlugRelatedField(
         queryset=Group.objects.all(),
@@ -11,7 +54,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
         required=False,
         many=True
     )
-    department = serializers.SerializerMethodField()
+    department = DepartmentSerializer(read_only=True)
 
     employee_code = serializers.CharField(
         validators=[UniqueValidator(queryset=CustomUser.objects.all())]
@@ -104,31 +147,3 @@ class CustomUserSerializer(serializers.ModelSerializer):
             instance.groups.set([Group.objects.get_or_create(name=g)[0] for g in groups_data])
 
         return instance
-
-class UserSerializerShort(serializers.ModelSerializer):
-    class Meta:
-        model = CustomUser
-        fields = ['id', 'employee_code', 'firstname_th', 'lastname_th', 'email']
-
-class DepartmentSerializer(serializers.ModelSerializer):
-    head = serializers.SerializerMethodField()
-    personnel = serializers.SerializerMethodField()
-    total_users = serializers.SerializerMethodField()
-    approvers = UserSerializerShort(many=True, read_only=True)
-
-    class Meta:
-        model = Department
-        fields = ["id", "name_th", "name_en", "head", "personnel", "total_users", "approvers"]
-
-    def get_head(self, obj):
-        # สมมติเอา approvers คนแรกเป็นหัวหน้า
-        if obj.approvers.exists():
-            return f"{obj.approvers.first().firstname_th} {obj.approvers.first().lastname_th}"
-        return None
-
-    def get_personnel(self, obj):
-        users = CustomUser.objects.filter(department=obj)
-        return [f"{u.firstname_th} {u.lastname_th}" for u in users]
-    
-    def get_total_users(self, obj):
-        return CustomUser.objects.filter(department=obj).count()
