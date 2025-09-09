@@ -94,8 +94,8 @@
             <div class="profile-icon"><i class="fas fa-cog"></i></div>
             <div class="profile-info">
               <div class="username-section">
-                <span>Username</span>
-                <span>รหัส: 00#0000</span>
+                <span>{{ currentUser?.username }}</span>
+                <span>รหัส: {{ currentUser?.employee_code }}</span>
               </div>
             </div>
           </div>
@@ -155,30 +155,7 @@ const toggleProfileMenu = () => {
   showProfileMenu.value = !showProfileMenu.value
 }
 
-const outsideWorkHistory = ref([
-  {
-    id: '001',
-    date: '01/ส.ค./2568',
-    employee: '1. Username',
-    time: 'ครึ่งวันเช้า',
-    reason: 'ประชุม',
-    status: 'pending',
-    status_th: 'รออนุมัติ',
-    can_edit: true,
-    can_delete: true
-  },
-  {
-    id: '002',
-    date: '01/ส.ค./2568',
-    employee: '2. Username(ลาออก)',
-    time: 'ครึ่งวันเช้า',
-    reason: 'ประชุม',
-    status: 'pending',
-    status_th: 'รออนุมัติ',
-    can_edit: true,
-    can_delete: true
-  }
-]);
+const outsideWorkHistory = ref<any[]>([]);
 
 const requestOutsideWork = () => {
   alert('เปิดหน้าขออนุมัติปฏิบัติงานนอกสถานที่');
@@ -206,6 +183,29 @@ onMounted(async () => {
       router.push('/login');
       return;
     }
+
+    // ✅ ดึงข้อมูลจาก API ที่คุณมีอยู่แล้ว
+    const res = await axios.get("http://localhost:8000/api/work-from-outside/requests/")
+    outsideWorkHistory.value = res.data.map((item: any) => ({
+      id: item.id,  // หรือ item.request_number ถ้ามี
+      date: `${item.start_date} - ${item.end_date}`,
+      employee: item.user?.full_name || item.user,  // ถ้า serializer ส่ง user object
+      time: item.time_period,
+      reason: item.reason,
+      status: item.status,
+      status_th:
+        item.status === "pending"
+          ? "รออนุมัติ"
+          : item.status === "approved"
+          ? "อนุมัติ"
+          : item.status === "rejected"
+          ? "ไม่อนุมัติ"
+          : item.status === "cancelled"
+          ? "ยกเลิก"
+          : "อื่น ๆ",
+      can_edit: item.status === "pending",
+      can_delete: item.status === "pending",
+    }));
   } catch (err) {
     console.error(err)
     router.push('/login')

@@ -171,3 +171,15 @@ class LeaveQuotaViewSet(viewsets.ModelViewSet):
         if getattr(user, 'role', '') == 'employee':
             return self.queryset.filter(user=user)
         return self.queryset
+    
+    @action(detail=False, methods=['post'])
+    def bulk_update(self, request):
+        data = request.data
+        for item in data:
+            LeaveQuota.objects.update_or_create(
+                user_id=item['user'],
+                leave_type_id=item['leave_type'],
+                year=item['year'],
+                defaults={'quota_total': item['quota_total']}
+            )
+        return Response({'status': 'ok'})

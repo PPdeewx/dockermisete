@@ -1,10 +1,11 @@
 from django.dispatch import receiver
 from django.db.models.signals import post_save
-from .models import LeaveRequest
+from .models import LeaveRequest, LeaveQuota, LeaveType
 from django.core.mail import send_mail, EmailMultiAlternatives
 from django.conf import settings
 from django.urls import reverse
 from apps.users.models import CustomUser
+from django.utils import timezone
 
 @receiver(post_save, sender=LeaveRequest)
 def send_leave_email(sender, instance, created, **kwargs):
@@ -62,3 +63,22 @@ def send_leave_email(sender, instance, created, **kwargs):
             email = EmailMultiAlternatives(subject, text_content, settings.DEFAULT_FROM_EMAIL, [instance.substitute.email])
             email.attach_alternative(html_content, "text/html")
             email.send(fail_silently=True)
+
+@receiver(post_save, sender=CustomUser)
+def create_leave_quota_for_new_user(sender, instance, created, **kwargs):
+    """
+    สร้างโควต้าลาให้ User ใหม่โดยอัตโนมัติ
+    """
+    if created:
+        current_year = timezone.now().year
+        leave_types = LeaveType.objects.all()
+        for lt in leave_types:
+            LeaveQuota.objects.get_or_create(
+                user=instance,
+                leave_type=lt,
+                year=current_year,
+                defaults={
+                    'quota_total': lt.default_quota,
+                    'quota_used': 0
+                }
+            )

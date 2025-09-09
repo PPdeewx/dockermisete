@@ -96,15 +96,19 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="i in 100" :key="i">
-                  <td>{{ i }}</td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
+                <tr v-for="(emp, index) in resignedEmployees" :key="emp.id">
+                  <td>{{ index + 1 }}</td>
+                  <td>{{ emp.employee_code }}</td>
+                  <td>{{ emp.username }}</td>
+                  <td>{{ emp.groupName }}</td>
+                  <td>{{ emp.firstname_th }} {{ emp.lastname_th }}</td>
+                  <td>{{ emp.phone_number }}</td>
+                  <td>{{ emp.email }}</td>
+                  <td>
+                    <button @click="reinstateEmployee(emp)" class="btn-reinstate">
+                      เปลี่ยนเป็นพนักงานปัจจุบัน
+                    </button>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -116,39 +120,71 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 
 const router = useRouter()
+const token = ref<string | null>(null)
+const currentUser = ref<any>(null)
 const showProfileMenu = ref(false)
 const toggleProfileMenu = () => {
   showProfileMenu.value = !showProfileMenu.value
 }
-const token = ref<string | null>(null)
 
-const currentUser = ref<any>(null)
+// พนักงานทั้งหมด
+const employees = ref([])
+
+// โหลดพนักงานจาก backend
+const loadEmployees = async () => {
+  try {
+    const res = await axios.get('http://localhost:8000/api/users/filter/', {
+      headers: { Authorization: `Token ${localStorage.getItem('token')}` },
+      params: { status: '' } // โหลดทุกสถานะ
+    })
+    employees.value = res.data.map(emp => ({
+      ...emp,
+      groupName: emp.groups?.[0] || '-'
+    }))
+  } catch (err) {
+    console.error('Error loading employees:', err)
+  }
+}
+
+// พนักงานที่ลาออก
+const resignedEmployees = computed(() =>
+  employees.value.filter(emp => emp.status === 'resigned')
+)
+
+// เปลี่ยนสถานะพนักงานเป็น "พนักงานปัจจุบัน"
+const reinstateEmployee = async (emp: any) => {
+  try {
+    await axios.patch(
+      `http://localhost:8000/api/users/${emp.id}/`,
+      { status: 'active', exit_date: null },
+      { headers: { Authorization: `Token ${token.value}` } }
+    )
+    emp.status = 'active'  // อัปเดต local state
+    alert(`เปลี่ยนสถานะพนักงาน ${emp.firstname_th} ${emp.lastname_th} กลับเป็นพนักงานปัจจุบันเรียบร้อย`)
+  } catch (err) {
+    console.error(err)
+    alert('เกิดข้อผิดพลาดในการเปลี่ยนสถานะ')
+  }
+}
 
 onMounted(async () => {
-  if (typeof window !== "undefined") {
-    token.value = localStorage.getItem("token")
-  }
-
+  if (typeof window !== 'undefined') token.value = localStorage.getItem('token')
   if (!token.value) {
     router.push('/login')
     return
   }
-
   axios.defaults.headers.common['Authorization'] = `Token ${token.value}`
 
   try {
     const me = await axios.get('http://localhost:8000/api/users/me/')
-    currentUser.value = me.data;
-
-    if (currentUser.value.role !== 'admin') {
-      router.push('/login');
-      return;
-    }
+    currentUser.value = me.data
+    if (currentUser.value.role !== 'admin') router.push('/login')
+    await loadEmployees()
   } catch (err) {
     console.error(err)
     router.push('/login')
@@ -156,9 +192,7 @@ onMounted(async () => {
 })
 
 function logout() {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("token")
-  }
+  if (typeof window !== "undefined") localStorage.removeItem("token")
   delete axios.defaults.headers.common['Authorization']
   router.push("/login")
 }
@@ -440,5 +474,17 @@ tr:nth-child(even) {
 .menu-item i {
   width: 20px;
   text-align: center;
+}
+
+.btn-reinstate {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.btn-reinstate:hover {
+  background-color: #45a049;
 }
 </style>

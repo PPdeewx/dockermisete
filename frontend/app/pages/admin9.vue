@@ -68,17 +68,15 @@
               <label for="status-filter">สถานะพนักงาน</label>
               <select id="status-filter" v-model="filter.status">
                 <option value="ทั้งหมด">ทั้งหมด</option>
-                <option value="พนักงานปัจจุบัน">พนักงานปัจจุบัน</option>
-                <option value="พนักงานที่ลาออก">พนักงานที่ลาออก</option>
+                <option value="active">พนักงานปัจจุบัน</option>
+                <option value="resigned">พนักงานที่ลาออก</option>
               </select>
             </div>
             <div class="filter-item">
-              <label for="room-filter">ห้องวิจัย</label>
-              <select id="room-filter" v-model="filter.room">
+              <label for="department-filter">ห้องวิจัย</label>
+              <select id="department-filter" v-model="filter.department">
                 <option value="ทั้งหมด">ทั้งหมด</option>
-                <option v-for="room in roomOptions" :key="room" :value="room">
-                  {{ room }}
-                </option>
+                <option v-for="dept in departments" :key="dept.id" :value="dept.id">{{ dept.name_th }}</option>
               </select>
             </div>
             <div class="filter-item">
@@ -86,15 +84,8 @@
               <input type="text" id="search-name" v-model="filter.search" placeholder="ค้นหาชื่อ" />
             </div>
           </div>
-          <div class="quota-default">
-            <span>Quota Default</span>
-            <input type="number" v-model="quota.sick" placeholder="10.0" />
-            <input type="number" v-model="quota.personal" placeholder="12.0" />
-            <input type="number" v-model="quota.vacation" placeholder="30.0" />
-            <button class="btn-default" @click="applyDefaultQuota">บันทึก Default</button>
-          </div>
         </div>
-        
+
         <div class="table-responsive">
           <table>
             <thead>
@@ -103,29 +94,29 @@
                 <th>ชื่อ-นามสกุล</th>
                 <th>สถานะพนักงาน</th>
                 <th>ห้องวิจัย</th>
-                <th>ลาป่วย</th>
-                <th>ลากิจ</th>
-                <th>ลาพักร้อน</th>
-                <th>อื่นๆ</th>
+                <th v-for="type in leaveTypes" :key="type.id">{{ type.name }}</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(employee, index) in filteredEmployees" :key="index">
+              <tr v-for="(emp, index) in filteredEmployees" :key="emp.id">
                 <td>{{ index + 1 }}</td>
-                <td>{{ employee.name }}</td>
-                <td>{{ employee.status }}</td>
-                <td>{{ employee.room }}</td>
-                <td><input type="number" v-model="employee.sickLeave" /></td>
-                <td><input type="number" v-model="employee.personalLeave" /></td>
-                <td><input type="number" v-model="employee.vacationLeave" /></td>
-                <td><input type="number" v-model="employee.otherLeave" /></td>
+                <td>{{ emp.firstname_th }} {{ emp.lastname_th }}</td>
+                <td>{{ emp.status === 'active' ? 'พนักงานปัจจุบัน' : 'พนักงานที่ลาออก' }}</td>
+                <td>{{ emp.department?.name_th }}</td>
+                <td v-for="type in leaveTypes" :key="type.id">
+                  <input
+                    type="number"
+                    :value="quotas[emp.id]?.[type.id] ?? 0"
+                    @input="onQuotaChange(emp.id, type.id, $event.target.value)"
+                  />
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
-        
+
         <div class="form-actions">
-          <button type="submit" class="btn-submit" @click="saveQuotaChanges">บันทึกข้อมูล</button>
+          <button class="btn-submit" @click="saveQuotaChanges">บันทึกข้อมูล</button>
         </div>
       </div>
     </div>
@@ -133,132 +124,110 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, computed } from 'vue';
-import axios from 'axios';
-import { useRouter } from 'vue-router';
+import { ref, reactive, onMounted, computed } from 'vue'
+import axios from 'axios'
+import { useRouter } from 'vue-router'
 
-const router = useRouter();
-const token = ref<string | null>(null);
+const router = useRouter()
+const token = ref<string | null>(null)
 
+const currentUser = ref<any>(null)
 const showProfileMenu = ref(false)
-const toggleProfileMenu = () => {
-  showProfileMenu.value = !showProfileMenu.value
-}
-
-const roomOptions = ref([
-  'โครงการพัฒนาการศึกษาด้านพลังงาน[Energy Education Development Project: EEDP]',
-  'ห้องวิจัยพลังงานทดแทนและอนุรักษ์พลังงาน[Renewable Energy and Energy Conservation Laboratory - REEC]',
-  'ห้องวิจัยด้านวิศวกรรมและการบริหารจัดการการเปลี่ยนแปลงสภาพภูมิอากาศด้านพลังงาน[Climate Change Engineering and Management in Energy Sector Laboratory - CCEME]',
-]);
+const toggleProfileMenu = () => { showProfileMenu.value = !showProfileMenu.value }
 
 const filter = reactive({
   status: 'ทั้งหมด',
-  room: 'ทั้งหมด',
-  search: '',
-});
+  department: 'ทั้งหมด',
+  search: ''
+})
 
-const quota = reactive({
-  sick: 10.0,
-  personal: 12.0,
-  vacation: 30.0,
-});
+const departments = ref([])
+const leaveTypes = ref([])
+const employees = ref([])
 
-const employees = reactive([
-  {
-    name: 'สมชาย เจริญสุข',
-    status: 'พนักงานปัจจุบัน',
-    room: 'ห้องวิจัยด้านวิศวกรรมและการบริหารจัดการการเปลี่ยนแปลงสภาพภูมิอากาศด้านพลังงาน[Climate Change Engineering and Management in Energy Sector Laboratory - CCEME]',
-    sickLeave: 10.0,
-    personalLeave: 12.0,
-    vacationLeave: 30.0,
-    otherLeave: 0.0,
-  },
-  {
-    name: 'สมหญิง รักดี',
-    status: 'พนักงานปัจจุบัน',
-    room: 'โครงการพัฒนาการศึกษาด้านพลังงาน[Energy Education Development Project: EEDP]',
-    sickLeave: 10.0,
-    personalLeave: 12.0,
-    vacationLeave: 30.0,
-    otherLeave: 0.0,
-  },
-  {
-    name: 'เอกชัย มีชัย',
-    status: 'พนักงานที่ลาออก',
-    room: 'ห้องวิจัยพลังงานทดแทนและอนุรักษ์พลังงาน[Renewable Energy and Energy Conservation Laboratory - REEC]',
-    sickLeave: 0.0,
-    personalLeave: 0.0,
-    vacationLeave: 0.0,
-    otherLeave: 0.0,
-  },
-  {
-    name: 'อรุณี สว่างจิต',
-    status: 'พนักงานปัจจุบัน',
-    room: 'โครงการพัฒนาการศึกษาด้านพลังงาน[Energy Education Development Project: EEDP]',
-    sickLeave: 10.0,
-    personalLeave: 12.0,
-    vacationLeave: 30.0,
-    otherLeave: 0.0,
-  },
-]);
+const quotas = reactive<{ [userId: number]: { [leaveTypeId: number]: number } }>({})
 
 const filteredEmployees = computed(() => {
-  return employees.filter(employee => {
-    const statusMatch = filter.status === 'ทั้งหมด' || employee.status === filter.status;
-    const roomMatch = filter.room === 'ทั้งหมด' || employee.room === filter.room;
-    const searchMatch = employee.name.toLowerCase().includes(filter.search.toLowerCase());
-    return statusMatch && roomMatch && searchMatch;
-  });
-});
-
-const applyDefaultQuota = () => {
-  employees.forEach(employee => {
-    employee.sickLeave = quota.sick;
-    employee.personalLeave = quota.personal;
-    employee.vacationLeave = quota.vacation;
-  });
-  alert('Default Quota ถูกบันทึกแล้ว!');
-};
-
-const saveQuotaChanges = () => {
-  console.log('บันทึกข้อมูลโควต้าที่เปลี่ยนแปลง:', employees);
-  alert('บันทึกข้อมูลเรียบร้อยแล้ว!');
-};
-
-const currentUser = ref<any>(null)
+  return employees.value.filter(emp => {
+    const statusMatch = filter.status === 'ทั้งหมด' || emp.status === filter.status
+    const deptMatch = filter.department === 'ทั้งหมด' || emp.department?.id === Number(filter.department)
+    const searchMatch = emp.firstname_th.toLowerCase().includes(filter.search.toLowerCase()) ||
+                        emp.lastname_th.toLowerCase().includes(filter.search.toLowerCase())
+    return statusMatch && deptMatch && searchMatch
+  })
+})
 
 onMounted(async () => {
-  if (typeof window !== "undefined") {
-    token.value = localStorage.getItem("token")
-  }
-
-  if (!token.value) {
-    router.push('/login')
-    return
-  }
+  if (typeof window !== "undefined") token.value = localStorage.getItem("token")
+  if (!token.value) { router.push('/login'); return }
 
   axios.defaults.headers.common['Authorization'] = `Token ${token.value}`
 
   try {
     const me = await axios.get('http://localhost:8000/api/users/me/')
-    currentUser.value = me.data;
-
-    if (currentUser.value.role !== 'admin') {
-      router.push('/login');
-      return;
-    }
+    currentUser.value = me.data
+    if (currentUser.value.role !== 'admin') router.push('/login')
   } catch (err) {
     console.error(err)
     router.push('/login')
   }
+
+  // ดึงข้อมูลพนักงาน
+  const resUsers = await axios.get('http://localhost:8000/api/users/')
+  employees.value = resUsers.data
+
+  // ดึงประเภทการลา
+  const resTypes = await axios.get('http://localhost:8000/api/leave/leave-types/')
+  leaveTypes.value = resTypes.data
+
+  // ดึงโควต้าพนักงาน
+  const resQuotas = await axios.get('http://localhost:8000/api/leave/leave-quotas/')
+  resQuotas.data.forEach((q: any) => {
+    const userId = q.user.id || q.user
+    const leaveTypeId = q.leave_type.id || q.leave_type
+    if (!quotas[userId]) quotas[userId] = {}
+    quotas[userId][leaveTypeId] = q.quota_total
+  })
+
+  // ดึงห้องวิจัย
+  const resDept = await axios.get('http://localhost:8000/api/users/departments/')
+  departments.value = resDept.data
 })
 
-function logout() {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("token")
+const onQuotaChange = (userId: number, typeId: number, value: number) => {
+  if (!quotas[userId]) quotas[userId] = {}
+  quotas[userId][typeId] = Number(value)
+}
+
+const saveQuotaChanges = async () => {
+  const payload: any[] = []
+  for (const userId in quotas) {
+    for (const typeId in quotas[userId]) {
+      payload.push({
+        user: parseInt(userId),
+        leave_type: parseInt(typeId),
+        quota_total: quotas[userId][typeId],
+        year: new Date().getFullYear()
+      })
+    }
   }
+  try {
+    await axios.post('http://localhost:8000/api/leave/leave-quotas/bulk_update/', payload)
+    alert('บันทึกข้อมูลเรียบร้อย')
+  } catch (err) {
+    console.error(err)
+    alert('เกิดข้อผิดพลาด')
+  }
+}
+
+function logout() {
+  if (typeof window !== "undefined") localStorage.removeItem("token")
   delete axios.defaults.headers.common['Authorization']
   router.push("/login")
+}
+
+function goTo(path: string) {
+  router.push(path)
 }
 </script>
 

@@ -93,8 +93,8 @@
             <label for="room-select">ห้องวิจัย</label>
             <select id="room-select" class="form-select" v-model="selectedRoom">
               <option value="">ทั้งหมด</option>
-              <option v-for="room in roomList" :key="room.id" :value="room.id">
-                {{ room.name }}
+              <option v-for="dept in departments" :key="dept.id" :value="dept.id">
+                {{ dept.name_th }}
               </option>
             </select>
           </div>
@@ -107,7 +107,7 @@
               <tr>
                 <th>วันที่</th>
                 <th>ชื่อ - นามสกุล</th>
-                <th>ประเภทการลา</th>
+                <th>ประเภท</th>
                 <th>ช่วงเวลา</th>
                 <th>ผู้อนุมัติ</th>
                 <th>สถานะ</th>
@@ -127,10 +127,10 @@
                   </span>
                 </td>
                 <td>
-                  <select v-model="item.action" class="action-select">
+                  <select v-model="item.action" class="action-select" @change="updateStatus(item)">
                     <option value="pending">รออนุมัติ</option>
-                    <option value="approve">อนุมัติ</option>
-                    <option value="reject">ไม่อนุมัติ</option>
+                    <option value="approved">อนุมัติ</option>
+                    <option value="rejected">ไม่อนุมัติ</option>
                   </select>
                 </td>
               </tr>
@@ -143,7 +143,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, computed } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 
@@ -157,54 +157,12 @@ const toggleProfileMenu = () => {
   showProfileMenu.value = !showProfileMenu.value
 }
 
-// ข้อมูลห้องวิจัย (จำลอง)
-const roomList = reactive([
-  { id: 'eedp', name: 'โครงการพัฒนาการศึกษาด้านพลังงาน' },
-  { id: 'reec', name: 'ห้องวิจัยพลังงานทดแทนและอนุรักษ์พลังงาน' },
-  { id: 'cceme', name: 'ห้องวิจัยด้านวิศวกรรมและการบริหารจัดการการเปลี่ยนแปลงสภาพภูมิอากาศด้านพลังงาน' },
-]);
+const departments = ref([])
+const approvalList = ref<any[]>([]);
 
-// ข้อมูลรายการอนุมัติ (จำลอง)
-const approvalList = ref([
-  {
-    date: '13/ส.ค./2568',
-    name: 'นาย ก. ไก่',
-    type: 'ปฏิบัติงานนอกสถานที่',
-    time: 'ครึ่งวันเช้า',
-    approver: 'หัวหน้าห้องวิจัย',
-    status: 'pending',
-    status_th: 'รออนุมัติ',
-    action: 'pending',
-    room: 'reec'
-  },
-  {
-    date: '12/ส.ค./2568',
-    name: 'นาง ข. ไข่',
-    type: 'ปฏิบัติงานนอกสถานที่',
-    time: 'ทั้งวัน',
-    approver: 'หัวหน้าห้องวิจัย',
-    status: 'rejected',
-    status_th: 'ไม่ผ่าน',
-    action: 'reject',
-    room: 'eedp'
-  },
-  {
-    date: '11/ส.ค./2568',
-    name: 'นาย ค. ควาย',
-    type: 'ปฏิบัติงานนอกสถานที่',
-    time: 'ครึ่งวันบ่าย',
-    approver: 'หัวหน้าห้องวิจัย',
-    status: 'approved',
-    status_th: 'อนุมัติแล้ว',
-    action: 'approve',
-    room: 'reec'
-  }
-]);
-
-// กรองข้อมูลตามเงื่อนไข
 const filteredApprovalList = computed(() => {
   return approvalList.value.filter(item => {
-    const roomMatch = !selectedRoom.value || item.room === selectedRoom.value;
+    const roomMatch = !selectedRoom.value || item.room == selectedRoom.value;
     return roomMatch;
   });
 });
@@ -214,6 +172,47 @@ const search = () => {
 };
 
 const currentUser = ref<any>(null)
+
+const loadApprovalList = async () => {
+  const res = await axios.get("http://localhost:8000/api/work-from-outside/requests/");
+  approvalList.value = res.data.map((item: any) => ({
+    id: item.id,
+    date: `${item.start_date} - ${item.end_date}`,
+    name: item.user?.full_name || item.user,
+    type: "ปฏิบัติงานนอกสถานที่",
+    time: item.time_period,
+    approver: item.approver?.full_name || "-",
+    room: item.room || "",
+    status: item.status,
+    status_th:
+      item.status === "pending"
+        ? "รออนุมัติ"
+        : item.status === "approved"
+        ? "อนุมัติ"
+        : item.status === "rejected"
+        ? "ไม่อนุมัติ"
+        : item.status === "cancelled"
+        ? "ยกเลิก"
+        : "อื่น ๆ",
+    action: item.status,
+  }));
+};
+
+const updateStatus = async (item: any) => {
+  try {
+    await axios.patch(`http://localhost:8000/api/work-from-outside/requests/${item.id}/`, {
+      status: item.action,
+    });
+    item.status_th =
+      item.action === "pending"
+        ? "รออนุมัติ"
+        : item.action === "approved"
+        ? "อนุมัติ"
+        : "ไม่อนุมัติ";
+  } catch (err) {
+    console.error("ไม่สามารถอัปเดตสถานะ:", err);
+  }
+};
 
 onMounted(async () => {
   if (typeof window !== "undefined") {
@@ -235,6 +234,14 @@ onMounted(async () => {
       router.push('/login');
       return;
     }
+
+    // โหลดข้อมูล
+    await loadApprovalList();
+
+    // โหลดห้องวิจัย (ถ้ามี API)
+    const resDept = await axios.get('http://localhost:8000/api/users/departments/')
+    departments.value = resDept.data
+    
   } catch (err) {
     console.error(err)
     router.push('/login')
