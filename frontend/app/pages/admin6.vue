@@ -349,6 +349,14 @@ onMounted(async () => {
   }
 })
 
+function logout() {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("token")
+  }
+  delete axios.defaults.headers.common['Authorization']
+  router.push("/login")
+}
+
 const submitForm = async () => {
   const payload = {
     username: form.username,

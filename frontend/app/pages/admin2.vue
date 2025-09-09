@@ -232,8 +232,10 @@ const form = reactive<any>({
 
 const currentUser = ref<any>(null)
 
-const toggleProfileMenu = ref(false)
-
+const showProfileMenu = ref(false)
+const toggleProfileMenu = () => {
+  showProfileMenu.value = !showProfileMenu.value
+}
 const goToAdd = () => router.push('/admin6')
 
 const departments = ref<any[]>([])
@@ -339,6 +341,14 @@ onMounted(async ()=>{
     loadDepartments()
   } catch(err) { console.error(err); router.push('/login') }
 })
+
+function logout() {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("token")
+  }
+  delete axios.defaults.headers.common['Authorization']
+  router.push("/login")
+}
 
 const filteredEmployees = computed(()=> {
   if(!search.value) return employees.value

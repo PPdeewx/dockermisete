@@ -214,6 +214,14 @@ onMounted(async() => {
     router.push('/login')
   }
 });
+
+function logout() {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("token")
+  }
+  delete axios.defaults.headers.common['Authorization']
+  router.push("/login")
+}
 </script>
 
 <style scoped>
