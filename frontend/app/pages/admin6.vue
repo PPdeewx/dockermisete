@@ -232,12 +232,7 @@ const englishNamePrefixOptions = ['Mr.', 'Mrs.', 'Ms.', 'Dr.']
 
 const roomOptions = ref<string[]>([])
 
-const groupOptions = [
-  { value: 'regular', label: 'พนักงานประจำ' },
-  { value: 'manager', label: 'ผู้บริหาร' },
-  { value: 'temporary', label: 'พนักงานชั่วคราว' },
-  { value: 'developer', label: 'Developer' },
-]
+const groupOptions = ref<{ value: string, label: string }[]>([])
 
 const statusOptions = [
   { value: 'active', label: 'พนักงานปัจจุบัน' },
@@ -285,6 +280,15 @@ const form = reactive({
 })
 
 
+const loadGroups = async () => {
+  try {
+    const res = await axios.get('http://localhost:8000/api/users/groups/')
+    groupOptions.value = res.data.map((g: any) => ({ value: g.name, label: g.name }))
+  } catch (err) {
+    console.error("Failed to load groups:", err)
+  }
+}
+
 onMounted(async () => {
   if (typeof window !== "undefined") {
     token.value = localStorage.getItem("token")
@@ -318,6 +322,8 @@ onMounted(async () => {
     console.error("Failed to load departments:", err)
   }
 
+  await loadGroups()
+
   if (route.params.id) {
     const res = await axios.get(`http://localhost:8000/api/users/${route.params.id}/`)
     const user = res.data
@@ -339,15 +345,11 @@ onMounted(async () => {
     form.vacationLeave = user.quota_vacation
     form.sickLeave = user.quota_sick
     form.personalLeave = user.quota_casual
+    form.group = user.groups?.[0]?.name || ''
   }
 })
 
 const submitForm = async () => {
-  if (form.password && form.password) {
-    alert('รหัสผ่านไม่ถูกต้อง')
-    return
-  }
-
   const payload = {
     username: form.username,
     employee_code: form.empCode,
@@ -372,15 +374,8 @@ const submitForm = async () => {
   }
 
   try {
-    if (form.id) {
-      
-      await axios.put(`http://localhost:8000/api/users/${form.id}/`, payload)
-      alert("อัปเดตข้อมูลสำเร็จ")
-    } else {
-      
-      await axios.post('http://localhost:8000/api/users/create/', payload)
-      alert("เพิ่มพนักงานสำเร็จ")
-    }
+    await axios.post('http://localhost:8000/api/users/create/', payload)
+    alert("เพิ่มพนักงานสำเร็จ")
     router.push('/admin2') 
   } catch (err: any) {
     console.error(err.response?.data || err)

@@ -55,6 +55,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
         many=True
     )
     department = DepartmentSerializer(read_only=True)
+    groupName = serializers.SerializerMethodField()
 
     employee_code = serializers.CharField(
         validators=[UniqueValidator(queryset=CustomUser.objects.all())]
@@ -92,6 +93,11 @@ class CustomUserSerializer(serializers.ModelSerializer):
                 "name_th": obj.department.name_th,
             }
         return None
+
+    def get_groupName(self, obj):
+        if obj.groups.exists():
+            return obj.groups.first().name
+        return ""
 
     def validate(self, attrs):
         status = attrs.get('status', None)
@@ -147,3 +153,8 @@ class CustomUserSerializer(serializers.ModelSerializer):
             instance.groups.set([Group.objects.get_or_create(name=g)[0] for g in groups_data])
 
         return instance
+
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = ['id', 'name']

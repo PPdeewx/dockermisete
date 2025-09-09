@@ -3,7 +3,7 @@ from .views import (
     UserListView, UserFilterView, UserCreateView, UserDetailView,
     PasswordResetRequestView, UserUpdateProfileView, SetPasswordView,
     CurrentUserView, PasswordResetValidateView, UserForListView,
-    DepartmentListCreateView, DepartmentDetailView
+    DepartmentListCreateView, DepartmentDetailView , GroupListView
 )
 
 app_name = 'users'
@@ -21,4 +21,5 @@ urlpatterns = [
     path("for-list/", UserForListView.as_view(), name="users-for-list"),
     path("departments/", DepartmentListCreateView.as_view(), name="department_list_create"),
     path("departments/<int:pk>/", DepartmentDetailView.as_view(), name="department_detail"),
+    path("groups/", GroupListView.as_view(), name="group_list"),
 ]

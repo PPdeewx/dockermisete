@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import generics, status
 from rest_framework.decorators import api_view
 from .models import CustomUser, Department
-from .serializers import CustomUserSerializer, DepartmentSerializer
+from .serializers import CustomUserSerializer, DepartmentSerializer , GroupSerializer
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 from django.contrib.auth.tokens import default_token_generator
 from rest_framework.authtoken.models import Token
@@ -15,6 +15,7 @@ from django.conf import settings
 from django.db.models import Q
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.contrib.auth.models import Group
 
 User = get_user_model()
 
@@ -267,3 +268,8 @@ class DepartmentDetailView(generics.RetrieveUpdateDestroyAPIView):
         if CustomUser.objects.filter(department=instance).exists():
             raise ValidationError("ไม่สามารถลบห้องวิจัย ได้เนื่องจากยังมีพนักงานอยู่ในแผนกนี้")
         instance.delete()
+
+class GroupListView(generics.ListAPIView):
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
+    permission_classes = [IsAdminUser]
