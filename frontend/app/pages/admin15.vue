@@ -58,15 +58,15 @@
             <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
 
             <div class="user-profile-menu" v-if="showProfileMenu">
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin28')">
                 <i class="fas fa-user"></i>
                 <span>ดูข้อมูลส่วนตัว</span>
               </button>
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin29')">
                 <i class="fas fa-edit"></i>
                 <span>แก้ไขข้อมูลส่วนตัว</span>
               </button>
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin30')">
                 <i class="fas fa-lock"></i>
                 <span>เปลี่ยนรหัสผ่าน</span>
               </button>
@@ -153,14 +153,12 @@ const toggleProfileMenu = () => {
   showProfileMenu.value = !showProfileMenu.value
 }
 
-// ข้อมูลห้องวิจัย (จำลอง)
 const roomList = reactive([
   { id: 'eedp', name: 'โครงการพัฒนาการศึกษาด้านพลังงาน' },
   { id: 'reec', name: 'ห้องวิจัยพลังงานทดแทนและอนุรักษ์พลังงาน' },
   { id: 'cceme', name: 'ห้องวิจัยด้านวิศวกรรมและการบริหารจัดการการเปลี่ยนแปลงสภาพภูมิอากาศด้านพลังงาน' },
 ]);
 
-// ข้อมูลรายการลา (จำลอง)
 const leaveList = ref([
   {
     name: 'นาย ก. ไก่',
@@ -188,7 +186,6 @@ const leaveList = ref([
   },
 ]);
 
-// ตัวกรองข้อมูลที่แสดงในตาราง
 const filteredLeaveList = computed(() => {
   return leaveList.value.filter(leave => {
     const roomMatch = !selectedRoom.value || leave.room === selectedRoom.value;
@@ -197,7 +194,6 @@ const filteredLeaveList = computed(() => {
   });
 });
 
-// ฟังก์ชันแปลง id ห้องวิจัยเป็นชื่อ
 const roomNameById = (id: string) => {
   const room = roomList.find(r => r.id === id);
   return room ? room.name : 'ไม่ระบุ';

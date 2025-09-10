@@ -58,15 +58,15 @@
             <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
 
             <div class="user-profile-menu" v-if="showProfileMenu">
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin28')">
                 <i class="fas fa-user"></i>
                 <span>ดูข้อมูลส่วนตัว</span>
               </button>
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin29')">
                 <i class="fas fa-edit"></i>
                 <span>แก้ไขข้อมูลส่วนตัว</span>
               </button>
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin30')">
                 <i class="fas fa-lock"></i>
                 <span>เปลี่ยนรหัสผ่าน</span>
               </button>
@@ -184,12 +184,11 @@ onMounted(async () => {
       return;
     }
 
-    // ✅ ดึงข้อมูลจาก API ที่คุณมีอยู่แล้ว
     const res = await axios.get("http://localhost:8000/api/work-from-outside/requests/")
     outsideWorkHistory.value = res.data.map((item: any) => ({
-      id: item.id,  // หรือ item.request_number ถ้ามี
+      id: item.id,
       date: `${item.start_date} - ${item.end_date}`,
-      employee: item.user?.full_name || item.user,  // ถ้า serializer ส่ง user object
+      employee: item.user?.full_name || item.user,
       time: item.time_period,
       reason: item.reason,
       status: item.status,

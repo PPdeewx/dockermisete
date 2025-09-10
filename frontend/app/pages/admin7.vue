@@ -40,15 +40,15 @@
             <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
 
             <div class="user-profile-menu" v-if="showProfileMenu">
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin28')">
                 <i class="fas fa-user"></i>
                 <span>ดูข้อมูลส่วนตัว</span>
               </button>
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin29')">
                 <i class="fas fa-edit"></i>
                 <span>แก้ไขข้อมูลส่วนตัว</span>
               </button>
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin30')">
                 <i class="fas fa-lock"></i>
                 <span>เปลี่ยนรหัสผ่าน</span>
               </button>
@@ -152,7 +152,6 @@ const toggleProfileMenu = () => {
   showProfileMenu.value = !showProfileMenu.value
 }
 
-// ตัวเลือกสำหรับ dropdowns
 const thaiNamePrefixOptions = ref(['นาย', 'นาง', 'นางสาว']);
 const englishNamePrefixOptions = ref(['Mr.', 'Mrs.', 'Ms.']);
 

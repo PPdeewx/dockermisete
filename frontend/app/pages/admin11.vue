@@ -42,15 +42,15 @@
             <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
 
             <div class="user-profile-menu" v-if="showProfileMenu">
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin28')">
                 <i class="fas fa-user"></i>
                 <span>ดูข้อมูลส่วนตัว</span>
               </button>
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin29')">
                 <i class="fas fa-edit"></i>
                 <span>แก้ไขข้อมูลส่วนตัว</span>
               </button>
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin30')">
                 <i class="fas fa-lock"></i>
                 <span>เปลี่ยนรหัสผ่าน</span>
               </button>
@@ -131,7 +131,6 @@ onMounted(async () => {
   axios.defaults.headers.common['Authorization'] = `Token ${token.value}`;
 
   try {
-    // ดึงข้อมูล current user
     const me = await axios.get('http://localhost:8000/api/users/me/');
     currentUser.value = me.data;
 
@@ -140,12 +139,11 @@ onMounted(async () => {
       return;
     }
 
-    // ดึงข้อมูลวันหยุดจาก API
     const res = await axios.get('http://localhost:8000/api/holiday/list/');
     holidayList.value = res.data.map((h: any) => ({
       date: h.date,
       name: h.name,
-      type: h.holiday_type_display, // ใช้ display name จาก serializer
+      type: h.holiday_type_display,
     }));
 
   } catch (err) {

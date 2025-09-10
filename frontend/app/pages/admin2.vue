@@ -48,15 +48,15 @@
             <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
 
             <div class="user-profile-menu" v-if="showProfileMenu">
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin28')">
                 <i class="fas fa-user"></i>
                 <span>ดูข้อมูลส่วนตัว</span>
               </button>
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin29')">
                 <i class="fas fa-edit"></i>
                 <span>แก้ไขข้อมูลส่วนตัว</span>
               </button>
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin30')">
                 <i class="fas fa-lock"></i>
                 <span>เปลี่ยนรหัสผ่าน</span>
               </button>
@@ -122,7 +122,6 @@
       </div>
     </div>
 
-    <!-- Modal แก้ไข -->
     <div v-if="showEditModal" class="modal-overlay">
       <div class="modal-content">
         <form @submit.prevent="saveEdit">
@@ -259,7 +258,6 @@ const loadDepartments = async () => {
   }
 }
 
-// โหลดข้อมูลพนักงาน
 const loadEmployees = async () => {
   try {
     const res = await axios.get('http://localhost:8000/api/users/filter/?status=active')
@@ -306,7 +304,7 @@ const saveEdit = async () => {
       quota_other: form.quota_other
     }
 
-    await axios.patch(`http://localhost:8000/api/users/${form.id}/`, payload) // ใช้ patch แทน put
+    await axios.patch(`http://localhost:8000/api/users/${form.id}/`, payload)
     alert("แก้ไขข้อมูลสำเร็จ")
     showEditModal.value = false
     loadEmployees()

@@ -40,15 +40,15 @@
             <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
 
             <div class="user-profile-menu" v-if="showProfileMenu">
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin28')">
                 <i class="fas fa-user"></i>
                 <span>ดูข้อมูลส่วนตัว</span>
               </button>
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin29')">
                 <i class="fas fa-edit"></i>
                 <span>แก้ไขข้อมูลส่วนตัว</span>
               </button>
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin30')">
                 <i class="fas fa-lock"></i>
                 <span>เปลี่ยนรหัสผ่าน</span>
               </button>
@@ -129,7 +129,6 @@ const toggleProfileMenu = () => {
   showProfileMenu.value = !showProfileMenu.value
 }
 
-// โหลดพนักงานจาก backend
 const loadEmployees = async () => {
   try {
     const res = await axios.get('http://localhost:8000/api/users/filter/', {
@@ -148,7 +147,6 @@ const loadEmployees = async () => {
   }
 };
 
-// ฟิลเตอร์ค้นหา
 const filteredEmployees = computed(() => {
   if (!searchQuery.value) return employees.value;
   const query = searchQuery.value.toLowerCase();
@@ -162,7 +160,6 @@ const filteredEmployees = computed(() => {
   );
 });
 
-// บันทึกการเปลี่ยนสถานะ
 const saveChanges = async () => {
   const changes = employees.value.filter(emp => emp.status !== emp.newStatus);
   if (changes.length === 0) {
@@ -173,7 +170,7 @@ const saveChanges = async () => {
     for (const emp of changes) {
       const payload: any = { status: emp.newStatus };
       if (emp.newStatus === 'resigned') {
-        payload.exit_date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        payload.exit_date = new Date().toISOString().split('T')[0];
       }
       await axios.patch(`http://localhost:8000/api/users/${emp.id}/`, payload, {
         headers: { Authorization: `Token ${localStorage.getItem('token')}` },

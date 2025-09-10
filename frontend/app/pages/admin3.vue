@@ -46,15 +46,15 @@
             <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
 
             <div class="user-profile-menu" v-if="showProfileMenu">
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin28')">
                 <i class="fas fa-user"></i>
                 <span>ดูข้อมูลส่วนตัว</span>
               </button>
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin29')">
                 <i class="fas fa-edit"></i>
                 <span>แก้ไขข้อมูลส่วนตัว</span>
               </button>
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin30')">
                 <i class="fas fa-lock"></i>
                 <span>เปลี่ยนรหัสผ่าน</span>
               </button>
@@ -132,15 +132,13 @@ const toggleProfileMenu = () => {
   showProfileMenu.value = !showProfileMenu.value
 }
 
-// พนักงานทั้งหมด
 const employees = ref([])
 
-// โหลดพนักงานจาก backend
 const loadEmployees = async () => {
   try {
     const res = await axios.get('http://localhost:8000/api/users/filter/', {
       headers: { Authorization: `Token ${localStorage.getItem('token')}` },
-      params: { status: '' } // โหลดทุกสถานะ
+      params: { status: '' }
     })
     employees.value = res.data.map(emp => ({
       ...emp,
@@ -151,12 +149,10 @@ const loadEmployees = async () => {
   }
 }
 
-// พนักงานที่ลาออก
 const resignedEmployees = computed(() =>
   employees.value.filter(emp => emp.status === 'resigned')
 )
 
-// เปลี่ยนสถานะพนักงานเป็น "พนักงานปัจจุบัน"
 const reinstateEmployee = async (emp: any) => {
   try {
     await axios.patch(
@@ -164,7 +160,7 @@ const reinstateEmployee = async (emp: any) => {
       { status: 'active', exit_date: null },
       { headers: { Authorization: `Token ${token.value}` } }
     )
-    emp.status = 'active'  // อัปเดต local state
+    emp.status = 'active'
     alert(`เปลี่ยนสถานะพนักงาน ${emp.firstname_th} ${emp.lastname_th} กลับเป็นพนักงานปัจจุบันเรียบร้อย`)
   } catch (err) {
     console.error(err)

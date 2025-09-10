@@ -58,15 +58,15 @@
             <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
 
             <div class="user-profile-menu" v-if="showProfileMenu">
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin28')">
                 <i class="fas fa-user"></i>
                 <span>ดูข้อมูลส่วนตัว</span>
               </button>
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin29')">
                 <i class="fas fa-edit"></i>
                 <span>แก้ไขข้อมูลส่วนตัว</span>
               </button>
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin30')">
                 <i class="fas fa-lock"></i>
                 <span>เปลี่ยนรหัสผ่าน</span>
               </button>
@@ -182,10 +182,9 @@ const leaveHistory = ref<any[]>([]);
 const fetchLeaveHistory = async () => {
   try {
     const res = await axios.get('http://localhost:8000/api/leave/leave-requests/', {
-      params: { user_id: currentUser.value?.id }  // admin เห็นทุกคน, แต่เราจะกรอง admin ตัวเอง
+      params: { user_id: currentUser.value?.id }
     });
 
-    // map ข้อมูลให้ตรงกับ frontend
     leaveHistory.value = res.data.map((item: any) => ({
       id: item.id,
       date: `${item.start_date} - ${item.end_date}`,
@@ -200,7 +199,6 @@ const fetchLeaveHistory = async () => {
   }
 };
 
-// แปลง status backend -> ภาษาไทย
 const statusMapping = (status: string) => {
   switch(status) {
     case 'pending': return 'รอดำเนินการ';
@@ -225,7 +223,7 @@ const cancelLeave = async (leaveId: number) => {
   try {
     await axios.post(`http://localhost:8000/api/leave/leave-requests/${leaveId}/cancel/`);
     alert('ยกเลิกเรียบร้อย');
-    await fetchLeaveHistory();  // refresh ตาราง
+    await fetchLeaveHistory();
   } catch (err) {
     console.error(err);
     alert('ไม่สามารถยกเลิกการลาได้');

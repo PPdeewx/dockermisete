@@ -40,15 +40,15 @@
             <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
 
             <div class="user-profile-menu" v-if="showProfileMenu">
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin28')">
                 <i class="fas fa-user"></i>
                 <span>ดูข้อมูลส่วนตัว</span>
               </button>
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin29')">
                 <i class="fas fa-edit"></i>
                 <span>แก้ไขข้อมูลส่วนตัว</span>
               </button>
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin30')">
                 <i class="fas fa-lock"></i>
                 <span>เปลี่ยนรหัสผ่าน</span>
               </button>
@@ -172,15 +172,12 @@ onMounted(async () => {
     router.push('/login')
   }
 
-  // ดึงข้อมูลพนักงาน
   const resUsers = await axios.get('http://localhost:8000/api/users/')
   employees.value = resUsers.data
 
-  // ดึงประเภทการลา
   const resTypes = await axios.get('http://localhost:8000/api/leave/leave-types/')
   leaveTypes.value = resTypes.data
 
-  // ดึงโควต้าพนักงาน
   const resQuotas = await axios.get('http://localhost:8000/api/leave/leave-quotas/')
   resQuotas.data.forEach((q: any) => {
     const userId = q.user.id || q.user
@@ -189,7 +186,6 @@ onMounted(async () => {
     quotas[userId][leaveTypeId] = q.quota_total
   })
 
-  // ดึงห้องวิจัย
   const resDept = await axios.get('http://localhost:8000/api/users/departments/')
   departments.value = resDept.data
 })

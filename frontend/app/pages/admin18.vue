@@ -58,15 +58,15 @@
             <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
 
             <div class="user-profile-menu" v-if="showProfileMenu">
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin28')">
                 <i class="fas fa-user"></i>
                 <span>ดูข้อมูลส่วนตัว</span>
               </button>
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin29')">
                 <i class="fas fa-edit"></i>
                 <span>แก้ไขข้อมูลส่วนตัว</span>
               </button>
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin30')">
                 <i class="fas fa-lock"></i>
                 <span>เปลี่ยนรหัสผ่าน</span>
               </button>
@@ -160,10 +160,8 @@ const toggleProfileMenu = () => {
 const dateRange = ref('');
 const selectedRoom = ref('');
 
-// ✅ ห้องวิจัยดึงจาก API
 const roomList = ref<any[]>([])
 
-// ✅ รายการลา
 const approvalList = ref<any[]>([])
 
 const filteredApprovalList = computed(() => {
@@ -179,7 +177,6 @@ const search = () => {
 
 const currentUser = ref<any>(null)
 
-// ✅ โหลดห้องวิจัยจาก API
 async function fetchDepartments() {
   try {
     const res = await axios.get("http://localhost:8000/api/users/departments/");
@@ -192,7 +189,6 @@ async function fetchDepartments() {
   }
 }
 
-// ✅ โหลดรายการการลา
 async function fetchApprovals() {
   try {
     const res = await axios.get("http://localhost:8000/api/leave/leave-requests/");
@@ -238,7 +234,7 @@ async function updateApproval(item: any) {
     } else if (item.action === "reject") {
       await axios.post(`http://localhost:8000/api/leave/leave-requests/${item.id}/reject/`);
     }
-    fetchApprovals(); // รีโหลดใหม่
+    fetchApprovals();
   } catch (err) {
     console.error("อัปเดตสถานะไม่สำเร็จ", err)
   }
