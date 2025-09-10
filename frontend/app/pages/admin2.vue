@@ -237,6 +237,10 @@ const toggleProfileMenu = () => {
 }
 const goToAdd = () => router.push('/admin6')
 
+const goTo = (path: string) => {
+  router.push(path);
+};
+
 const departments = ref<any[]>([])
 const groups = ref<any[]>([])
 

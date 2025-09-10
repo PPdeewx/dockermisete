@@ -165,6 +165,10 @@ const toggleProfileMenu = () => {
   showProfileMenu.value = !showProfileMenu.value
 }
 
+const goTo = (path: string) => {
+  router.push(path);
+};
+
 const form = reactive({
   requester: '',
   collaborators: '',

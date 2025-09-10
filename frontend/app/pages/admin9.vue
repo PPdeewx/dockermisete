@@ -135,6 +135,10 @@ const currentUser = ref<any>(null)
 const showProfileMenu = ref(false)
 const toggleProfileMenu = () => { showProfileMenu.value = !showProfileMenu.value }
 
+const goTo = (path: string) => {
+  router.push(path);
+};
+
 const filter = reactive({
   status: 'ทั้งหมด',
   department: 'ทั้งหมด',

@@ -130,6 +130,10 @@ const toggleProfileMenu = () => {
   showProfileMenu.value = !showProfileMenu.value
 }
 
+const goTo = (path: string) => {
+  router.push(path);
+};
+
 const profile = reactive({
   nameTh: 'นายแอดมิน แอดมิน',
   nameEn: 'Admin Admin',

@@ -109,6 +109,10 @@ const toggleProfileMenu = () => {
   showProfileMenu.value = !showProfileMenu.value
 }
 
+const goTo = (path: string) => {
+  router.push(path);
+};
+
 const toggleView = () => {
   viewMode.value = viewMode.value === 'table' ? 'calendar' : 'table';
   alert(`สลับไปที่มุมมอง: ${viewMode.value}`);

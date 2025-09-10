@@ -156,6 +156,10 @@ const toggleProfileMenu = () => {
   showProfileMenu.value = !showProfileMenu.value
 }
 
+const goTo = (path: string) => {
+  router.push(path);
+};
+
 const leaveForm = reactive({
   employeeName: 'นาย พ่อ admin usermesss',
   leaveType: '',

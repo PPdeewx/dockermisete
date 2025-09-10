@@ -157,6 +157,10 @@ const toggleProfileMenu = () => {
   showProfileMenu.value = !showProfileMenu.value
 }
 
+const goTo = (path: string) => {
+  router.push(path);
+};
+
 const roomList = reactive([
   { id: 'eedp', name: 'โครงการพัฒนาการศึกษาด้านพลังงาน' },
   { id: 'reec', name: 'ห้องวิจัยพลังงานทดแทนและอนุรักษ์พลังงาน' },

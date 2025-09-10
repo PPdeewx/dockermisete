@@ -152,6 +152,10 @@ const toggleProfileMenu = () => {
   showProfileMenu.value = !showProfileMenu.value
 }
 
+const goTo = (path: string) => {
+  router.push(path);
+};
+
 const thaiNamePrefixOptions = ref(['นาย', 'นาง', 'นางสาว']);
 const englishNamePrefixOptions = ref(['Mr.', 'Mrs.', 'Ms.']);
 

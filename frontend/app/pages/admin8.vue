@@ -129,6 +129,10 @@ const toggleProfileMenu = () => {
   showProfileMenu.value = !showProfileMenu.value
 }
 
+const goTo = (path: string) => {
+  router.push(path);
+};
+
 const loadEmployees = async () => {
   try {
     const res = await axios.get('http://localhost:8000/api/users/filter/', {

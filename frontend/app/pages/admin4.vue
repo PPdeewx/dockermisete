@@ -138,6 +138,10 @@ const toggleProfileMenu = () => {
   showProfileMenu.value = !showProfileMenu.value
 }
 
+const goTo = (path: string) => {
+  router.push(path);
+};
+
 onMounted(async () => {
   if (typeof window !== "undefined") {
     token.value = localStorage.getItem("token")
