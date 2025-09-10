@@ -130,7 +130,7 @@
                 <td>{{ item.reason }}</td>
                 <td>{{ item.status }}</td>
                 <td class="actions-cell">
-                  <i class="fas fa-edit action-icon" @click="goTo('/user14')"></i>
+                  <i class="fas fa-edit action-icon" @click="openEditModal(item)"></i>
                   <i class="fas fa-search-plus action-icon" @click="goTo('/user15')"></i>
                 </td>
               </tr>
@@ -139,6 +139,78 @@
         </div>
       </div>
     </main>
+    <!-- Modal แก้ไข -->
+    <div v-if="showEditModal" class="modal-backdrop">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>แก้ไขข้อมูลการปฏิบัติงานนอกสถานที่ {{ selectedItem?.employee }}</h3>
+          <button class="modal-close-button red" @click="closeEditModal">ยกเลิก</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-row">
+            <label>พนักงาน :</label>
+            <span class="form-text">{{ selectedItem?.employee }}</span>
+          </div>
+
+          <!-- ผู้ร่วมปฏิบัติงาน -->
+          <div class="form-row">
+            <label>ผู้ร่วมปฏิบัติงาน :</label>
+            <select class="select-input" v-model="selectedItem.collaborators" multiple>
+              <option v-for="user in allUsers" :key="user.id" :value="user.id">
+                {{ user.full_name }}
+              </option>
+            </select>
+            <div class="selected-names">
+              <span v-for="id in selectedItem.collaborators" :key="id">
+                {{ allUsers.find(u => u.id === id)?.full_name || '' }}
+                <span v-if="id !== selectedItem.collaborators[selectedItem.collaborators.length-1]">, </span>
+              </span>
+            </div>
+          </div>
+
+          <div class="form-row date-row">
+            <label>ลาตั้งแต่วันที่ :</label>
+            <input type="date" v-model="selectedItem.start_date" class="date-input" />
+            <label>ถึงวันที่ * :</label>
+            <input type="date" v-model="selectedItem.end_date" class="date-input" />
+          </div>
+
+          <div class="form-row">
+            <label>ช่วงเวลา :</label>
+            <div class="radio-group">
+              <label><input type="radio" value="morning" v-model="selectedItem.period"> ครึ่งวันเช้า</label>
+              <label><input type="radio" value="afternoon" v-model="selectedItem.period"> ครึ่งวันบ่าย</label>
+              <label><input type="radio" value="full" v-model="selectedItem.period"> ทั้งวัน</label>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label>เหตุผลการลา :</label>
+            <input type="text" v-model="selectedItem.reason" class="text-input" />
+          </div>
+
+          <!-- หัวหน้างาน -->
+          <div class="form-row">
+            <label>หัวหน้างาน :</label>
+            <select class="select-input" v-model="selectedItem.approver">
+              <option value="">เลือกหัวหน้างาน</option>
+              <option v-for="user in allUsers" :key="user.id" :value="user.id">
+                {{ user.full_name }}
+              </option>
+            </select>
+            <div class="selected-names">
+              <span v-if="selectedItem.approver">
+                {{ allUsers.find(u => u.id === selectedItem.approver)?.full_name || '' }}
+              </span>
+            </div>
+          </div>
+
+          <button class="edit-button yellow" @click="saveEdit">
+            <i class="fas fa-edit"></i> แก้ไขข้อมูล
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -149,6 +221,8 @@ import axios from 'axios';
 
 const user = ref<any>(null);
 const token = ref<string | null>(null);
+
+const allUsers = ref<any[]>([]);
 
 onMounted(async () => {
   const tokenStored = localStorage.getItem("token");
@@ -164,6 +238,12 @@ onMounted(async () => {
     if (user.value.role !== "employee") {
       router.push("/login");
     }
+
+    const usersRes = await axios.get("http://localhost:8000/api/users/");
+    allUsers.value = usersRes.data;
+
+    await loadWorkHistory();
+
   } catch (err) {
     console.error(err);
     router.push("/login");
@@ -198,32 +278,65 @@ function logout() {
   router.push("/login")
 }
 
-const workHistory = ref([
-  {
-    id: '001',
-    date: '01/ม.ค./2568',
-    employee: 'Username',
-    period: 'ครึ่งวันเช้า',
-    reason: 'ประชุม',
-    status: 'รอการอนุมัติ',
-  },
-  {
-    id: '002',
-    date: '15/ก.พ./2568',
-    employee: 'Username(ลาเเทน)',
-    period: 'ทั้งวัน',
-    reason: 'อบรม',
-    status: 'อนุมัติแล้ว',
-  },
-  {
-    id: '003',
-    date: '28/มี.ค./2568',
-    employee: 'Username',
-    period: 'ครึ่งวันบ่าย',
-    reason: 'นัดลูกค้า',
-    status: 'รอการอนุมัติ',
-  },
-]);
+const workHistory = ref<any[]>([]);
+const showEditModal = ref(false);
+const selectedItem = ref<any>(null);
+
+function openEditModal(item: any) {
+  selectedItem.value = { ...item }; // ค่า collaborators และ approver เป็น ID อยู่แล้ว
+  showEditModal.value = true;
+}
+
+function closeEditModal() {
+  showEditModal.value = false;
+  selectedItem.value = null;
+}
+
+async function saveEdit() {
+  if (!selectedItem.value) return;
+  try {
+    // ตัวอย่างเรียก API PATCH เพื่อแก้ไขข้อมูล
+    await axios.patch(`http://localhost:8000/api/work-from-outside/requests/${selectedItem.value.id}/`, selectedItem.value);
+    
+    // อัปเดตใน workHistory
+    const index = workHistory.value.findIndex((w) => w.id === selectedItem.value.id);
+    if (index !== -1) workHistory.value[index] = { ...selectedItem.value };
+    
+    closeEditModal();
+  } catch (err) {
+    console.error("ไม่สามารถแก้ไขได้:", err);
+  }
+}
+
+const loadWorkHistory = async () => {
+  if (!user.value) return;
+  try {
+    const res = await axios.get(`http://localhost:8000/api/work-from-outside/requests/?user=${user.value.id}`);
+    workHistory.value = res.data.map((item: any) => ({
+      id: item.request_number,
+      date: `${item.start_date} - ${item.end_date}`,
+      start_date: item.start_date,    // เพิ่ม
+      end_date: item.end_date,        // เพิ่ม
+      employee: item.user.full_name || "ไม่ระบุ",
+      collaborators: item.collaborators ? item.collaborators.map((u: any) => u.id) : [],
+      approver: item.approver?.id || null,
+      period: item.time_period,
+      reason: item.reason,
+      status:
+        item.status === "pending"
+          ? "รอการอนุมัติ"
+          : item.status === "approved"
+          ? "อนุมัติแล้ว"
+          : item.status === "rejected"
+          ? "ไม่อนุมัติ"
+          : item.status === "cancelled"
+          ? "ยกเลิก"
+          : "อื่น ๆ",
+    }));
+  } catch (err) {
+    console.error("ไม่สามารถโหลดประวัติได้:", err);
+  }
+};
 
 const breadcrumbs = computed(() => {
   switch (route.path) {
@@ -537,5 +650,125 @@ const breadcrumbs = computed(() => {
 }
 .fa-trash-alt {
   color: #e74c3c;
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  width: 600px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.modal-header h3 {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.modal-close-button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  color: white;
+}
+
+.modal-close-button.red {
+  background-color: #dc3545;
+}
+.modal-close-button.red:hover {
+  background-color: #c82333;
+}
+
+.modal-body .form-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.modal-body .form-row label {
+  width: 150px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.modal-body .form-row .form-text {
+  font-size: 14px;
+}
+
+.radio-group label {
+  font-weight: normal;
+  margin-right: 15px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.radio-group input {
+  margin-right: 5px;
+}
+
+.modal-body .date-row {
+  align-items: center;
+}
+
+.modal-body .date-input,
+.modal-body .text-input,
+.modal-body .select-input {
+  flex-grow: 1;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.modal-body .date-input {
+    width: 150px;
+}
+
+.modal-body .text-input {
+    width: 300px;
+}
+.modal-body .select-input {
+    width: 300px;
+}
+
+.modal-body .edit-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 20px;
+  float: right;
+  color: white;
+}
+
+.modal-body .edit-button.yellow {
+  background-color: #ffc107;
+}
+.modal-body .edit-button.yellow:hover {
+  background-color: #e0a800;
 }
 </style>

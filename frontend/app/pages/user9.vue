@@ -53,8 +53,8 @@
         <div class="breadcrumbs">
           <span><i class="fas fa-home"></i> {{ breadcrumbs }}</span>
         </div>
-        
-       <div class="user-profile" @click.stop="toggleProfileMenu">
+
+        <div class="user-profile" @click.stop="toggleProfileMenu">
           <i class="fas fa-bell"></i>
           <i class="fas fa-user-circle"></i>
           <span class="username">{{ user?.username }}</span>
@@ -95,6 +95,13 @@
           </button>
         </div>
 
+        <!-- ปุ่มเลื่อนเดือน -->
+        <div class="calendar-header">
+          <button @click="prevMonth" class="month-btn"><i class="fas fa-chevron-left"></i></button>
+          <span class="month-label">{{ getMonthName(currentMonth) }} {{ currentYear }}</span>
+          <button @click="nextMonth" class="month-btn"><i class="fas fa-chevron-right"></i></button>
+        </div>
+
         <div class="calendar-view">
           <table class="calendar-table">
             <thead>
@@ -104,29 +111,21 @@
                 <th>พุธ</th>
                 <th>พฤหัสบดี</th>
                 <th>ศุกร์</th>
+                <th>เสาร์</th>
+                <th>อาทิตย์</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td class="prev-month">30</td>
-                <td class="prev-month">31</td>
-                <td>1</td>
-                <td>2</td>
-                <td>3</td>
-              </tr>
-              <tr>
-                <td>4</td>
-                <td>5</td>
-                <td>6</td>
-                <td>7</td>
-                <td>8</td>
-              </tr>
-              <tr>
-                <td>9</td>
-                <td>10</td>
-                <td></td>
-                <td></td>
-                <td></td>
+              <tr v-for="week in calendarWeeks" :key="week[0].date">
+                <td v-for="day in week" :key="day.date"
+                    :class="{'holiday': isHoliday(day.date), 'today': isToday(day.date)}">
+                  <div v-if="day.date">
+                    <div class="date-text">{{ formatDate(day.date) }}</div>
+                    <div v-if="isHoliday(day.date)" class="holiday-name">
+                      {{ getHolidayName(day.date) }}
+                    </div>
+                  </div>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -142,8 +141,44 @@ import { useRouter, useRoute } from 'vue-router';
 import axios from 'axios';
 
 const user = ref<any>(null);
-const token = ref<string | null>(null);
+const holidays = ref<any[]>([]);
+const showProfileMenu = ref(false);
 
+const currentMonth = ref(new Date().getMonth());
+const currentYear = ref(new Date().getFullYear());
+
+const router = useRouter();
+const route = useRoute();
+
+function toggleProfileMenu() {
+  showProfileMenu.value = !showProfileMenu.value;
+}
+
+function handleBodyClick(event: MouseEvent) {
+  if (showProfileMenu.value && !(event.target as HTMLElement).closest('.user-profile')) {
+    showProfileMenu.value = false;
+  }
+}
+
+function goTo(path: string) {
+  router.push(path);
+}
+
+function logout() {
+  localStorage.removeItem("token");
+  delete axios.defaults.headers.common['Authorization'];
+  router.push("/login");
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleBodyClick);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleBodyClick);
+});
+
+// โหลด user และ holidays
 onMounted(async () => {
   const tokenStored = localStorage.getItem("token");
   if (!tokenStored) {
@@ -153,44 +188,103 @@ onMounted(async () => {
   axios.defaults.headers.common['Authorization'] = `Token ${tokenStored}`;
 
   try {
-    const response = await axios.get("http://localhost:8000/api/users/me/");
-    user.value = response.data;
+    const responseUser = await axios.get("http://localhost:8000/api/users/me/");
+    user.value = responseUser.data;
     if (user.value.role !== "employee") {
       router.push("/login");
     }
+
+    const responseHoliday = await axios.get("http://localhost:8000/api/holiday/list/");
+    holidays.value = responseHoliday.data;
   } catch (err) {
     console.error(err);
     router.push("/login");
   }
 });
 
-
-const showProfileMenu = ref(false);
-function toggleProfileMenu() {
-  showProfileMenu.value = !showProfileMenu.value;
+// ฟังก์ชันวันหยุด
+function isHoliday(dateStr: string) {
+  return holidays.value.some(h => h.date === dateStr);
 }
-function handleBodyClick(event: MouseEvent) {
-  if (showProfileMenu.value && !(event.target as HTMLElement).closest('.user-profile')) {
-    showProfileMenu.value = false;
+function getHolidayName(dateStr: string) {
+  const h = holidays.value.find(h => h.date === dateStr);
+  return h ? h.name : '';
+}
+
+// ฟังก์ชันปฏิทิน
+const calendarWeeks = computed(() => {
+  const weeks: any[] = [];
+  const month = currentMonth.value;
+  const year = currentYear.value;
+
+  const firstDayOfMonth = new Date(year, month, 1);
+  const lastDayOfMonth = new Date(year, month + 1, 0);
+
+  let week: any[] = [];
+
+  // เริ่มวันจันทร์
+  let startDay = firstDayOfMonth.getDay();
+  startDay = startDay === 0 ? 6 : startDay - 1;
+
+  for (let i = 0; i < startDay; i++) {
+    week.push({ day: '', date: '' });
+  }
+
+  for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
+    const dateStr = `${year}-${String(month + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    week.push({ day, date: dateStr });
+
+    if (week.length === 7) {
+      weeks.push(week);
+      week = [];
+    }
+  }
+
+  if (week.length) {
+    while (week.length < 7) week.push({ day: '', date: '' });
+    weeks.push(week);
+  }
+
+  return weeks;
+});
+
+function isToday(dateStr: string) {
+  const today = new Date();
+  const d = new Date(dateStr);
+  return d.toDateString() === today.toDateString();
+}
+
+function formatDate(dateStr: string) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
+// เลื่อนเดือน
+function prevMonth() {
+  if (currentMonth.value === 0) {
+    currentMonth.value = 11;
+    currentYear.value -= 1;
+  } else {
+    currentMonth.value -= 1;
   }
 }
-onMounted(() => {
-  document.addEventListener('click', handleBodyClick);
-});
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleBodyClick);
-});
 
-const router = useRouter();
-const route = useRoute();
-
-function goTo(path: string) {
-  router.push(path);
+function nextMonth() {
+  if (currentMonth.value === 11) {
+    currentMonth.value = 0;
+    currentYear.value += 1;
+  } else {
+    currentMonth.value += 1;
+  }
 }
-function logout() {
-  localStorage.removeItem("token")
-  delete axios.defaults.headers.common['Authorization']
-  router.push("/login")
+
+function getMonthName(monthIndex: number) {
+  const monthNames = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  return monthNames[monthIndex];
 }
 
 const breadcrumbs = computed(() => {
@@ -254,13 +348,6 @@ const breadcrumbs = computed(() => {
   padding: 10px;
   border-bottom: 1px solid #eee;
   margin-bottom: 10px;
-}
-
-.logo {
-  width: 40px;
-  height: 40px;
-  margin-right: 10px;
-  border-radius: 50%;
 }
 
 .sidebar-header span {
@@ -424,6 +511,29 @@ const breadcrumbs = computed(() => {
   margin-right: 5px;
 }
 
+.calendar-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 15px;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.month-btn {
+  background: #f1f1f1;
+  border: 1px solid #ccc;
+  padding: 5px 10px;
+  margin: 0 10px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.month-label {
+  min-width: 150px;
+  text-align: center;
+}
+
 .calendar-view {
   width: 100%;
 }
@@ -448,7 +558,29 @@ const breadcrumbs = computed(() => {
   text-align: center;
 }
 
-.prev-month {
-  color: #aaa;
+.calendar-table td {
+  padding: 30px;
+  vertical-align: top;
+  border: 1px solid #ccc;
+  min-width: 80px;
+  height: 60px;
+}
+
+.calendar-table td.holiday {
+  background-color: #ffe6e6;
+}
+
+.calendar-table td.today {
+  border: 2px solid #007bff;
+}
+
+.date-text {
+  font-weight: bold;
+}
+
+.holiday-name {
+  color: red;
+  font-size: 0.85rem;
+  margin-top: 4px;
 }
 </style>

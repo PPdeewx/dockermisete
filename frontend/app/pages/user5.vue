@@ -95,14 +95,18 @@
 
         <div class="user-info-section">
           <span class="user-label">พนักงาน *:</span>
-          <span class="user-name">{{ user?.first_name }} {{ user?.last_name }}</span>
+          <span class="user-name">{{ user?.firstname_th }} {{ user?.lastname_th }}</span>
         </div>
 
         <form @submit.prevent="submitForm" class="leave-form">
           <div class="form-row">
             <div class="form-group full-width">
               <label>ผู้ร่วมปฏิบัติงาน (Optional):</label>
-              <input type="text" v-model="form.coworkers" class="text-input" />
+              <select v-model="form.collaborators" class="select-input" multiple>
+                <option v-for="person in collaboratorsList" :key="person.id" :value="person.id">
+                  {{ person.name }}
+                </option>
+              </select>
             </div>
           </div>
 
@@ -140,7 +144,7 @@
               <label>หัวหน้างาน *:</label>
               <select v-model="form.approver" class="select-input">
                 <option disabled value="">เลือกหัวหน้างาน</option>
-                <option v-for="person in approvers" :key="person.id" :value="person.name">
+                <option v-for="person in approvers" :key="person.id" :value="person.id">
                   {{ person.name }}
                 </option>
               </select>
@@ -178,6 +182,21 @@ onMounted(async () => {
     if (user.value.role !== "employee") {
       router.push("/login");
     }
+
+    const resApprovers = await axios.get("http://localhost:8000/api/users/?role=approver"); // หรือใช้ filter ของ backend
+    approvers.value = resApprovers.data.map((u: any) => ({
+      id: u.id,
+      name: `${u.firstname_th} ${u.lastname_th}`
+    }));
+
+    const resEmployees = await axios.get("http://localhost:8000/api/users/?role=employee");
+    collaboratorsList.value = resEmployees.data
+    .filter((u: any) => u.role === "employee")
+    .map((u: any) => ({
+      id: u.id,
+      name: `${u.firstname_th} ${u.lastname_th}`
+    }));
+
   } catch (err) {
     console.error(err);
     router.push("/login");
@@ -213,23 +232,35 @@ function logout() {
 }
 
 const form = ref({
-  coworkers: '',
+  collaborators: [] as number[],
   startDate: '',
   endDate: '',
   period: 'ครึ่งวันเช้า',
   reason: '',
-  approver: ''
+  approver: '' as number | '',
 });
 
-const approvers = ref([
-  { id: 1, name: 'หัวหน้า A' },
-  { id: 2, name: 'หัวหน้า B' }
-]);
+const approvers = ref<any[]>([]);
+const collaboratorsList = ref<any[]>([]);
 
-const submitForm = () => {
-  console.log('ส่งฟอร์ม:', form.value);
-  alert('ส่งคำขอสำเร็จ!');
-  router.push('/user7');
+const submitForm = async () => {
+  try {
+    const payload = {
+      start_date: form.value.startDate,
+      end_date: form.value.endDate,
+      time_period: form.value.period,
+      reason: form.value.reason,
+      approver: form.value.approver,
+      collaborators: form.value.collaborators
+    };
+
+    await axios.post("http://localhost:8000/api/work-from-outside/requests/", payload);
+    alert('ส่งคำขอสำเร็จ!');
+    router.push('/user7');
+  } catch (err) {
+    console.error(err);
+    alert('ไม่สามารถส่งคำขอได้');
+  }
 };
 
 const cancelForm = () => {
