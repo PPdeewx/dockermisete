@@ -58,15 +58,15 @@
             <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
 
             <div class="user-profile-menu" v-if="showProfileMenu">
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin28')">
                 <i class="fas fa-user"></i>
                 <span>ดูข้อมูลส่วนตัว</span>
               </button>
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin29')">
                 <i class="fas fa-edit"></i>
                 <span>แก้ไขข้อมูลส่วนตัว</span>
               </button>
-              <button class="menu-item" @click.stop="goTo('/admin')">
+              <button class="menu-item" @click.stop="goTo('/admin30')">
                 <i class="fas fa-lock"></i>
                 <span>เปลี่ยนรหัสผ่าน</span>
               </button>
@@ -207,6 +207,19 @@ function logout() {
   delete axios.defaults.headers.common['Authorization']
   router.push("/login")
 }
+
+const goToAdmin28Page = () => {
+  window.location.href = '/admin28';
+};
+
+const goToAdmin29Page = () => {
+  window.location.href = '/admin29';
+};
+
+const goToAdmin30Page = () => {
+  window.location.href = '/admin30';
+};
+
 </script>
 
 <style scoped>

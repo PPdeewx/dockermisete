@@ -55,9 +55,9 @@
             <i class="fas fa-chevron-down" :class="{ 'rotate': isDropdownOpen }"></i>
           </div>
           <div class="dropdown-menu" v-if="isDropdownOpen">
-            <a href="#" class="dropdown-item"><i class="fas fa-user"></i> ดูข้อมูลส่วนตัว</a>
-            <a href="#" class="dropdown-item"><i class="fas fa-user-edit"></i> แก้ไขข้อมูลส่วนตัว</a>
-            <a href="#" class="dropdown-item"><i class="fas fa-fingerprint"></i> เปลี่ยนรหัสผ่าน</a>
+            <a href="#" class="dropdown-item"@click.prevent="goToAdmin28Page"><i class="fas fa-user"></i> ดูข้อมูลส่วนตัว</a>
+            <a href="#" class="dropdown-item"@click.prevent="goToAdmin29Page"><i class="fas fa-user-edit"></i> แก้ไขข้อมูลส่วนตัว</a>
+            <a href="#" class="dropdown-item"@click.prevent="goToAdmin30Page"><i class="fas fa-fingerprint"></i> เปลี่ยนรหัสผ่าน</a>
             <a href="#" class="dropdown-item"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</a>
           </div>
         </div>
@@ -185,6 +185,19 @@ const selectEmployee = (employee: any) => {
 
 const unselectEmployee = (employee: any) => {
   selectedAssigned.value = employee;
+
+};
+
+const goToAdmin28Page = () => {
+  window.location.href = '/admin28';
+};
+
+const goToAdmin29Page = () => {
+  window.location.href = '/admin29';
+};
+
+const goToAdmin30Page = () => {
+  window.location.href = '/admin30';
 };
 
 const assignSelected = () => {
@@ -208,7 +221,7 @@ const saveData = () => {
     form: form,
     assignedEmployees: assignedEmployees.value
   });
-  // Add API call logic here
+
 };
 </script>
 
