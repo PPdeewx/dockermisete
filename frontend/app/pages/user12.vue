@@ -193,48 +193,39 @@ const form = ref({
 });
 
 const submitForm = async () => {
-  if (form.value.newPassword !== form.value.confirmPassword) {
-    alert('รหัสผ่านใหม่ไม่ตรงกัน');
-    return;
-  }
-  
-  if (!user.value || !token.value) {
-    alert('เกิดข้อผิดพลาดในการตรวจสอบผู้ใช้งาน');
-    return;
-  }
-
   try {
-    const response = await axios.post('http://localhost:8000/api/users/change_password/', {
-      old_password: form.value.currentPassword,
-      new_password: form.value.newPassword
-    }, {
-      headers: { Authorization: `Token ${token.value}` },
-    });
-    
-    if (response.status === 200) {
-      alert('เปลี่ยนรหัสผ่านเรียบร้อยแล้ว!');
-      
-      form.value.currentPassword = '';
-      form.value.newPassword = '';
-      form.value.confirmPassword = '';
+    if (!form.value.currentPassword || !form.value.newPassword || !form.value.confirmPassword) {
+      alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+      return;
     }
-  } catch (err: any) {
-    console.error(err);
-    if (err.response && err.response.data) {
-      alert(`ไม่สามารถเปลี่ยนรหัสผ่านได้: ${JSON.stringify(err.response.data)}`);
+
+    const response = await axios.post(
+      "http://localhost:8000/api/users/change-password/",
+      {
+        currentPassword: form.value.currentPassword,
+        newPassword: form.value.newPassword,
+        confirmPassword: form.value.confirmPassword,
+      }
+    );
+
+    alert(response.data.message);
+    form.value.currentPassword = "";
+    form.value.newPassword = "";
+    form.value.confirmPassword = "";
+
+  } catch (error: any) {
+    if (error.response?.data) {
+      alert("เกิดข้อผิดพลาด: " + JSON.stringify(error.response.data));
     } else {
-      alert('เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน');
+      alert("เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน");
     }
   }
 };
 
 const cancelForm = () => {
-  form.value = {
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  };
-  alert('ยกเลิกการเปลี่ยนรหัสผ่าน');
+  form.value.currentPassword = "";
+  form.value.newPassword = "";
+  form.value.confirmPassword = "";
 };
 
 const breadcrumbs = computed(() => {

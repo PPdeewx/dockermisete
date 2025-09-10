@@ -293,3 +293,30 @@ class GroupListView(generics.ListAPIView):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
     permission_classes = [IsAdminUser]
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        current_password = request.data.get("currentPassword")
+        new_password = request.data.get("newPassword")
+        confirm_password = request.data.get("confirmPassword")
+
+        if not current_password or not new_password or not confirm_password:
+            return Response({"error": "กรุณากรอกข้อมูลให้ครบถ้วน"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not user.check_password(current_password):
+            return Response({"currentPassword": ["รหัสผ่านเดิมไม่ถูกต้อง"]}, status=status.HTTP_400_BAD_REQUEST)
+
+        if new_password != confirm_password:
+            return Response({"confirmPassword": ["รหัสผ่านใหม่และยืนยันรหัสผ่านไม่ตรงกัน"]}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            validate_password(new_password, user=user)
+        except DjangoValidationError as e:
+            return Response({"newPassword": list(e.messages)}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.save()
+        return Response({"message": "เปลี่ยนรหัสผ่านเรียบร้อยแล้ว"}, status=status.HTTP_200_OK)
