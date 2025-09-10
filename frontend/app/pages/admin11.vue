@@ -66,13 +66,12 @@
       <div class="content-container">
         <div class="header-with-button">
           <h2><i class="fas fa-calendar-alt"></i> วันหยุด/ตาราง</h2>
-          <button class="btn-add-room" @click="toggleView">
+          <button class="btn-add-room" @click="switchToTableView">
             <i class="fas fa-calendar-alt"></i> สลับเป็นรูปแบบปฏิทิน
           </button>
         </div>
-
-        <!-- Table View -->
-        <div class="holiday-table-container" v-if="viewMode === 'table'">
+        
+        <div class="holiday-table-container">
           <table class="holiday-table">
             <thead>
               <tr>
@@ -90,46 +89,34 @@
             </tbody>
           </table>
         </div>
-
-        <!-- Calendar View -->
-        <div v-else class="calendar-container">
-          <client-only>
-            <FullCalendar
-              :plugins="[dayGridPlugin, interactionPlugin]"
-              initialView="dayGridMonth"
-              :events="calendarEvents"
-              height="auto"
-            />
-          </client-only>
-        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, reactive, computed } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
-
-import FullCalendar from '@fullcalendar/vue3';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import interactionPlugin from '@fullcalendar/interaction';
 
 const router = useRouter();
 const token = ref<string | null>(null);
 
-const viewMode = ref<'table' | 'calendar'>('table');
+const viewMode = ref('table');
+
 const showProfileMenu = ref(false)
-const toggleProfileMenu = () => { showProfileMenu.value = !showProfileMenu.value }
+const toggleProfileMenu = () => {
+  showProfileMenu.value = !showProfileMenu.value
+}
 
 const toggleView = () => {
   viewMode.value = viewMode.value === 'table' ? 'calendar' : 'table';
+  alert(`สลับไปที่มุมมอง: ${viewMode.value}`);
 };
 
 const holidayList = ref<any[]>([]);
-const currentUser = ref<any>(null);
-const calendarEvents = ref<any[]>([]);
+
+const currentUser = ref<any>(null)
 
 onMounted(async () => {
   if (typeof window !== "undefined") {
@@ -144,6 +131,7 @@ onMounted(async () => {
   axios.defaults.headers.common['Authorization'] = `Token ${token.value}`;
 
   try {
+    // ดึงข้อมูล current user
     const me = await axios.get('http://localhost:8000/api/users/me/');
     currentUser.value = me.data;
 
@@ -157,13 +145,7 @@ onMounted(async () => {
     holidayList.value = res.data.map((h: any) => ({
       date: h.date,
       name: h.name,
-      type: h.holiday_type_display,
-    }));
-
-    // เตรียม events สำหรับ calendar
-    calendarEvents.value = holidayList.value.map(h => ({
-      title: h.name,
-      start: h.date
+      type: h.holiday_type_display, // ใช้ display name จาก serializer
     }));
 
   } catch (err) {
@@ -174,13 +156,16 @@ onMounted(async () => {
 
 function logout() {
   if (typeof window !== "undefined") {
-    localStorage.removeItem("token");
+    localStorage.removeItem("token")
   }
-  delete axios.defaults.headers.common['Authorization'];
-  router.push("/login");
+  delete axios.defaults.headers.common['Authorization']
+  router.push("/login")
 }
-</script>
 
+const switchToTableView = () => {
+  window.location.href = '/admin27';
+};
+</script>
 
 <style scoped>
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');

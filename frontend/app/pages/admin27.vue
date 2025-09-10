@@ -69,20 +69,24 @@
             <i class="fas fa-calendar-alt"></i>
             <h2>วันหยุด/ปฏิทิน</h2>
           </div>
-          <button class="btn-switch-view"><i class="fas fa-calendar-week"></i> สลับเป็นรูปแบบตาราง</button>
+          <button type="button" class="btn-add-room" @click="switchToTableView">
+            <i class="fas fa-th"></i> สลับเป็นรูปแบบตาราง
+          </button>
         </div>
 
         <div class="calendar-grid">
+          <div class="calendar-nav">
+            <button @click="prevMonth">&lt;</button>
+            <span class="calendar-month">{{ currentMonthYear }}</span>
+            <button @click="nextMonth">&gt;</button>
+          </div>
           <div class="calendar-header">
-            <div class="day-name">จันทร์</div>
-            <div class="day-name">อังคาร</div>
-            <div class="day-name">พุธ</div>
-            <div class="day-name">พฤหัสบดี</div>
-            <div class="day-name">ศุกร์</div>
+            <div class="day-name" v-for="day in ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์']" :key="day">{{ day }}</div>
           </div>
           <div class="calendar-body">
-            <div class="calendar-cell" v-for="(day, index) in calendarDays" :key="index">
-              <span class="day-number">{{ day.date }}</span>
+            <div class="calendar-cell empty" v-for="(day, index) in calendarDays" :key="index" :class="{ 'holiday': day.holidayName }" :title="day.holidayName">
+              <span v-if="!day.empty" class="day-number">{{ day.date }}</span>
+              <div v-if="day.holidayName" class="holiday-name">{{ day.holidayName }}</div>
             </div>
           </div>
         </div>
@@ -92,31 +96,88 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+const token = ref<string | null>(null);
+const holidays = ref<any[]>([]);
+
+onMounted(async () => {
+  if (typeof window !== 'undefined') token.value = localStorage.getItem('token');
+  if (!token.value) {
+    router.push('/login');
+    return;
+  }
+
+  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`;
+
+  try {
+    const res = await axios.get('http://localhost:8000/api/holiday/list/');
+    holidays.value = res.data.map((h: any) => ({
+      date: new Date(h.date),
+      name: h.name,
+      type: h.holiday_type_display,
+    }));
+  } catch (err) {
+    console.error(err);
+  }
+});
 
 const isDropdownOpen = ref(false);
 
-const calendarDays = ref([
-  { date: 30 },
-  { date: 31 },
-  { date: 1 },
-  { date: 2 },
-  { date: 3 },
-  { date: 4 },
-  { date: 5 },
-  { date: 6 },
-  { date: 7 },
-  { date: 8 },
-  { date: 9 },
-  { date: 10 },
-]);
+const calendarDays = ref<any[]>([]);
+const currentMonthOffset = ref(0);
+const currentMonthYear = ref('');
+
+const prevMonth = () => {
+  currentMonthOffset.value--;
+  generateCalendar(currentMonthOffset.value);
+};
+
+const nextMonth = () => {
+  currentMonthOffset.value++;
+  generateCalendar(currentMonthOffset.value);
+};
+
+function generateCalendar(offset = 0) {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth() + offset;
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+
+  const daysArray: any[] = [];
+
+  const emptyCells = firstDay.getDay(); // 0 = อาทิตย์
+  for (let i = 0; i < emptyCells; i++) {
+    daysArray.push({ empty: true });
+  }
+
+  for (let day = 1; day <= lastDay.getDate(); day++) {
+    const fullDate = new Date(year, month, day);
+    const holiday = holidays.value.find(h => h.date.toDateString() === fullDate.toDateString());
+    daysArray.push({
+      date: day,
+      fullDate,
+      holidayName: holiday ? holiday.name : '',
+      holidayType: holiday ? holiday.type : ''
+    });
+  }
+
+  calendarDays.value = daysArray;
+  currentMonthYear.value = `${firstDay.toLocaleString('th-TH', { month: 'long' })} ${firstDay.getFullYear() + 543}`;
+}
+
+onMounted(() => generateCalendar());
 
 const toggleDropdown = () => {
   isDropdownOpen.value = !isDropdownOpen.value;
 };
 
 const switchToTableView = () => {
-  console.log('สลับเป็นมุมมองตาราง');
+  window.location.href = '/admin11';
 };
 
 const goToAdmin28Page = () => {
@@ -343,21 +404,22 @@ const goToAdmin30Page = () => {
   color: #52c41a;
 }
 
-.btn-switch-view {
-  background-color: #52c41a;
+.btn-add-room {
+  background-color: #4CAF50;
   color: white;
   border: none;
-  padding: 10px 20px;
+  padding: 10px 15px;
   border-radius: 5px;
   cursor: pointer;
   font-size: 1em;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
+  white-space: nowrap;
 }
 
-.btn-switch-view:hover {
-  background-color: #389e08;
+.btn-add-room:hover {
+  background-color: #45a049;
 }
 
 .calendar-grid {
@@ -385,10 +447,10 @@ const goToAdmin30Page = () => {
 }
 
 .calendar-cell {
-  position: relative;
-  padding: 15px;
-  min-height: 120px;
+  min-height: 100px;
   border: 1px solid #eee;
+  position: relative;
+  padding: 10px;
 }
 
 .day-number {
@@ -408,7 +470,37 @@ const goToAdmin30Page = () => {
   }
 
   .calendar-header, .calendar-body {
-    grid-template-columns: 1fr;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
   }
+}
+
+.calendar-cell.holiday {
+  background-color: #fff1f0;
+  color: #cf1322;
+}
+.holiday-name {
+  bottom: 5px;
+  left: 5px;
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+.calendar-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.calendar-nav button {
+  padding: 5px 10px;
+  font-size: 1em;
+  cursor: pointer;
+}
+
+.calendar-nav .calendar-month {
+  font-weight: bold;
+  font-size: 1.1em;
 }
 </style>
