@@ -226,9 +226,6 @@ function logout() {
   router.push("/login")
 }
 
-function goTo(path: string) {
-  router.push(path)
-}
 </script>
 
 <style scoped>
