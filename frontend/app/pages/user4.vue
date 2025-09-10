@@ -141,7 +141,7 @@
                 <td>{{ leave.reason || '-' }}</td>
                 <td>{{ leave.status_display }}</td>
                 <td>
-                  <i class="fas fa-edit action-icon" @click="goTo(`/user13/${leave.id}`)"></i>
+                  <i class="fas fa-edit action-icon" @click="openModal(leave)"></i>
                 </td>
               </tr>
             </tbody>
@@ -149,6 +149,65 @@
         </div>
       </div>
     </main>
+    <!-- Modal -->
+    <div v-if="showModal" class="modal-backdrop">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>แก้ไขข้อมูลการลางาน {{ selectedLeave?.leave_number }}</h3>
+          <button class="modal-close-button red" @click="closeModal">ยกเลิก</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-row">
+            <label>พนักงาน :</label>
+            <span class="form-text">{{ user?.firstname_th }} {{ user?.lastname_th }}</span>
+          </div>
+          <div class="form-row">
+            <label>ประเภทการลา :</label>
+            <select v-model="editForm.type" class="select-input">
+              <option value="">เลือกประเภทการลา</option>
+              <option v-for="lt in leaveTypes" :key="lt.id" :value="lt.id">{{ lt.name }}</option>
+            </select>
+          </div>
+          <div class="form-row date-row">
+            <label>ลาตั้งแต่วันที่ :</label>
+            <input type="date" v-model="editForm.start_date" class="date-input" />
+            <label>ถึงวันที่ * :</label>
+            <input type="date" v-model="editForm.end_date" class="date-input" />
+          </div>
+          <div class="form-row">
+            <label>ช่วงเวลา :</label>
+            <div class="radio-group">
+              <label><input type="radio" name="leaveTime" value="morning" v-model="editForm.period"> ครึ่งวันเช้า</label>
+              <label><input type="radio" name="leaveTime" value="afternoon" v-model="editForm.period"> ครึ่งวันบ่าย</label>
+              <label><input type="radio" name="leaveTime" value="full" v-model="editForm.period"> ทั้งวัน</label>
+            </div>
+          </div>
+          <div class="form-row">
+            <label>เหตุผลการลา :</label>
+            <input type="text" v-model="editForm.reason" class="text-input" />
+          </div>
+          <div class="form-row">
+            <label>ผู้อนุมัติการลา :</label>
+            <select v-model="editForm.approver" class="select-input">
+              <option value="">เลือกผู้อนุมัติการลา</option>
+              <option v-for="u in approvers" :key="u.id" :value="u.id">
+                {{ u.firstname_th }} {{ u.lastname_th }}
+              </option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>ผู้ปฏิบัติงานแทน :</label>
+            <select v-model="editForm.substitute" class="select-input">
+              <option value="">เลือกผู้ปฏิบัติงานแทน</option>
+              <option v-for="u in substitutes" :key="u.id" :value="u.id">
+                {{ u.firstname_th }} {{ u.lastname_th }}
+              </option>
+            </select>
+          </div>
+          <button class="edit-button yellow" @click="saveEdit"><i class="fas fa-edit"></i> แก้ไขข้อมูล</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -161,6 +220,22 @@ const user = ref(null);
 const leaves = ref([]);
 const leaveQuotas = ref([]);
 const showProfileMenu = ref(false);
+
+const showModal = ref(false);
+const selectedLeave = ref(null);
+const editForm = ref({
+  type: '',
+  start_date: '',
+  end_date: '',
+  period: 'full',
+  reason: '',
+  approver: '',
+  substitute: ''
+});
+
+const approvers = ref([]);
+const substitutes = ref([]);
+const leaveTypes = ref([]);
 
 const router = useRouter();
 const route = useRoute();
@@ -177,13 +252,13 @@ function handleBodyClick(event) {
 
 onMounted(() => {
   document.addEventListener('click', handleBodyClick);
+  fetchData();
 });
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleBodyClick);
 });
 
-// Fetch user info and leaves
 async function fetchData() {
   const tokenStored = localStorage.getItem("token");
   if (!tokenStored) {
@@ -208,6 +283,15 @@ async function fetchData() {
     leaveQuotas.value = (resQuotas.data.results || resQuotas.data).filter(lq => {
       return lq.user?.id === user.value.id;
     });
+
+    const resLeaveTypes = await axios.get("http://localhost:8000/api/leave/leave-types/");
+    leaveTypes.value = resLeaveTypes.data.results || resLeaveTypes.data || [];
+
+    const resApprovers = await axios.get("http://localhost:8000/api/users/?role=manager");
+    approvers.value = resApprovers.data.results || resApprovers.data || [];
+
+    const resSubs = await axios.get("http://localhost:8000/api/users/");
+    substitutes.value = (resSubs.data.results || resSubs.data).filter(u => u.id !== user.value.id);
 
   } catch (err) {
     console.error(err);
@@ -238,9 +322,46 @@ function logout() {
   router.push("/login");
 }
 
-onMounted(() => {
-  fetchData();
-});
+function openModal(leave) {
+  selectedLeave.value = leave;
+  editForm.value = {
+    type: leave.leave_type?.id || '',
+    start_date: leave.start_date,
+    end_date: leave.end_date,
+    period: leave.period,
+    reason: leave.reason || '',
+    approver: leave.approver?.id || '',
+    substitute: leave.substitute?.id || ''
+  };
+  showModal.value = true;
+}
+
+function closeModal() {
+  showModal.value = false;
+  selectedLeave.value = null;
+}
+
+async function saveEdit() {
+  try {
+    await axios.patch(
+      `http://localhost:8000/api/leave/leave-requests/${selectedLeave.value.id}/`,
+      {
+        leave_type_id: editForm.value.type,
+        start_date: editForm.value.start_date,
+        end_date: editForm.value.end_date,
+        period: editForm.value.period,
+        reason: editForm.value.reason,
+        approver: editForm.value.approver || null,
+        substitute: editForm.value.substitute || null,
+      }
+    );
+    await fetchData();
+    closeModal();
+  } catch (err) {
+    console.error("❌ Save edit error:", err.response?.data || err.message);
+    alert("แก้ไขไม่สำเร็จ: " + JSON.stringify(err.response?.data || {}));
+  }
+}
 
 const breadcrumbs = computed(() => {
   switch (route.path) {
@@ -255,7 +376,6 @@ const breadcrumbs = computed(() => {
     case '/user10': return 'หน้าหลัก > ข้อมูลส่วนตัว';
     case '/user11': return 'หน้าหลัก > ข้อมูลส่วนตัว > แก้ไข';
     case '/user12': return 'หน้าหลัก > เปลี่ยนรหัสผ่าน';
-    case '/user13': return 'หน้าหลัก > ประวัติการลา > แก้ไข';
     default: return 'หน้าหลัก';
   }
 });
@@ -596,5 +716,125 @@ tr:nth-child(even) {
   .header-right {
     margin-top: 10px;
   }
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  width: 600px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.modal-header h3 {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.modal-close-button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  color: white;
+}
+
+.modal-close-button.red {
+  background-color: #dc3545;
+}
+.modal-close-button.red:hover {
+  background-color: #c82333;
+}
+
+.modal-body .form-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.modal-body .form-row label {
+  width: 150px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.modal-body .form-row .form-text {
+  font-size: 14px;
+}
+
+.radio-group label {
+  font-weight: normal;
+  margin-right: 15px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.radio-group input {
+  margin-right: 5px;
+}
+
+.modal-body .date-row {
+  align-items: center;
+}
+
+.modal-body .date-input,
+.modal-body .text-input,
+.modal-body .select-input {
+  flex-grow: 1;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.modal-body .date-input {
+    width: 150px;
+}
+
+.modal-body .text-input {
+    width: 300px;
+}
+.modal-body .select-input {
+    width: 300px;
+}
+
+.modal-body .edit-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 20px;
+  float: right;
+  color: white;
+}
+
+.modal-body .edit-button.yellow {
+  background-color: #ffc107;
+}
+.modal-body .edit-button.yellow:hover {
+  background-color: #e0a800;
 }
 </style>
