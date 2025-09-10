@@ -35,16 +35,30 @@
           <span><i class="fas fa-home"></i> หน้าหลัก > เปลี่ยนรหัสผ่าน</span>
         </div>
         <div class="user-profile-container">
-          <div class="user-profile" @click="toggleDropdown">
+          <div class="user-profile" @click="toggleProfileMenu">
+            <i class="fas fa-bell"></i>
             <i class="fas fa-user-circle"></i>
-            <span class="username">Username ตำแหน่ง: Admin</span>
-            <i class="fas fa-chevron-down" :class="{ 'rotate': isDropdownOpen }"></i>
-          </div>
-          <div class="dropdown-menu" v-if="isDropdownOpen">
-            <a href="#" class="dropdown-item" @click.prevent="goToAdmin28Page"><i class="fas fa-user"></i> ดูข้อมูลส่วนตัว</a>
-            <a href="#" class="dropdown-item" @click.prevent="goToAdmin29Page"><i class="fas fa-user-edit"></i> แก้ไขข้อมูลส่วนตัว</a>
-            <a href="#" class="dropdown-item"><i class="fas fa-fingerprint"></i> เปลี่ยนรหัสผ่าน</a>
-            <a href="#" class="dropdown-item" @click.prevent="goToALoginPage"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</a>
+            <span class="username">{{ currentUser?.username }} ตำแหน่ง: {{ currentUser?.role }}</span>
+            <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
+
+            <div class="user-profile-menu" v-if="showProfileMenu">
+              <button class="menu-item" @click.stop="goTo('/admin')">
+                <i class="fas fa-user"></i>
+                <span>ดูข้อมูลส่วนตัว</span>
+              </button>
+              <button class="menu-item" @click.stop="goTo('/admin')">
+                <i class="fas fa-edit"></i>
+                <span>แก้ไขข้อมูลส่วนตัว</span>
+              </button>
+              <button class="menu-item" @click.stop="goTo('/admin')">
+                <i class="fas fa-lock"></i>
+                <span>เปลี่ยนรหัสผ่าน</span>
+              </button>
+              <button class="menu-item" @click.stop="logout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>ออกจากระบบ</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -81,40 +95,57 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-
-const isDropdownOpen = ref(false);
-
-const toggleDropdown = () => {
-  isDropdownOpen.value = !isDropdownOpen.value;
-};
-
+import { ref, onMounted, reactive, computed } from 'vue';
+import axios from 'axios';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
+const token = ref<string | null>(null);
+
+const showProfileMenu = ref(false)
+const toggleProfileMenu = () => {
+  showProfileMenu.value = !showProfileMenu.value
+}
+
 const goToAdminPage = () => {
   router.push('/admin');
 };
 
+const currentUser = ref<any>(null)
 
-const goToAdmin2Page = () => {
-  window.location.href = '/admin2';
-};
+onMounted(async () => {
+  if (typeof window !== "undefined") {
+    token.value = localStorage.getItem("token")
+  }
 
-const goToAdmin28Page = () => {
-  window.location.href = '/admin28';
-};
+  if (!token.value) {
+    router.push('/login')
+    return
+  }
 
+  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`
 
-const goToAdmin29Page = () => {
-  window.location.href = '/admin29';
-};
+  try {
+    const me = await axios.get('http://localhost:8000/api/users/me/')
+    currentUser.value = me.data;
 
+    if (currentUser.value.role !== 'admin') {
+      router.push('/login');
+      return;
+    }
+  } catch (err) {
+    console.error(err)
+    router.push('/login')
+  }
+})
 
-const goToLoginPage = () => {
-  window.location.href = '/Login';
-};
-
+function logout() {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("token")
+  }
+  delete axios.defaults.headers.common['Authorization']
+  router.push("/login")
+}
 </script>
 
 <style scoped>
@@ -395,5 +426,40 @@ const goToLoginPage = () => {
     text-align: left;
     width: 100%;
   }
+}
+
+.user-profile-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 220px;
+  z-index: 1000;
+  padding: 6px;
+}
+
+.menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.menu-item:hover {
+  background-color: #f0f2f5;
+}
+
+.menu-item i {
+  width: 20px;
+  text-align: center;
 }
 </style>

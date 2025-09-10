@@ -208,18 +208,6 @@ function logout() {
   router.push("/login")
 }
 
-const goToAdmin28Page = () => {
-  window.location.href = '/admin28';
-};
-
-const goToAdmin29Page = () => {
-  window.location.href = '/admin29';
-};
-
-const goToAdmin30Page = () => {
-  window.location.href = '/admin30';
-};
-
 </script>
 
 <style scoped>
