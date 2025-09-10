@@ -4,14 +4,16 @@
       <div class="sidebar-header">
         <span>MIS ETE</span>
       </div>
-      <ul class="nav-menu">
-        <li class="nav-item">
-          <a href="#" class="nav-link"><i class="fas fa-home"></i> หน้าหลัก</a>
-        </li>
+        <ul class="nav-menu">
+         <li class="nav-item">
+       <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
+     <i class="fas fa-home"></i> หน้าหลัก
+   </a>
+</li>
         <li class="nav-item has-submenu">
           <a href="#" class="nav-link"><i class="fas fa-users"></i> บุคลากร</a>
           <ul class="submenu">
-            <li><a href="#" class="submenu-link">พนักงานปัจจุบัน</a></li>
+            <li><a href="/admin2" class="submenu-link" @click.prevent="goToAdmin2Page">พนักงานปัจจุบัน</a></li>
             <li><a href="#" class="submenu-link">พนักงานที่ลาออก</a></li>
             <li><a href="#" class="submenu-link">บุคลากรภายนอก</a></li>
             <li><a href="#" class="submenu-link">พนักงาน EDDP</a></li>
@@ -39,10 +41,10 @@
             <i class="fas fa-chevron-down" :class="{ 'rotate': isDropdownOpen }"></i>
           </div>
           <div class="dropdown-menu" v-if="isDropdownOpen">
-            <a href="#" class="dropdown-item"><i class="fas fa-user"></i> ดูข้อมูลส่วนตัว</a>
-            <a href="#" class="dropdown-item"><i class="fas fa-user-edit"></i> แก้ไขข้อมูลส่วนตัว</a>
+            <a href="#" class="dropdown-item" @click.prevent="goToAdmin28Page"><i class="fas fa-user"></i> ดูข้อมูลส่วนตัว</a>
+            <a href="#" class="dropdown-item" @click.prevent="goToAdmin29Page"><i class="fas fa-user-edit"></i> แก้ไขข้อมูลส่วนตัว</a>
             <a href="#" class="dropdown-item"><i class="fas fa-fingerprint"></i> เปลี่ยนรหัสผ่าน</a>
-            <a href="#" class="dropdown-item"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</a>
+            <a href="#" class="dropdown-item" @click.prevent="goToALoginPage"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</a>
           </div>
         </div>
       </div>
@@ -70,8 +72,8 @@
         </div>
 
         <div class="form-actions">
-          <button class="btn-submit">บันทึกข้อมูล</button>
-          <button class="btn-cancel">ยกเลิก</button>
+          <button class="btn-submit" @click="goToAdmin28Page">บันทึกข้อมูล</button>
+          <button class="btn-cancel" @click="goToAdmin28Page">ยกเลิก</button>
         </div>
       </div>
     </div>
@@ -86,6 +88,33 @@ const isDropdownOpen = ref(false);
 const toggleDropdown = () => {
   isDropdownOpen.value = !isDropdownOpen.value;
 };
+
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+const goToAdminPage = () => {
+  router.push('/admin');
+};
+
+
+const goToAdmin2Page = () => {
+  window.location.href = '/admin2';
+};
+
+const goToAdmin28Page = () => {
+  window.location.href = '/admin28';
+};
+
+
+const goToAdmin29Page = () => {
+  window.location.href = '/admin29';
+};
+
+
+const goToLoginPage = () => {
+  window.location.href = '/Login';
+};
+
 </script>
 
 <style scoped>

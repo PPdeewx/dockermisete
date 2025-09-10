@@ -4,10 +4,12 @@
       <div class="sidebar-header">
         <span>MIS ETE</span>
       </div>
-      <ul class="nav-menu">
-        <li class="nav-item">
-          <a href="#" class="nav-link"><i class="fas fa-home"></i> หน้าหลัก</a>
-        </li>
+        <ul class="nav-menu">
+          <li class="nav-item">
+        <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
+      <i class="fas fa-home"></i> หน้าหลัก
+   </a>
+</li>
         <li class="nav-item has-submenu">
           <a href="#" class="nav-link"><i class="fas fa-users"></i> บุคลากร</a>
           <ul class="submenu">
@@ -39,10 +41,10 @@
             <i class="fas fa-chevron-down" :class="{ 'rotate': isDropdownOpen }"></i>
           </div>
           <div class="dropdown-menu" v-if="isDropdownOpen">
-            <a href="#" class="dropdown-item"><i class="fas fa-user"></i> ดูข้อมูลส่วนตัว</a>
+            <a href="#" class="dropdown-item" @click.prevent="goToAdmin28Page"><i class="fas fa-user"></i> ดูข้อมูลส่วนตัว</a>
             <a href="#" class="dropdown-item"><i class="fas fa-user-edit"></i> แก้ไขข้อมูลส่วนตัว</a>
-            <a href="#" class="dropdown-item"><i class="fas fa-fingerprint"></i> เปลี่ยนรหัสผ่าน</a>
-            <a href="#" class="dropdown-item"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</a>
+            <a href="#" class="dropdown-item" @click.prevent="goToAdmin30Page"><i class="fas fa-fingerprint"></i> เปลี่ยนรหัสผ่าน</a>
+            <a href="#" class="dropdown-item" @click.prevent="goToALoginPage"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</a>
           </div>
         </div>
       </div>
@@ -123,8 +125,8 @@
         </div>
 
         <div class="form-actions">
-          <button class="btn-submit">บันทึกข้อมูล</button>
-          <button class="btn-cancel">ยกเลิก</button>
+          <button class="btn-submit" @click="goToAdmin28Page">บันทึกข้อมูล</button>
+          <button class="btn-cancel" @click="goToAdmin28Page">ยกเลิก</button>
         </div>
       </div>
     </div>
@@ -140,14 +142,29 @@ const toggleDropdown = () => {
   isDropdownOpen.value = !isDropdownOpen.value;
 };
 
-// สามารถเพิ่ม logic สำหรับการบันทึกข้อมูลและยกเลิกได้ที่นี่
+const router = useRouter();
+const goToAdminPage = () => {
+  router.push('/admin');
+};
+
+const goToAdmin28Page = () => {
+  window.location.href = '/admin28';
+};
+
+const goToAdmin30Page = () => {
+  window.location.href = '/admin30';
+};
+
+const goToALoginPage = () => {
+  window.location.href = '/login';
+};
+
+
 const saveProfile = () => {
-  // Logic to save data to the backend
   console.log('บันทึกข้อมูลแล้ว');
 };
 
 const cancelEdit = () => {
-  // Logic to cancel and return to previous page
   console.log('ยกเลิกการแก้ไข');
 };
 </script>
