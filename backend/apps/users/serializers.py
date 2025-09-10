@@ -158,3 +158,18 @@ class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
         fields = ['id', 'name']
+
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=False, allow_blank=True)
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            'prefix_th',
+            'firstname_th',
+            'lastname_th',
+            'phone_number',
+            'address',
+            'password',
+            'email'
+        ]

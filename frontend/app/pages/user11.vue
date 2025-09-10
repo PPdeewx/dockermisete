@@ -116,24 +116,14 @@
                     </select>
                   </div>
                   <div class="form-group">
-                    <label>ชื่อภาษาไทย *:</label>
+                    <label>ชื่อ *:</label>
                     <input type="text" v-model="user.firstname_th" class="text-input" />
                   </div>
                 </div>
                 <div class="form-row">
                   <div class="form-group">
-                    <label>นามสกุลภาษาไทย *:</label>
+                    <label>นามสกุล *:</label>
                     <input type="text" v-model="user.lastname_th" class="text-input" />
-                  </div>
-                  <div class="form-group">
-                    <label>ชื่อภาษาอังกฤษ *:</label>
-                    <input type="text" v-model="user.firstname_en" class="text-input" />
-                  </div>
-                </div>
-                <div class="form-row">
-                  <div class="form-group">
-                    <label>นามสกุลภาษาอังกฤษ *:</label>
-                    <input type="text" v-model="user.lastname_en" class="text-input" />
                   </div>
                   <div class="form-group">
                     <label>Email *:</label>
@@ -145,15 +135,17 @@
                     <label>เบอร์โทรศัพท์ *:</label>
                     <input type="tel" v-model="user.phone_number" class="text-input" />
                   </div>
-                  <div class="form-group">
-                    <label>วันเกิด *:</label>
-                    <input type="date" v-model="user.birth_date" class="text-input" />
+                </div>
+                <div class="form-row">
+                  <div class="form-group full-width">
+                    <label>ที่อยู่ *:</label>
+                    <textarea v-model="user.address" class="textarea-input"></textarea>
                   </div>
                 </div>
                 <div class="form-row">
                   <div class="form-group full-width">
-                    <label>ที่อยู่ติดต่อสะดวก *:</label>
-                    <textarea v-model="user.address" class="textarea-input"></textarea>
+                    <label>รหัสผ่านใหม่:</label>
+                    <input type="password" v-model="user.password" class="text-input" placeholder="ไม่กรอกจะไม่เปลี่ยนรหัสผ่าน"/>
                   </div>
                 </div>
                 <div class="form-buttons-bottom">
@@ -224,13 +216,45 @@ function logout() {
   router.push("/login")
 }
 
-const submitForm = () => {
-  console.log('บันทึกข้อมูล:', user.value);
-  alert('บันทึกข้อมูลส่วนตัวเรียบร้อย!');
+const submitForm = async () => {
+  try {
+    const payload: any = {
+      prefix_th: user.value.prefix_th,
+      firstname_th: user.value.firstname_th,
+      lastname_th: user.value.lastname_th,
+      email: user.value.email,
+      phone_number: user.value.phone_number,
+      address: user.value.address,
+    };
+
+    // ส่ง password เฉพาะเมื่อกรอกจริง
+    if (user.value.password && user.value.password.trim() !== "") {
+      payload.password = user.value.password;
+    }
+
+    const response = await axios.put(
+      "http://localhost:8000/api/users/profile/",
+      payload
+    );
+    user.value = response.data;
+    alert('บันทึกข้อมูลส่วนตัวเรียบร้อย!');
+  } catch (error: any) {
+    console.error(error);
+    if (error.response?.data) {
+      alert('เกิดข้อผิดพลาด: ' + JSON.stringify(error.response.data));
+    } else {
+      alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+    }
+  }
 };
 
-const cancelForm = () => {
-  alert('ยกเลิกการแก้ไขข้อมูล');
+const cancelForm = async () => {
+  try {
+    const response = await axios.get("http://localhost:8000/api/users/me/");
+    user.value = response.data;
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 const breadcrumbs = computed(() => {
@@ -565,7 +589,7 @@ const breadcrumbs = computed(() => {
 
 .form-buttons-bottom {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 10px;
   margin-top: 30px;
 }

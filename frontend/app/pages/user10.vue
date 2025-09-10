@@ -113,7 +113,7 @@
               <div class="profile-form-row">
                 <div class="form-group">
                   <label>ตำแหน่ง :</label>
-                  <input type="text" :value="user?.role" class="text-input" readonly />
+                  <input type="text" :value="user?.groupName || '-'" class="text-input" readonly />
                 </div>
               </div>
               
@@ -121,7 +121,7 @@
                 <div class="profile-info-block">
                   <div class="info-group">
                     <label>ประเภทการจ้างงาน :</label>
-                    <span>{{ user?.employment_type }}</span>
+                    <span>{{ user?.groupName }}</span>
                   </div>
                   <div class="info-group">
                     <label>วันที่เริ่มทำงาน :</label>

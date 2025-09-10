@@ -134,17 +134,25 @@ class UserUpdateProfileView(generics.UpdateAPIView):
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        if 'password' in request.data:
-            password = request.data.get('password')
+
+        # อัพเดต password เฉพาะเมื่อมีค่าจริง
+        password = request.data.get('password', None)
+        if password:
             try:
                 validate_password(password, user=instance)
+                instance.set_password(password)
+                instance.save()
             except DjangoValidationError as e:
-                return Response({"error": list(e.messages)}, status=status.HTTP_400_BAD_REQUEST)
-            instance.set_password(password)
-            instance.save()
-            if isinstance(request.data, dict):
-                request.data.pop('password', None)
-        return super().update(request, *args, **kwargs)
+                return Response({"password": list(e.messages)}, status=status.HTTP_400_BAD_REQUEST)
+
+        # เอา password ออกจาก request.data ก่อนส่งให้ serializer
+        data = request.data.copy()
+        data.pop('password', None)
+
+        serializer = self.get_serializer(instance, data=data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
 class SetPasswordView(APIView):
     permission_classes = [AllowAny]
@@ -206,15 +214,27 @@ class CurrentUserView(APIView):
 
     def get(self, request):
         user = request.user
+        group_name = user.groups.first().name if user.groups.exists() else None
         return Response({
             "id": user.id,
             "username": user.username,
             "employee_code": user.employee_code,
             "firstname_th": user.firstname_th,
             "lastname_th": user.lastname_th,
+            "firstname_en": user.firstname_en,
+            "lastname_en": user.lastname_en,
             "email": user.email,
             "role": user.role,
-            "status": user.status
+            "status": user.status,
+            "groupName": group_name,
+            "start_date": user.start_date,
+            "address": user.address,
+            "phone_number": user.phone_number,
+            #"fingerprint_id": user.fingerprint_id,
+            # ถ้ามี quota/leave balance ก็ส่งมาด้วย
+            "quota_casual": user.quota_casual if hasattr(user, "quota_casual") else 0,
+            "quota_sick": user.quota_sick if hasattr(user, "quota_sick") else 0,
+            "quota_vacation": user.quota_vacation if hasattr(user, "quota_vacation") else 0,
         })
 
 class PasswordResetValidateView(APIView):
