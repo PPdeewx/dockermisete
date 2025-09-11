@@ -4,12 +4,12 @@
       <div class="sidebar-header">
         <span>MIS ETE</span>
       </div>
-        <ul class="nav-menu">
-         <li class="nav-item">
-       <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
-     <i class="fas fa-home"></i> หน้าหลัก
-   </a>
-</li>
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
+            <i class="fas fa-home"></i> หน้าหลัก
+          </a>
+        </li>
         <li class="nav-item has-submenu active">
           <a href="#" class="nav-link"><i class="fas fa-users"></i> บุคลากร</a>
           <ul class="submenu active">
@@ -40,7 +40,6 @@
             <i class="fas fa-user-circle"></i>
             <span class="username">{{ currentUser?.username }} ตำแหน่ง: {{ currentUser?.role }}</span>
             <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
-
             <div class="user-profile-menu" v-if="showProfileMenu">
               <button class="menu-item" @click.stop="goTo('/admin28')">
                 <i class="fas fa-user"></i>
@@ -80,7 +79,7 @@
         <div class="search-and-table-container">
           <div class="search-bar-container">
             <label for="search">SEARCH :</label>
-            <input type="text" id="search" placeholder="" class="search-input">
+            <input type="text" id="search" v-model="searchQuery" placeholder="ค้นหาชื่อ, อีเมล, หรือหน่วยงาน" class="search-input">
           </div>
 
           <div class="responsive-table-wrapper">
@@ -98,21 +97,22 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="i in 10" :key="i">
-                  <td>{{ i }}</td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
+                <tr v-for="(user, index) in filteredUsers" :key="user.id">
+                  <td>{{ index + 1 }}</td>
+                  <td>{{ user.employee_code || '-' }}</td>
+                  <td>{{ user.username }}</td>
+                  <td>{{ user.external_department || '-' }}</td>
+                  <td>{{ user.prefix_th || '' }} {{ user.firstname_th }} {{ user.lastname_th }}</td>
+                  <td>{{ user.phone_number || '-' }}</td>
+                  <td>{{ user.email }}</td>
                   <td>
-                    <i class="fas fa-search action-icon view-icon"></i>
-                    <i class="fas fa-edit action-icon edit-icon"></i>
+                    <i class="fas fa-search action-icon view-icon" @click="viewUser(user.id)"></i>
+                    <i class="fas fa-edit action-icon edit-icon" @click="editUser(user.id)"></i>
                   </td>
                 </tr>
               </tbody>
             </table>
+            <p v-if="!filteredUsers.length">ไม่พบข้อมูลบุคลากรภายนอก</p>
           </div>
         </div>
       </div>
@@ -121,18 +121,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const token = ref<string | null>(null);
-const currentUser = ref<any>(null)
+const currentUser = ref<any>(null);
+const showProfileMenu = ref(false);
+const users = ref<any[]>([]);
+const searchQuery = ref('');
 
-const showProfileMenu = ref(false)
 const toggleProfileMenu = () => {
-  showProfileMenu.value = !showProfileMenu.value
-}
+  showProfileMenu.value = !showProfileMenu.value;
+};
 
 const goTo = (path: string) => {
   router.push(path);
@@ -158,38 +160,73 @@ const addExternalStaff = () => {
   router.push('/admin7');
 };
 
+const viewUser = (userId: number) => {
+  
+};
+
+const editUser = (userId: number) => {
+  
+};
+
+const fetchExternalUsers = async () => {
+  try {
+    const response = await axios.get('http://localhost:8000/api/users/filter/?group=external', {
+      headers: {
+        Authorization: `Token ${token.value}`,
+      },
+    });
+    users.value = response.data;
+  } catch (error: any) {
+    console.error('Error fetching external users:', error);
+    users.value = [];
+  }
+};
+
+const filteredUsers = computed(() => {
+  if (!searchQuery.value) return users.value;
+  const query = searchQuery.value.toLowerCase();
+  return users.value.filter(user =>
+    (user.firstname_th?.toLowerCase() || '').includes(query) ||
+    (user.lastname_th?.toLowerCase() || '').includes(query) ||
+    (user.email?.toLowerCase() || '').includes(query) ||
+    (user.external_department?.toLowerCase() || '').includes(query)
+  );
+});
+
 onMounted(async () => {
-  if (typeof window !== "undefined") {
-    token.value = localStorage.getItem("token")
+  if (typeof window !== 'undefined') {
+    token.value = localStorage.getItem('token');
   }
 
   if (!token.value) {
-    router.push('/login')
-    return
+    router.push('/login');
+    return;
   }
 
-  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`
+  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`;
 
   try {
-    const me = await axios.get('http://localhost:8000/api/users/me/')
+    const me = await axios.get('http://localhost:8000/api/users/me/');
     currentUser.value = me.data;
 
     if (currentUser.value.role !== 'admin') {
       router.push('/login');
       return;
     }
+
+    await fetchExternalUsers();
   } catch (err) {
-    console.error(err)
-    router.push('/login')
+    console.error(err);
+    router.push('/login');
   }
-})
+});
 
 function logout() {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("token")
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('token');
   }
-  delete axios.defaults.headers.common['Authorization']
-  router.push("/login")
+  delete axios.defaults.headers.common['Authorization'];
+  router.push('/login');
 }
 </script>
 
