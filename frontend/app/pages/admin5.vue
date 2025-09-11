@@ -104,7 +104,7 @@
                   <td></td>
                   <td>
                     <i class="fas fa-search action-icon view-icon"></i>
-                    <i class="fas fa-edit action-icon edit-icon"></i>
+                    <i class="fas fa-edit action-icon edit-icon" @click="goTo('/admin6')"></i>
                   </td>
                 </tr>
               </tbody>
