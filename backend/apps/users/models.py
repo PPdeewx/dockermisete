@@ -25,6 +25,7 @@ class CustomUser(AbstractUser):
         ('manager', 'ผู้บริหาร'),
         ('temporary', 'พนักงานชั่วคราว'),
         ('developer', 'Developer'),
+        ('external', 'บุคลากรภายนอก'),
     )
     employee_code = models.CharField(max_length=20, unique=True, blank=True, null=True)
     time_attendance_code = models.CharField(max_length=20, unique=True, blank=True, null=True)
@@ -43,6 +44,7 @@ class CustomUser(AbstractUser):
     exit_date = models.DateField(null=True, blank=True)
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='employee')
+    external_department = models.CharField(max_length=200, blank=True, null=True, verbose_name="หน่วยงานภายนอก")
 
     def __str__(self):
         return f"{self.prefix_th} {self.firstname_th} {self.lastname_th}"

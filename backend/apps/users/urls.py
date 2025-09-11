@@ -4,7 +4,7 @@ from .views import (
     PasswordResetRequestView, UserUpdateProfileView, SetPasswordView,
     CurrentUserView, PasswordResetValidateView, UserForListView,
     DepartmentListCreateView, DepartmentDetailView , GroupListView,
-    ChangePasswordView
+    ChangePasswordView, ExternalUserCreateView
 )
 
 app_name = 'users'
@@ -24,5 +24,6 @@ urlpatterns = [
     path("departments/<int:pk>/", DepartmentDetailView.as_view(), name="department_detail"),
     path("groups/", GroupListView.as_view(), name="group_list"),
     path("change-password/", ChangePasswordView.as_view(), name="change_password"),
+    path('create/external/', ExternalUserCreateView.as_view(), name='external_user_create'),
 
 ]

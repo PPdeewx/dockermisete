@@ -317,3 +317,33 @@ class ChangePasswordView(APIView):
         user.set_password(new_password)
         user.save()
         return Response({"message": "เปลี่ยนรหัสผ่านเรียบร้อยแล้ว"}, status=status.HTTP_200_OK)
+    
+class ExternalUserCreateView(generics.CreateAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
+    permission_classes = [IsAdminUser]
+
+    def perform_create(self, serializer):
+        user = serializer.save()
+        self.send_set_password_email(user)
+
+    def send_set_password_email(self, user):
+        token = default_token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        reset_url = f"{settings.FRONTEND_URL}/password3/{uid}/{token}"
+        email_body = (
+            f"สวัสดี {user.firstname_th} {user.lastname_th},\n\n"
+            f"ระบบได้รับการสร้างบัญชีให้คุณแล้ว กรุณาตั้งรหัสผ่านโดยคลิกที่ลิงก์ด้านล่าง:\n\n{reset_url}\n\n"
+            "หมายเหตุ: รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร และต้องมีตัวพิมพ์ใหญ่, ตัวพิมพ์เล็ก, ตัวเลข และอักขระพิเศษ.\n\n"
+            "หากมีปัญหา กรุณาติดต่อผู้ดูแลระบบ."
+        )
+        try:
+            send_mail(
+                'Set Your Password',
+                email_body,
+                settings.EMAIL_HOST_USER,
+                [user.email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f"Email sending failed: {e}")

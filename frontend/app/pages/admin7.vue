@@ -68,6 +68,8 @@
             <i class="fas fa-times"></i> ยกเลิก
           </button>
         </div>
+        <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+        <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
         <form @submit.prevent="submitForm">
           <div class="form-row">
             <div class="form-group">
@@ -78,15 +80,17 @@
                   {{ prefix }}
                 </option>
               </select>
+              <div v-if="fieldErrors.prefix_th" class="error-message">{{ fieldErrors.prefix_th }}</div>
             </div>
             <div class="form-group">
-              <label for="english-name-prefix">ชื่อภาษาอังกฤษ *</label>
-              <select id="english-name-prefix" v-model="form.englishNamePrefix" required>
-                <option value="">กรุณาเลือก</option>
+              <label for="english-name-prefix">คำนำหน้าชื่อภาษาอังกฤษ</label>
+              <select id="english-name-prefix" v-model="form.englishNamePrefix">
+                <option value="">ไม่ระบุ</option>
                 <option v-for="prefix in englishNamePrefixOptions" :key="prefix" :value="prefix">
                   {{ prefix }}
                 </option>
               </select>
+              <div v-if="fieldErrors.prefix_en" class="error-message">{{ fieldErrors.prefix_en }}</div>
             </div>
           </div>
           
@@ -94,10 +98,12 @@
             <div class="form-group">
               <label for="thai-name">ชื่อภาษาไทย *</label>
               <input type="text" id="thai-name" v-model="form.thaiName" required />
+              <div v-if="fieldErrors.firstname_th" class="error-message">{{ fieldErrors.firstname_th }}</div>
             </div>
             <div class="form-group">
-              <label for="english-name">ชื่อภาษาอังกฤษ *</label>
-              <input type="text" id="english-name" v-model="form.englishName" required />
+              <label for="english-name">ชื่อภาษาอังกฤษ</label>
+              <input type="text" id="english-name" v-model="form.englishName" />
+              <div v-if="fieldErrors.firstname_en" class="error-message">{{ fieldErrors.firstname_en }}</div>
             </div>
           </div>
           
@@ -105,10 +111,12 @@
             <div class="form-group">
               <label for="thai-surname">นามสกุลภาษาไทย *</label>
               <input type="text" id="thai-surname" v-model="form.thaiSurname" required />
+              <div v-if="fieldErrors.lastname_th" class="error-message">{{ fieldErrors.lastname_th }}</div>
             </div>
             <div class="form-group">
-              <label for="english-surname">นามสกุลภาษาอังกฤษ *</label>
-              <input type="text" id="english-surname" v-model="form.englishSurname" required />
+              <label for="english-surname">นามสกุลภาษาอังกฤษ</label>
+              <input type="text" id="english-surname" v-model="form.englishSurname" />
+              <div v-if="fieldErrors.lastname_en" class="error-message">{{ fieldErrors.lastname_en }}</div>
             </div>
           </div>
 
@@ -116,17 +124,20 @@
             <div class="form-group">
               <label for="email">Email *</label>
               <input type="email" id="email" v-model="form.email" required />
+              <div v-if="fieldErrors.email" class="error-message">{{ fieldErrors.email }}</div>
             </div>
             <div class="form-group">
               <label for="phone">เบอร์โทรศัพท์ *</label>
               <input type="tel" id="phone" v-model="form.phone" required />
+              <div v-if="fieldErrors.phone_number" class="error-message">{{ fieldErrors.phone_number }}</div>
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
-              <label for="department">หน่วยงาน :</label>
-              <input type="text" id="department" v-model="form.department" />
+              <label for="external-department">หน่วยงานภายนอก</label>
+              <input type="text" id="external-department" v-model="form.externalDepartment" />
+              <div v-if="fieldErrors.external_department" class="error-message">{{ fieldErrors.external_department }}</div>
             </div>
           </div>
 
@@ -146,11 +157,14 @@ import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const token = ref<string | null>(null);
+const showProfileMenu = ref(false);
+const errorMessage = ref<string | null>(null);
+const successMessage = ref<string | null>(null);
+const fieldErrors = ref<{ [key: string]: string }>({}); // เพิ่มตัวแปรสำหรับเก็บข้อผิดพลาดของแต่ละฟิลด์
 
-const showProfileMenu = ref(false)
 const toggleProfileMenu = () => {
-  showProfileMenu.value = !showProfileMenu.value
-}
+  showProfileMenu.value = !showProfileMenu.value;
+};
 
 const goTo = (path: string) => {
   router.push(path);
@@ -168,16 +182,96 @@ const form = reactive({
   englishSurname: '',
   email: '',
   phone: '',
-  department: '',
+  externalDepartment: '',
 });
 
-const submitForm = () => {
-  console.log('Form data submitted:', form);
+const submitForm = async () => {
+  // รีเซ็ตข้อผิดพลาดก่อนหน้า
+  errorMessage.value = null;
+  fieldErrors.value = {};
+
+  // ตรวจสอบข้อมูลใน frontend
+  if (!form.email.includes('@')) {
+    errorMessage.value = 'กรุณากรอก email ให้ถูกต้อง';
+    return;
+  }
+  if (!/^\d{10}$/.test(form.phone)) {
+    errorMessage.value = 'กรุณากรอกเบอร์โทรศัพท์ 10 หลัก';
+    return;
+  }
+  if (!form.thaiName || !form.thaiSurname || !form.thaiNamePrefix) {
+    errorMessage.value = 'กรุณากรอกชื่อ, นามสกุล, และคำนำหน้าภาษาไทย';
+    return;
+  }
+
+  try {
+    const response = await axios.post('http://localhost:8000/api/users/create/external/', {
+      username: form.email,
+      prefix_th: form.thaiNamePrefix,
+      firstname_th: form.thaiName,
+      lastname_th: form.thaiSurname,
+      prefix_en: form.englishNamePrefix || null,
+      firstname_en: form.englishName || null,
+      lastname_en: form.englishSurname || null,
+      email: form.email,
+      phone_number: form.phone,
+      external_department: form.externalDepartment || null,
+      groups: ['external'],
+      role: 'employee',
+      status: 'active',
+    });
+    successMessage.value = 'บันทึกบุคลากรภายนอกเรียบร้อยแล้ว';
+    errorMessage.value = null;
+    fieldErrors.value = {};
+    resetForm();
+    setTimeout(() => {
+      router.push('/admin4');
+    }, 2000);
+  } catch (error: any) {
+    console.error('Full error response:', JSON.stringify(error.response?.data, null, 2));
+    // จัดการข้อผิดพลาดจาก backend
+    if (error.response?.data) {
+      const errors = error.response.data;
+      // เก็บข้อผิดพลาดของแต่ละฟิลด์
+      for (const [field, messages] of Object.entries(errors)) {
+        if (Array.isArray(messages)) {
+          fieldErrors.value[field] = errorTranslations[messages[0]] || messages[0];
+        } else {
+          fieldErrors.value[field] = errorTranslations[messages] || messages;
+        }
+      }
+      // หากมี non_field_errors หรือข้อผิดพลาดทั่วไป
+      errorMessage.value =
+        errorTranslations[errors?.email?.[0]] ||
+        errorTranslations[errors?.username?.[0]] ||
+        errorTranslations[errors?.groups?.[0]] ||
+        errors?.non_field_errors?.[0] ||
+        errors?.prefix_th?.[0] ||
+        errors?.firstname_th?.[0] ||
+        errors?.lastname_th?.[0] ||
+        'เกิดข้อผิดพลาดในการบันทึก กรุณาลองใหม่';
+    } else {
+      errorMessage.value = 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์';
+    }
+    successMessage.value = null;
+    console.error('Error creating user:', error);
+  }
+};
+
+const errorTranslations: { [key: string]: string } = {
+  'A user with that email already exists.': 'อีเมลนี้มีอยู่ในระบบแล้ว',
+  'A user with that username already exists.': 'ชื่อผู้ใช้นี้มีอยู่ในระบบแล้ว',
+  'Invalid group name: external': 'ไม่พบกลุ่ม external ในระบบ',
+  'This field is required.': 'กรุณากรอกข้อมูลในช่องนี้',
+  'This field cannot be null.': 'ช่องนี้ต้องไม่ว่าง',
+  'Object with name=external does not exist.': 'ไม่พบกลุ่ม external ในระบบ',
 };
 
 const cancelForm = () => {
-  resetForm();
-  console.log('Form has been canceled.');
+  if (confirm('คุณต้องการยกเลิกการกรอกข้อมูลหรือไม่?')) {
+    resetForm();
+    router.push('/admin4');
+  }
 };
 
 const resetForm = () => {
@@ -190,26 +284,28 @@ const resetForm = () => {
     englishSurname: '',
     email: '',
     phone: '',
-    department: '',
+    externalDepartment: '',
   });
+  errorMessage.value = null;
+  fieldErrors.value = {};
 };
 
-const currentUser = ref<any>(null)
+const currentUser = ref<any>(null);
 
 onMounted(async () => {
-  if (typeof window !== "undefined") {
-    token.value = localStorage.getItem("token")
+  if (typeof window !== 'undefined') {
+    token.value = localStorage.getItem('token');
   }
 
   if (!token.value) {
-    router.push('/login')
-    return
+    router.push('/login');
+    return;
   }
 
-  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`
+  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`;
 
   try {
-    const me = await axios.get('http://localhost:8000/api/users/me/')
+    const me = await axios.get('http://localhost:8000/api/users/me/');
     currentUser.value = me.data;
 
     if (currentUser.value.role !== 'admin') {
@@ -217,18 +313,17 @@ onMounted(async () => {
       return;
     }
   } catch (err) {
-    console.error(err)
-    router.push('/login')
+    console.error(err);
+    router.push('/login');
   }
-})
-
+});
 
 function logout() {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("token")
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('token');
   }
-  delete axios.defaults.headers.common['Authorization']
-  router.push("/login")
+  delete axios.defaults.headers.common['Authorization'];
+  router.push('/login');
 }
 </script>
 
@@ -239,6 +334,15 @@ function logout() {
 * {
   box-sizing: border-box;
   font-family: 'Noto Sans Thai', sans-serif;
+}
+
+.error-message {
+  color: red;
+  margin-bottom: 10px;
+}
+.success-message {
+  color: green;
+  margin-bottom: 10px;
 }
 
 .full-page-container {
