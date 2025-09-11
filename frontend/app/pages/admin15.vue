@@ -73,7 +73,7 @@
 
       <div class="content-container">
         <div class="header-with-button">
-          <h2><i class="fas fa-list-alt"></i> รายการลา ETE</h2>
+          <h2><i class="fas fa-list-alt"></i>รายการลา ETE</h2>
         </div>
         
         <div class="search-export-container">
