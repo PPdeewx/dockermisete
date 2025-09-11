@@ -74,23 +74,24 @@
         <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
 
         <div class="change-password-form">
-          <div class="form-row">
-            <label>รหัสผ่านเดิม <span class="required">*</span>:</label>
-            <input type="password" v-model="form.old_password" class="form-input" placeholder="กรอกรหัสผ่านเดิม">
-          </div>
-          <div class="form-row">
-            <label>รหัสผ่านใหม่ <span class="required">*</span>:</label>
-            <input type="password" v-model="form.new_password" class="form-input" placeholder="กรอกรหัสผ่านใหม่">
-          </div>
-          <div class="form-row">
-            <label>ยืนยันรหัสผ่านใหม่ <span class="required">*</span>:</label>
-            <input type="password" v-model="form.confirm_password" class="form-input" placeholder="ยืนยันรหัสผ่านใหม่อีกครั้ง">
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <button class="btn-submit" @click="submitForm">บันทึกข้อมูล</button>
-          <button class="btn-cancel" @click="goToAdmin28Page">ยกเลิก</button>
+          <form @submit.prevent="submitForm">
+            <div class="form-row">
+              <label>รหัสผ่านเดิม <span class="required">*</span>:</label>
+              <input type="password" v-model="form.currentPassword" class="form-input" placeholder="กรอกรหัสผ่านเดิม" />
+            </div>
+            <div class="form-row">
+              <label>รหัสผ่านใหม่ <span class="required">*</span>:</label>
+              <input type="password" v-model="form.newPassword" class="form-input" placeholder="กรอกรหัสผ่านใหม่" />
+            </div>
+            <div class="form-row">
+              <label>ยืนยันรหัสผ่านใหม่ <span class="required">*</span>:</label>
+              <input type="password" v-model="form.confirmPassword" class="form-input" placeholder="ยืนยันรหัสผ่านใหม่อีกครั้ง" />
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn-submit">บันทึกข้อมูล</button>
+              <button type="button" class="btn-cancel" @click="cancelForm">ยกเลิก</button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
@@ -98,25 +99,31 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const token = ref<string | null>(null);
-const showProfileMenu = ref(false);
 const currentUser = ref<any>(null);
+const showProfileMenu = ref(false);
 const errorMessage = ref<string>('');
 const successMessage = ref<string>('');
 
-const form = reactive({
-  old_password: '',
-  new_password: '',
-  confirm_password: '',
+const form = ref({
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: ''
 });
 
 const toggleProfileMenu = () => {
   showProfileMenu.value = !showProfileMenu.value;
+};
+
+const handleBodyClick = (event: MouseEvent) => {
+  if (showProfileMenu.value && !(event.target as HTMLElement).closest('.user-profile')) {
+    showProfileMenu.value = false;
+  }
 };
 
 const goTo = (path: string) => {
@@ -143,10 +150,6 @@ const goToAdmin12Page = () => {
   router.push('/admin12');
 };
 
-const goToAdmin28Page = () => {
-  router.push('/admin28');
-};
-
 const logout = () => {
   localStorage.removeItem("token");
   delete axios.defaults.headers.common['Authorization'];
@@ -157,41 +160,50 @@ const submitForm = async () => {
   errorMessage.value = '';
   successMessage.value = '';
 
-  if (!form.old_password || !form.new_password || !form.confirm_password) {
-    errorMessage.value = 'กรุณากรอกรหัสผ่านให้ครบทุกช่อง';
+  if (!form.value.currentPassword || !form.value.newPassword || !form.value.confirmPassword) {
+    errorMessage.value = 'กรุณากรอกข้อมูลให้ครบถ้วน';
     return;
   }
 
-  if (form.new_password !== form.confirm_password) {
-    errorMessage.value = 'รหัสผ่านใหม่และการยืนยันรหัสผ่านไม่ตรงกัน';
+  if (form.value.newPassword !== form.value.confirmPassword) {
+    errorMessage.value = 'รหัสผ่านใหม่และยืนยันรหัสผ่านไม่ตรงกัน';
     return;
   }
-
-  const data = {
-    old_password: form.old_password,
-    password: form.new_password,
-  };
 
   try {
-    const response = await axios.patch('http://localhost:8000/api/users/profile/', data, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    successMessage.value = 'เปลี่ยนรหัสผ่านสำเร็จ';
+    const response = await axios.post(
+      'http://localhost:8000/api/users/change-password/',
+      {
+        currentPassword: form.value.currentPassword,
+        newPassword: form.value.newPassword,
+        confirmPassword: form.value.confirmPassword,
+      }
+    );
+
+    successMessage.value = response.data.message || 'เปลี่ยนรหัสผ่านสำเร็จ';
+    form.value.currentPassword = '';
+    form.value.newPassword = '';
+    form.value.confirmPassword = '';
     setTimeout(() => {
       router.push('/admin28');
     }, 2000);
-  } catch (err: any) {
-    console.error('Error changing password:', err);
-    if (err.response?.data) {
-      const errors = err.response.data;
+  } catch (error: any) {
+    console.error('Error changing password:', error);
+    if (error.response?.data) {
+      const errors = error.response.data;
       const errorFields = Object.keys(errors).map(key => `${key}: ${errors[key].join(', ')}`).join('; ');
       errorMessage.value = `เกิดข้อผิดพลาด: ${errorFields}`;
     } else {
       errorMessage.value = 'เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน กรุณาลองใหม่';
     }
   }
+};
+
+const cancelForm = () => {
+  form.value.currentPassword = '';
+  form.value.newPassword = '';
+  form.value.confirmPassword = '';
+  router.push('/admin28');
 };
 
 onMounted(async () => {
@@ -213,11 +225,17 @@ onMounted(async () => {
       return;
     }
 
-    console.log('User data loaded:', currentUser.value);
+    console.log('User data:', currentUser.value);
   } catch (err) {
     console.error('Error fetching user data:', err);
     router.push('/login');
   }
+
+  document.addEventListener('click', handleBodyClick);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleBodyClick);
 });
 </script>
 
