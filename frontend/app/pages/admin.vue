@@ -12,13 +12,13 @@
           <a href="/admin2" class="nav-link"><i class="fas fa-users"></i> บุคลากร</a>
         </li>
         <li class="nav-item">
-          <a href="#" class="nav-link"><i class="fas fa-flask"></i> ห้องวิจัย</a>
+          <a href="/admin10" class="nav-link"@click.prevent="goToAdmin10Page"><i class="fas fa-flask"></i> ห้องวิจัย</a>
         </li>
         <li class="nav-item">
-          <a href="#" class="nav-link"><i class="fas fa-calendar-alt"></i> วันหยุด</a>
+          <a href="/admin11" class="nav-link"@click.prevent="goToAdmin11Page"><i class="fas fa-calendar-alt"></i> วันหยุด</a>
         </li>
         <li class="nav-item">
-          <a href="#" class="nav-link"><i class="fas fa-cog"></i> ระบบการปฏิบัติงาน</a>
+          <a href="/admin12" class="nav-link"@click.prevent="goToAdmin12Page"><i class="fas fa-cog"></i> ระบบการปฏิบัติงาน</a>
         </li>
       </ul>
     </div>
@@ -162,6 +162,18 @@ const toggleProfileMenu = () => {
 
 const goTo = (path: string) => {
   router.push(path);
+};
+
+const goToAdmin10Page = () => {
+  router.push('/admin10');
+};
+
+const goToAdmin11Page = () => {
+  router.push('/admin11');
+};
+
+const goToAdmin12Page = () => {
+  router.push('/admin12');
 };
 
 onMounted(async () => {
