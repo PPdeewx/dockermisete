@@ -4,19 +4,27 @@
       <div class="sidebar-header">
         <span>MIS ETE</span>
       </div>
-        <ul class="nav-menu">
-         <li class="nav-item">
-       <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
-     <i class="fas fa-home"></i> หน้าหลัก
-   </a>
-</li>
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
+            <i class="fas fa-home"></i> หน้าหลัก
+          </a>
+        </li>
         <li class="nav-item has-submenu">
-          <a href="/admin2" class="nav-link"@click.prevent="goToAdmin2Page">
+          <a href="/admin2" class="nav-link" @click.prevent="goToAdmin2Page">
             <i class="fas fa-users"></i> บุคลากร
           </a>
         </li>
-        <li class="nav-item"><a href="/admin10" class="nav-link" @click.prevent="goToAdmin10Page"><i class="fas fa-flask"></i> ห้องวิจัย</a></li>
-        <li class="nav-item"><a href="/admin11" class="nav-link" @click.prevent="goToAdmin11Page"><i class="fas fa-calendar-alt"></i> วันหยุด</a></li>
+        <li class="nav-item">
+          <a href="/admin10" class="nav-link" @click.prevent="goToAdmin10Page">
+            <i class="fas fa-flask"></i> ห้องวิจัย
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/admin11" class="nav-link" @click.prevent="goToAdmin11Page">
+            <i class="fas fa-calendar-alt"></i> วันหยุด
+          </a>
+        </li>
         <li class="nav-item active has-submenu">
           <a href="#" class="nav-link"><i class="fas fa-cog"></i> ระบบการปฏิบัติงาน</a>
           <ul class="submenu">
@@ -48,7 +56,6 @@
             <i class="fas fa-user-circle"></i>
             <span class="username">{{ currentUser?.username }} ตำแหน่ง: {{ currentUser?.role }}</span>
             <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
-
             <div class="user-profile-menu" v-if="showProfileMenu">
               <button class="menu-item" @click.stop="goTo('/admin28')">
                 <i class="fas fa-user"></i>
@@ -74,9 +81,7 @@
       <div class="content-container">
         <div class="header-with-buttons">
           <h2><i class="fas fa-calendar-alt"></i> ระบบการขออนุมัติปฏิบัติงานนอกสถานที่</h2>
-          <button class="btn-cancel" @click="goToAdminPage">
-            ยกเลิก
-          </button>
+          <button class="btn-cancel" @click="goToAdminPage">ยกเลิก</button>
         </div>
 
         <div class="form-section">
@@ -84,41 +89,50 @@
             <div class="form-grid">
               <div class="form-group full-width">
                 <label for="employee-name">พนักงาน <span class="required">*</span></label>
-                <div class="read-only-text">นาย Username usermesss</div>
+                <div class="read-only-text">{{ currentUser?.prefix_th }} {{ currentUser?.firstname_th }} {{ currentUser?.lastname_th }}</div>
               </div>
 
               <div class="form-group full-width">
                 <label for="collaborators">ผู้ร่วมปฏิบัติงาน (Optional)</label>
-                <input type="text" id="collaborators" v-model="form.collaborators" class="form-input">
+                <select id="collaborators" v-model="form.collaborators" class="form-select" multiple>
+                  <option v-for="user in userList" :key="user.id" :value="user.id">
+                    {{ user.name }}
+                  </option>
+                </select>
               </div>
 
               <div class="form-group">
                 <label for="date">วันที่ <span class="required">*</span></label>
-                <input type="date" id="date" v-model="form.date" class="form-input">
+                <input type="date" id="date" v-model="form.date" class="form-input" required>
               </div>
 
               <div class="form-group">
                 <label for="endDate">ถึงวันที่ <span class="required">*</span></label>
-                <input type="date" id="endDate" v-model="form.endDate" class="form-input">
+                <input type="date" id="endDate" v-model="form.endDate" class="form-input" required>
               </div>
-              
+
               <div class="form-group full-width">
                 <label>ช่วงเวลา <span class="required">*</span></label>
                 <div class="radio-group">
-                  <label><input type="radio" v-model="form.timePeriod" value="ครึ่งวันเช้า"> ครึ่งวันเช้า</label>
-                  <label><input type="radio" v-model="form.timePeriod" value="ครึ่งวันบ่าย"> ครึ่งวันบ่าย</label>
-                  <label><input type="radio" v-model="form.timePeriod" value="ทั้งวัน"> ทั้งวัน</label>
+                  <label><input type="radio" v-model="form.timePeriod" value="morning"> ครึ่งวันเช้า</label>
+                  <label><input type="radio" v-model="form.timePeriod" value="afternoon"> ครึ่งวันบ่าย</label>
+                  <label><input type="radio" v-model="form.timePeriod" value="full"> ทั้งวัน</label>
                 </div>
               </div>
 
               <div class="form-group full-width">
+                <label for="location">สถานที่ <span class="required">*</span></label>
+                <input type="text" id="location" v-model="form.location" class="form-input" required>
+              </div>
+
+              <div class="form-group full-width">
                 <label for="reason">เหตุผล <span class="required">*</span></label>
-                <textarea id="reason" v-model="form.reason" class="form-textarea" rows="3"></textarea>
+                <textarea id="reason" v-model="form.reason" class="form-textarea" rows="3" required></textarea>
               </div>
 
               <div class="form-group full-width">
                 <label for="supervisor">หัวหน้างาน <span class="required">*</span></label>
-                <select id="supervisor" v-model="form.supervisor" class="form-select">
+                <select id="supervisor" v-model="form.supervisor" class="form-select" required>
                   <option value="">เลือกหัวหน้างาน</option>
                   <option v-for="supervisor in supervisorList" :key="supervisor.id" :value="supervisor.id">
                     {{ supervisor.name }}
@@ -126,11 +140,9 @@
                 </select>
               </div>
             </div>
-            
+
             <div class="form-actions">
-             <button type="button" class="btn-submit" @click="goToAdmin16Page">
-                ขออนุมัติลา
-             </button>
+              <button type="submit" class="btn-submit">ยื่นคำขอ</button>
             </div>
           </form>
         </div>
@@ -140,17 +152,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, computed } from 'vue';
+import { ref, onMounted, reactive } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const token = ref<string | null>(null);
+const showProfileMenu = ref(false);
+const currentUser = ref<any>(null);
+const supervisorList = ref<any[]>([]);
+const userList = ref<any[]>([]);
 
-const showProfileMenu = ref(false)
 const toggleProfileMenu = () => {
-  showProfileMenu.value = !showProfileMenu.value
-}
+  showProfileMenu.value = !showProfileMenu.value;
+};
 
 const goTo = (path: string) => {
   router.push(path);
@@ -161,15 +176,15 @@ const goToAdminPage = () => {
 };
 
 const goToAdmin2Page = () => {
-  window.location.href = '/admin2';
+  router.push('/admin2');
 };
 
 const goToAdmin10Page = () => {
-  window.location.href = '/admin10';
+  router.push('/admin10');
 };
 
 const goToAdmin11Page = () => {
-  window.location.href = '/admin11';
+  router.push('/admin11');
 };
 
 const goToAdmin16Page = () => {
@@ -177,64 +192,112 @@ const goToAdmin16Page = () => {
 };
 
 const form = reactive({
-  employeeName: 'นาย Username usermesss',
-  collaborators: '',
+  collaborators: [] as number[],
   date: '',
   endDate: '',
-  timePeriod: 'ทั้งวัน',
+  timePeriod: 'full',
   reason: '',
   supervisor: '',
+  location: '',
 });
 
-const supervisorList = ref([
-  { id: 10, name: 'นาย A หัวหน้าห้องวิจัย' },
-  { id: 20, name: 'นางสาว B ผู้จัดการ' },
-]);
-
-const submitForm = () => {
-  alert('ทำการส่งแบบฟอร์มขออนุมัติปฏิบัติงานนอกสถานที่');
-  console.log('Form data:', form);
+const validateForm = () => {
+  if (!form.date || !form.endDate) {
+    alert('กรุณากรอกวันที่และถึงวันที่');
+    return false;
+  }
+  if (new Date(form.date) > new Date(form.endDate)) {
+    alert('วันที่สิ้นสุดต้องไม่เร็วกว่าวันที่เริ่มต้น');
+    return false;
+  }
+  if (!form.timePeriod) {
+    alert('กรุณาเลือกช่วงเวลา');
+    return false;
+  }
+  if (!form.location) {
+    alert('กรุณากรอกสถานที่');
+    return false;
+  }
+  if (!form.reason) {
+    alert('กรุณากรอกเหตุผล');
+    return false;
+  }
+  if (!form.supervisor) {
+    alert('กรุณาเลือกหัวหน้างาน');
+    return false;
+  }
+  return true;
 };
 
-const cancelForm = () => {
-  alert('ยกเลิกการขออนุมัติ');
+const submitForm = async () => {
+  if (!validateForm()) return;
+
+  try {
+    const response = await axios.post(
+      'http://localhost:8000/api/work-from-outside/requests/',
+      {
+        user: currentUser.value.id,
+        start_date: form.date,
+        end_date: form.endDate,
+        time_period: form.timePeriod,
+        reason: form.reason,
+        location: form.location,
+        approver: form.supervisor,
+        collaborators: form.collaborators,
+      },
+      {
+        headers: { Authorization: `Token ${token.value}` },
+      }
+    );
+    alert('ยื่นคำขอสำเร็จ');
+    router.push('/admin16');
+  } catch (error: any) {
+    console.error('Error submitting form:', error);
+    alert(error.response?.data?.detail || 'เกิดข้อผิดพลาดในการยื่นคำขอ');
+  }
 };
 
-const currentUser = ref<any>(null)
+const logout = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('token');
+  }
+  delete axios.defaults.headers.common['Authorization'];
+  router.push('/login');
+};
 
 onMounted(async () => {
-  if (typeof window !== "undefined") {
-    token.value = localStorage.getItem("token")
+  if (typeof window !== 'undefined') {
+    token.value = localStorage.getItem('token');
   }
 
   if (!token.value) {
-    router.push('/login')
-    return
+    router.push('/login');
+    return;
   }
 
-  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`
+  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`;
 
   try {
-    const me = await axios.get('http://localhost:8000/api/users/me/')
-    currentUser.value = me.data;
+    const meResponse = await axios.get('http://localhost:8000/api/users/me/');
+    currentUser.value = meResponse.data;
 
     if (currentUser.value.role !== 'admin') {
       router.push('/login');
       return;
     }
-  } catch (err) {
-    console.error(err)
-    router.push('/login')
-  }
-})
 
-function logout() {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("token")
+    const usersResponse = await axios.get('http://localhost:8000/api/users/for-list/');
+    supervisorList.value = usersResponse.data.filter(
+      (user: any) => user.role === 'admin' || user.role === 'manager'
+    );
+    userList.value = usersResponse.data.filter(
+      (user: any) => user.id !== currentUser.value.id
+    );
+  } catch (error) {
+    console.error('Error during initialization:', error);
+    router.push('/login');
   }
-  delete axios.defaults.headers.common['Authorization']
-  router.push("/login")
-}
+});
 </script>
 
 <style scoped>

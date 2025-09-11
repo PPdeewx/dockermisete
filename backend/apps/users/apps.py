@@ -8,8 +8,8 @@ class UsersConfig(AppConfig):
     def ready(self):
         import apps.users.signals
         from django.contrib.auth.models import Group
-        Group.objects.get_or_create(name='external')
-        Group.objects.get_or_create(name='regular')
-        Group.objects.get_or_create(name='manager')
-        Group.objects.get_or_create(name='temporary')
+        Group.objects.get_or_create(name='บุคลากรภายนอก')
+        Group.objects.get_or_create(name='พนักงานประจำ')
+        Group.objects.get_or_create(name='ผู้บริหาร')
+        Group.objects.get_or_create(name='พนักงานชั่วคราว')
         Group.objects.get_or_create(name='developer')
