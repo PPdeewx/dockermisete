@@ -14,13 +14,13 @@
           <a href="#" class="nav-link"><i class="fas fa-users"></i> บุคลากร</a>
           <ul class="submenu active">
             <li><a href="#" class="submenu-link active">พนักงานปัจจุบัน</a></li>
-            <li><a href="#" class="submenu-link">พนักงานที่ลาออก</a></li>
-            <li><a href="#" class="submenu-link">บุคลากรภายนอก</a></li>
-            <li><a href="#" class="submenu-link">พนักงาน EDDP</a></li>
-            <li><a href="#" class="submenu-link">เพิ่ม/แก้ไข/ลบ พนักงาน</a></li>
-            <li><a href="#" class="submenu-link">เพิ่มบุคลากรภายนอก</a></li>
-            <li><a href="#" class="submenu-link">เปลี่ยนสถานะพนักงาน</a></li>
-            <li><a href="#" class="submenu-link">กำหนดโควต้าลา(ทั้งหมด)</a></li>
+            <li><a href="/admin3" class="submenu-link">พนักงานที่ลาออก</a></li>
+            <li><a href="/admin4" class="submenu-link">บุคลากรภายนอก</a></li>
+            <li><a href="/admin5" class="submenu-link">พนักงาน EDDP</a></li>
+            <li><a href="/admin6" class="submenu-link">เพิ่ม/แก้ไข/ลบ พนักงาน</a></li>
+            <li><a href="/admin7" class="submenu-link">เพิ่มบุคลากรภายนอก</a></li>
+            <li><a href="/admin8" class="submenu-link">เปลี่ยนสถานะพนักงาน</a></li>
+            <li><a href="/admin9" class="submenu-link">กำหนดโควต้าลา(ทั้งหมด)</a></li>
           </ul>
         </li>
         <li class="nav-item">
