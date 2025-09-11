@@ -145,7 +145,6 @@
                   </div>
                 </div>
                 <div class="profile-info-block">
-                  <!-- ช่องว่างสำรอง -->
                 </div>
               </div>
 
@@ -156,7 +155,7 @@
                   <p>วันลากิจคงเหลือ : {{ user?.quota_casual ?? 0 }} วัน</p>
                   <p>วันลาป่วยคงเหลือ : {{ user?.quota_sick ?? 0 }} วัน</p>
                   <p>วันลาพักร้อนคงเหลือ : {{ user?.quota_vacation ?? 0 }} วัน</p>
-                  <p>วันลาอื่นๆคงเหลือ : {{ user?.leave_balance?.other ?? 0 }} วัน</p>
+                  <p>วันลาอื่นๆคงเหลือ : {{ user?.leave.other ?? 0 }} วัน</p>
                 </div>
               </div>
             </div>

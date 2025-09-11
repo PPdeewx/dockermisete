@@ -4,17 +4,17 @@
       <div class="sidebar-header">
         <span>MIS ETE</span>
       </div>
-        <ul class="nav-menu">
-         <li class="nav-item">
-       <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
-     <i class="fas fa-home"></i> หน้าหลัก
-   </a>
-</li>
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
+            <i class="fas fa-home"></i> หน้าหลัก
+          </a>
+        </li>
         <li class="nav-item has-submenu">
-          <a href="/admin2" class="nav-link"@click.prevent="goToAdmin2Page">
+          <a href="/admin2" class="nav-link" @click.prevent="goToAdmin2Page">
             <i class="fas fa-users"></i> บุคลากร
           </a>
-            <ul class="submenu">
+          <ul class="submenu">
             <li><a href="#" class="submenu-link">พนักงานปัจจุบัน</a></li>
             <li><a href="#" class="submenu-link">พนักงานที่ลาออก</a></li>
             <li><a href="#" class="submenu-link">บุคลากรภายนอก</a></li>
@@ -68,7 +68,7 @@
       <div class="content-container">
         <div class="header-with-icon">
           <i class="fas fa-user"></i>
-          <h2>ดูข้อมูลส่วนตัวข้อมูลส่วนตัว</h2>
+          <h2>ดูข้อมูลส่วนตัว</h2>
         </div>
 
         <div class="profile-layout">
@@ -98,7 +98,6 @@
             <div class="box-title">ประเภทการจ้างงาน :</div>
             <div class="box-content">
               <span>วันที่เริ่มทำงาน : {{ profile.startDate }}</span>
-              <span>วันเกิด : {{ profile.dob }}</span>
               <span>ที่อยู่ : {{ profile.address }}</span>
               <span>Email : {{ profile.email }}</span>
               <span>เบอร์โทรศัพท์ : {{ profile.phone }}</span>
@@ -120,96 +119,104 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, computed } from 'vue';
+import { ref, onMounted, reactive } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const token = ref<string | null>(null);
-
-const showProfileMenu = ref(false)
-const toggleProfileMenu = () => {
-  showProfileMenu.value = !showProfileMenu.value
-}
-
-const goTo = (path: string) => {
-  router.push(path);
-};
+const showProfileMenu = ref(false);
+const currentUser = ref<any>(null);
 
 const profile = reactive({
-  nameTh: 'นายแอดมิน แอดมิน',
-  nameEn: 'Admin Admin',
-  position: 'Admin',
-  labHead: 'นายหัวหน้า หัวหน้า',
-  startDate: '01/01/2568',
-  dob: '01/01/2540',
-  address: 'เลขที่ 123 ถนนบางนา',
-  email: 'admin.admin@mis.com',
-  phone: '081-123-4567',
+  nameTh: '',
+  nameEn: '',
+  position: '',
+  startDate: '',
+  address: '',
+  email: '',
+  phone: '',
   leave: {
-    personal: 5,
-    sick: 30,
-    vacation: 10,
+    personal: 0,
+    sick: 0,
+    vacation: 0,
     other: 0,
   }
 });
 
+const toggleProfileMenu = () => {
+  showProfileMenu.value = !showProfileMenu.value;
+};
+
+const goTo = (path: string) => {
+  router.push(path);
+};
 
 const goToAdminPage = () => {
   router.push('/admin');
 };
 
 const goToAdmin2Page = () => {
-  window.location.href = '/admin2';
+  router.push('/admin2');
 };
 
 const goToAdmin10Page = () => {
-  window.location.href = '/admin10';
+  router.push('/admin10');
 };
 
 const goToAdmin11Page = () => {
-  window.location.href = '/admin11';
+  router.push('/admin11');
 };
 
 const goToAdmin12Page = () => {
-  window.location.href = '/admin12';
+  router.push('/admin12');
 };
 
-const currentUser = ref<any>(null)
+const logout = () => {
+  localStorage.removeItem("token");
+  delete axios.defaults.headers.common['Authorization'];
+  router.push("/login");
+};
 
 onMounted(async () => {
-  if (typeof window !== "undefined") {
-    token.value = localStorage.getItem("token")
-  }
+  token.value = localStorage.getItem("token");
 
   if (!token.value) {
-    router.push('/login')
-    return
+    router.push('/login');
+    return;
   }
 
-  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`
+  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`;
 
   try {
-    const me = await axios.get('http://localhost:8000/api/users/me/')
-    currentUser.value = me.data;
+    const response = await axios.get('http://localhost:8000/api/users/me/');
+    currentUser.value = response.data;
 
     if (currentUser.value.role !== 'admin') {
       router.push('/login');
       return;
     }
-  } catch (err) {
-    console.error(err)
-    router.push('/login')
-  }
-})
 
-function logout() {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("token")
+    profile.nameTh = `${response.data.firstname_th || ''} ${response.data.lastname_th || ''}`.trim();
+    profile.nameEn = `${response.data.firstname_en || ''} ${response.data.lastname_en || ''}`.trim();
+    profile.position = response.data.position || response.data.role || '';
+    profile.startDate = response.data.start_date || '';
+    profile.address = response.data.address || '';
+    profile.email = response.data.email || '';
+    profile.phone = response.data.phone_number || '';
+    profile.leave = response.data.leave || {
+      personal: response.data.quota_casual || 0,
+      sick: response.data.quota_sick || 0,
+      vacation: response.data.quota_vacation || 0,
+      other: response.data.leave?.other || 0
+    };
+
+    console.log("Profile data:", profile);
+  } catch (err) {
+    console.error("Error fetching user data:", err);
+    router.push('/login');
   }
-  delete axios.defaults.headers.common['Authorization']
-  router.push("/login")
-}
+});
 </script>
 
 <style scoped>

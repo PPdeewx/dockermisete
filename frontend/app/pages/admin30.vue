@@ -4,17 +4,17 @@
       <div class="sidebar-header">
         <span>MIS ETE</span>
       </div>
-        <ul class="nav-menu">
-         <li class="nav-item">
-       <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
-     <i class="fas fa-home"></i> หน้าหลัก
-   </a>
-</li>
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
+            <i class="fas fa-home"></i> หน้าหลัก
+          </a>
+        </li>
         <li class="nav-item has-submenu">
-          <a href="/admin2" class="nav-link"@click.prevent="goToAdmin2Page">
+          <a href="/admin2" class="nav-link" @click.prevent="goToAdmin2Page">
             <i class="fas fa-users"></i> บุคลากร
           </a>
-            <ul class="submenu">
+          <ul class="submenu">
             <li><a href="#" class="submenu-link">พนักงานปัจจุบัน</a></li>
             <li><a href="#" class="submenu-link">พนักงานที่ลาออก</a></li>
             <li><a href="#" class="submenu-link">บุคลากรภายนอก</a></li>
@@ -37,44 +37,59 @@
           <span><i class="fas fa-home"></i> หน้าหลัก > เปลี่ยนรหัสผ่าน</span>
         </div>
         <div class="user-profile-container">
-          <div class="user-profile" @click="toggleDropdown">
+          <div class="user-profile" @click="toggleProfileMenu">
+            <i class="fas fa-bell"></i>
             <i class="fas fa-user-circle"></i>
-            <span class="username">Username ตำแหน่ง: Admin</span>
-            <i class="fas fa-chevron-down" :class="{ 'rotate': isDropdownOpen }"></i>
-          </div>
-          <div class="dropdown-menu" v-if="isDropdownOpen">
-            <a href="#" class="dropdown-item" @click.prevent="goToAdmin28Page"><i class="fas fa-user"></i> ดูข้อมูลส่วนตัว</a>
-            <a href="#" class="dropdown-item" @click.prevent="goToAdmin29Page"><i class="fas fa-user-edit"></i> แก้ไขข้อมูลส่วนตัว</a>
-            <a href="#" class="dropdown-item"><i class="fas fa-fingerprint"></i> เปลี่ยนรหัสผ่าน</a>
-            <a href="#" class="dropdown-item" @click.prevent="goToLoginPage"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</a>
+            <span class="username">{{ currentUser?.username }} ตำแหน่ง: {{ currentUser?.role }}</span>
+            <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
+            <div class="user-profile-menu" v-if="showProfileMenu">
+              <button class="menu-item" @click.stop="goTo('/admin28')">
+                <i class="fas fa-user"></i>
+                <span>ดูข้อมูลส่วนตัว</span>
+              </button>
+              <button class="menu-item" @click.stop="goTo('/admin29')">
+                <i class="fas fa-edit"></i>
+                <span>แก้ไขข้อมูลส่วนตัว</span>
+              </button>
+              <button class="menu-item" @click.stop="goTo('/admin30')">
+                <i class="fas fa-lock"></i>
+                <span>เปลี่ยนรหัสผ่าน</span>
+              </button>
+              <button class="menu-item" @click.stop="logout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>ออกจากระบบ</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       <div class="content-container">
         <div class="header-with-icon">
-          <i class="fas fa-user"></i>
+          <i class="fas fa-lock"></i>
           <h2>เปลี่ยนรหัสผ่าน</h2>
         </div>
         <p class="form-description">กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง</p>
+        <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+        <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
 
         <div class="change-password-form">
           <div class="form-row">
-            <label>รหัสผ่านเดิม :</label>
-            <input type="password" class="form-input" placeholder="กรอกรหัสผ่านเดิม">
+            <label>รหัสผ่านเดิม <span class="required">*</span>:</label>
+            <input type="password" v-model="form.old_password" class="form-input" placeholder="กรอกรหัสผ่านเดิม">
           </div>
           <div class="form-row">
-            <label>รหัสผ่านใหม่ :</label>
-            <input type="password" class="form-input" placeholder="กรอกรหัสผ่านใหม่">
+            <label>รหัสผ่านใหม่ <span class="required">*</span>:</label>
+            <input type="password" v-model="form.new_password" class="form-input" placeholder="กรอกรหัสผ่านใหม่">
           </div>
           <div class="form-row">
-            <label>ยืนยันรหัสผ่านอีกครั้ง *:</label>
-            <input type="password" class="form-input" placeholder="ยืนยันรหัสผ่านใหม่อีกครั้ง">
+            <label>ยืนยันรหัสผ่านใหม่ <span class="required">*</span>:</label>
+            <input type="password" v-model="form.confirm_password" class="form-input" placeholder="ยืนยันรหัสผ่านใหม่อีกครั้ง">
           </div>
         </div>
 
         <div class="form-actions">
-          <button class="btn-submit" @click="goToAdmin28Page">บันทึกข้อมูล</button>
+          <button class="btn-submit" @click="submitForm">บันทึกข้อมูล</button>
           <button class="btn-cancel" @click="goToAdmin28Page">ยกเลิก</button>
         </div>
       </div>
@@ -83,51 +98,127 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-
-const isDropdownOpen = ref(false);
-
-const toggleDropdown = () => {
-  isDropdownOpen.value = !isDropdownOpen.value;
-};
-
+import { ref, onMounted, reactive } from 'vue';
+import axios from 'axios';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
+const token = ref<string | null>(null);
+const showProfileMenu = ref(false);
+const currentUser = ref<any>(null);
+const errorMessage = ref<string>('');
+const successMessage = ref<string>('');
+
+const form = reactive({
+  old_password: '',
+  new_password: '',
+  confirm_password: '',
+});
+
+const toggleProfileMenu = () => {
+  showProfileMenu.value = !showProfileMenu.value;
+};
+
+const goTo = (path: string) => {
+  router.push(path);
+};
 
 const goToAdminPage = () => {
   router.push('/admin');
 };
 
 const goToAdmin2Page = () => {
-  window.location.href = '/admin2';
+  router.push('/admin2');
 };
 
 const goToAdmin10Page = () => {
-  window.location.href = '/admin10';
+  router.push('/admin10');
 };
 
 const goToAdmin11Page = () => {
-  window.location.href = '/admin11';
+  router.push('/admin11');
 };
 
 const goToAdmin12Page = () => {
-  window.location.href = '/admin12';
+  router.push('/admin12');
 };
 
 const goToAdmin28Page = () => {
-  window.location.href = '/admin28';
+  router.push('/admin28');
 };
 
-const goToAdmin29Page = () => {
-  window.location.href = '/admin29';
+const logout = () => {
+  localStorage.removeItem("token");
+  delete axios.defaults.headers.common['Authorization'];
+  router.push("/login");
 };
 
-const goToLoginPage = () => {
-  window.location.href = '/Login';
+const submitForm = async () => {
+  errorMessage.value = '';
+  successMessage.value = '';
+
+  if (!form.old_password || !form.new_password || !form.confirm_password) {
+    errorMessage.value = 'กรุณากรอกรหัสผ่านให้ครบทุกช่อง';
+    return;
+  }
+
+  if (form.new_password !== form.confirm_password) {
+    errorMessage.value = 'รหัสผ่านใหม่และการยืนยันรหัสผ่านไม่ตรงกัน';
+    return;
+  }
+
+  const data = {
+    old_password: form.old_password,
+    password: form.new_password,
+  };
+
+  try {
+    const response = await axios.patch('http://localhost:8000/api/users/profile/', data, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    successMessage.value = 'เปลี่ยนรหัสผ่านสำเร็จ';
+    setTimeout(() => {
+      router.push('/admin28');
+    }, 2000);
+  } catch (err: any) {
+    console.error('Error changing password:', err);
+    if (err.response?.data) {
+      const errors = err.response.data;
+      const errorFields = Object.keys(errors).map(key => `${key}: ${errors[key].join(', ')}`).join('; ');
+      errorMessage.value = `เกิดข้อผิดพลาด: ${errorFields}`;
+    } else {
+      errorMessage.value = 'เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน กรุณาลองใหม่';
+    }
+  }
 };
 
+onMounted(async () => {
+  token.value = localStorage.getItem("token");
 
+  if (!token.value) {
+    router.push('/login');
+    return;
+  }
+
+  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`;
+
+  try {
+    const response = await axios.get('http://localhost:8000/api/users/me/');
+    currentUser.value = response.data;
+
+    if (currentUser.value.role !== 'admin') {
+      router.push('/login');
+      return;
+    }
+
+    console.log('User data loaded:', currentUser.value);
+  } catch (err) {
+    console.error('Error fetching user data:', err);
+    router.push('/login');
+  }
+});
 </script>
 
 <style scoped>
@@ -408,5 +499,60 @@ const goToLoginPage = () => {
     text-align: left;
     width: 100%;
   }
+}
+
+.user-profile-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 220px;
+  z-index: 1000;
+  padding: 6px;
+}
+
+.menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.menu-item:hover {
+  background-color: #f0f2f5;
+}
+
+.menu-item i {
+  width: 20px;
+  text-align: center;
+}
+
+.error-message {
+  color: red;
+  margin-bottom: 1rem;
+}
+.success-message {
+  color: green;
+  margin-bottom: 1rem;
+}
+.form-row {
+  margin-bottom: 1rem;
+}
+.form-input {
+  width: 100%;
+  padding: 0.5rem;
+}
+.btn-submit, .btn-cancel {
+  padding: 0.5rem 1rem;
+  margin-right: 1rem;
 }
 </style>

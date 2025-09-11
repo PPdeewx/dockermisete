@@ -38,9 +38,6 @@ class CustomUser(AbstractUser):
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     email = models.EmailField(unique=True)
     address = models.TextField(blank=True)
-    quota_sick = models.DecimalField(max_digits=5, decimal_places=1, default=0.0)
-    quota_casual = models.DecimalField(max_digits=5, decimal_places=1, default=0.0)
-    quota_vacation = models.DecimalField(max_digits=5, decimal_places=1, default=0.0)
     record_attendance = models.BooleanField(default=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
     exit_date = models.DateField(null=True, blank=True)
@@ -57,3 +54,47 @@ class CustomUser(AbstractUser):
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
+
+    def get_quota(self, leave_type_name, year=None):
+        from apps.leave.models import LeaveQuota, LeaveType
+        if year is None:
+            year = timezone.now().year
+        try:
+            leave_type = LeaveType.objects.get(name=leave_type_name)
+            print(f"Found LeaveType: {leave_type_name}, ID: {leave_type.id}, User: {self.username}, Year: {year}")
+            quota = LeaveQuota.objects.filter(
+                user=self,
+                leave_type=leave_type,
+                year=year
+            ).first()
+            if quota:
+                print(f"Quota for {leave_type_name}, user {self.username}, year {year}: {quota.quota_total}")
+                return float(quota.quota_total)
+            else:
+                print(f"No quota found for {leave_type_name}, user {self.username}, year {year}")
+                return 0.0
+        except LeaveType.DoesNotExist:
+            print(f"LeaveType {leave_type_name} not found")
+            return 0.0
+
+    def get_quota_remaining(self, leave_type_name, year=None):
+        from apps.leave.models import LeaveQuota, LeaveType
+        if year is None:
+            year = timezone.now().year
+        try:
+            leave_type = LeaveType.objects.get(name=leave_type_name)
+            print(f"Found LeaveType for remaining: {leave_type_name}, ID: {leave_type.id}, User: {self.username}, Year: {year}")
+            quota = LeaveQuota.objects.filter(
+                user=self,
+                leave_type=leave_type,
+                year=year
+            ).first()
+            if quota:
+                print(f"Quota remaining for {leave_type_name}, user {self.username}, year {year}: {quota.quota_remaining}")
+                return float(quota.quota_remaining)
+            else:
+                print(f"No quota remaining found for {leave_type_name}, user {self.username}, year {year}")
+                return 0.0
+        except LeaveType.DoesNotExist:
+            print(f"LeaveType {leave_type_name} not found for remaining")
+            return 0.0

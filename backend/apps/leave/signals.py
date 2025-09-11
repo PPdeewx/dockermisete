@@ -10,8 +10,6 @@ from django.utils import timezone
 @receiver(post_save, sender=LeaveRequest)
 def send_leave_email(sender, instance, created, **kwargs):
     if created:
-
-        # 1) แจ้งผู้อนุมัติ
         if instance.approver and instance.approver.email:
             subject = f"คำขอลา #{instance.leave_number} จาก {instance.user}"
             text_content = f"มีคำขอลาจาก {instance.user} กรุณาตรวจสอบ"
@@ -40,7 +38,6 @@ def send_leave_email(sender, instance, created, **kwargs):
             email.attach_alternative(html_content, "text/html")
             email.send(fail_silently=True)
 
-        # 2) แจ้งผู้ปฏิบัติงานแทน
         if instance.substitute and instance.substitute.email:
             subject = f"แจ้งปฏิบัติงานแทน - คำขอลา #{instance.leave_number}"
             text_content = f"คุณถูกระบุให้ปฏิบัติงานแทน {instance.user}"
@@ -66,19 +63,27 @@ def send_leave_email(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=CustomUser)
 def create_leave_quota_for_new_user(sender, instance, created, **kwargs):
-    """
-    สร้างโควต้าลาให้ User ใหม่โดยอัตโนมัติ
-    """
+    
     if created:
         current_year = timezone.now().year
-        leave_types = LeaveType.objects.all()
+        leave_types = LeaveType.objects.filter(default_quota__gt=0)
+        quotas = getattr(kwargs.get('context', {}), 'quotas', {})
+        
+        leave_type_mapping = {
+            'ลาป่วย': quotas.get('quota_sick'),
+            'ลากิจ': quotas.get('quota_casual'),
+            'ลาพักร้อน': quotas.get('quota_vacation')
+        }
+
         for lt in leave_types:
-            LeaveQuota.objects.get_or_create(
-                user=instance,
-                leave_type=lt,
-                year=current_year,
-                defaults={
-                    'quota_total': lt.default_quota,
-                    'quota_used': 0
-                }
-            )
+            quota_total = leave_type_mapping.get(lt.name, lt.default_quota) if lt.name in leave_type_mapping else lt.default_quota
+            if quota_total is not None:
+                LeaveQuota.objects.get_or_create(
+                    user=instance,
+                    leave_type=lt,
+                    year=current_year,
+                    defaults={
+                        'quota_total': quota_total,
+                        'quota_used': 0
+                    }
+                )

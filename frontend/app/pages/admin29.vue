@@ -4,17 +4,17 @@
       <div class="sidebar-header">
         <span>MIS ETE</span>
       </div>
-        <ul class="nav-menu">
-         <li class="nav-item">
-       <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
-     <i class="fas fa-home"></i> หน้าหลัก
-   </a>
-</li>
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
+            <i class="fas fa-home"></i> หน้าหลัก
+          </a>
+        </li>
         <li class="nav-item has-submenu">
-          <a href="/admin2" class="nav-link"@click.prevent="goToAdmin2Page">
+          <a href="/admin2" class="nav-link" @click.prevent="goToAdmin2Page">
             <i class="fas fa-users"></i> บุคลากร
           </a>
-            <ul class="submenu">
+          <ul class="submenu">
             <li><a href="#" class="submenu-link">พนักงานปัจจุบัน</a></li>
             <li><a href="#" class="submenu-link">พนักงานที่ลาออก</a></li>
             <li><a href="#" class="submenu-link">บุคลากรภายนอก</a></li>
@@ -42,7 +42,6 @@
             <i class="fas fa-user-circle"></i>
             <span class="username">{{ currentUser?.username }} ตำแหน่ง: {{ currentUser?.role }}</span>
             <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
-
             <div class="user-profile-menu" v-if="showProfileMenu">
               <button class="menu-item" @click.stop="goTo('/admin28')">
                 <i class="fas fa-user"></i>
@@ -70,78 +69,76 @@
           <i class="fas fa-user-edit"></i>
           <h2>แก้ไขข้อมูลส่วนตัว</h2>
         </div>
-        <p class="form-description">กรุณากรอกข้อมูลในช่องว่างที่ มีเครื่องหมาย *</p>
+        <p class="form-description">กรุณากรอกข้อมูลในช่องว่างที่มีเครื่องหมาย *</p>
+        <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+        <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
 
         <div class="edit-profile-form">
           <div class="form-column">
             <div class="form-row">
               <label>คำนำหน้าชื่อ <span class="required">*</span>:</label>
               <div class="form-input-container">
-                <select class="form-select">
-                  <option>กรุณาเลือก</option>
-                  <option>นาย</option>
-                  <option>นาง</option>
-                  <option>นางสาว</option>
+                <select v-model="form.prefix_th" class="form-select">
+                  <option value="">กรุณาเลือก</option>
+                  <option value="นาย">นาย</option>
+                  <option value="นาง">นาง</option>
+                  <option value="นางสาว">นางสาว</option>
                 </select>
-                <small class="inline-desc">Labels can have inline descriptions</small>
+                <small class="inline-desc">เลือกคำนำหน้าชื่อ</small>
               </div>
             </div>
             <div class="form-row">
               <label>ชื่อภาษาไทย <span class="required">*</span>:</label>
               <div class="form-input-container">
-                <input type="text" class="form-input" />
-                <small class="inline-desc">Labels can have inline descriptions</small>
+                <input type="text" v-model="form.firstname_th" class="form-input" />
+                <small class="inline-desc">กรอกชื่อภาษาไทย</small>
               </div>
             </div>
             <div class="form-row">
               <label>นามสกุลภาษาไทย <span class="required">*</span>:</label>
               <div class="form-input-container">
-                <input type="text" class="form-input" />
-                <small class="inline-desc">Labels can have inline descriptions</small>
+                <input type="text" v-model="form.lastname_th" class="form-input" />
+                <small class="inline-desc">กรอกนามสกุลภาษาไทย</small>
               </div>
             </div>
             <div class="form-row">
-              <label>ชื่อภาษาอังกฤษ <span class="required">*</span>:</label>
+              <label>ชื่อภาษาอังกฤษ:</label>
               <div class="form-input-container">
-                <input type="text" class="form-input" />
-                <small class="inline-desc">Labels can have inline descriptions</small>
+                <input type="text" v-model="form.firstname_en" class="form-input" />
+                <small class="inline-desc">กรอกชื่อภาษาอังกฤษ (ถ้ามี)</small>
               </div>
             </div>
             <div class="form-row">
-              <label>นามสกุลภาษาอังกฤษ <span class="required">*</span>:</label>
+              <label>นามสกุลภาษาอังกฤษ:</label>
               <div class="form-input-container">
-                <input type="text" class="form-input" />
-                <small class="inline-desc">Labels can have inline descriptions</small>
+                <input type="text" v-model="form.lastname_en" class="form-input" />
+                <small class="inline-desc">กรอกนามสกุลภาษาอังกฤษ (ถ้ามี)</small>
               </div>
             </div>
             <div class="form-row">
               <label>Email <span class="required">*</span>:</label>
-              <input type="email" class="form-input" />
+              <input type="email" v-model="form.email" class="form-input" />
             </div>
             <div class="form-row">
               <label>เบอร์โทรศัพท์ <span class="required">*</span>:</label>
-              <input type="tel" class="form-input" />
-            </div>
-            <div class="form-row">
-              <label>วันเกิด <span class="required">*</span>:</label>
-              <input type="date" class="form-input" />
+              <input type="tel" v-model="form.phone_number" class="form-input" />
             </div>
             <div class="form-row textarea-row">
-              <label>ที่อยู่ติดต่อสะดวก <span class="required">*</span>:</label>
-              <textarea class="form-textarea"></textarea>
+              <label>ที่อยู่ติดต่อสะดวก:</label>
+              <textarea v-model="form.address" class="form-textarea"></textarea>
             </div>
           </div>
           <div class="profile-image-section">
             <div class="profile-placeholder">
               Profile
             </div>
-            <input type="file" id="chooseFile" class="file-input" />
+            <input type="file" id="chooseFile" class="file-input" @change="handleFileUpload" />
             <label for="chooseFile" class="btn-choose-file">Choose File</label>
           </div>
         </div>
 
         <div class="form-actions">
-          <button class="btn-submit" @click="goToAdmin28Page">บันทึกข้อมูล</button>
+          <button class="btn-submit" @click="submitForm">บันทึกข้อมูล</button>
           <button class="btn-cancel" @click="goToAdmin28Page">ยกเลิก</button>
         </div>
       </div>
@@ -150,17 +147,32 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, computed } from 'vue';
+import { ref, onMounted, reactive } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const token = ref<string | null>(null);
+const showProfileMenu = ref(false);
+const currentUser = ref<any>(null);
+const errorMessage = ref<string>('');
+const successMessage = ref<string>('');
 
-const showProfileMenu = ref(false)
+const form = reactive({
+  prefix_th: '',
+  firstname_th: '',
+  lastname_th: '',
+  firstname_en: '',
+  lastname_en: '',
+  email: '',
+  phone_number: '',
+  address: '',
+  profile_image: null as File | null,
+});
+
 const toggleProfileMenu = () => {
-  showProfileMenu.value = !showProfileMenu.value
-}
+  showProfileMenu.value = !showProfileMenu.value;
+};
 
 const goTo = (path: string) => {
   router.push(path);
@@ -171,61 +183,116 @@ const goToAdminPage = () => {
 };
 
 const goToAdmin2Page = () => {
-  window.location.href = '/admin2';
+  router.push('/admin2');
 };
 
 const goToAdmin10Page = () => {
-  window.location.href = '/admin10';
+  router.push('/admin10');
 };
 
 const goToAdmin11Page = () => {
-  window.location.href = '/admin11';
+  router.push('/admin11');
 };
 
 const goToAdmin12Page = () => {
-  window.location.href = '/admin12';
+  router.push('/admin12');
 };
-
 
 const goToAdmin28Page = () => {
   router.push('/admin28');
 };
 
-const currentUser = ref<any>(null)
+const logout = () => {
+  localStorage.removeItem("token");
+  delete axios.defaults.headers.common['Authorization'];
+  router.push("/login");
+};
 
-onMounted(async () => {
-  if (typeof window !== "undefined") {
-    token.value = localStorage.getItem("token")
+const handleFileUpload = (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  if (input.files && input.files.length > 0) {
+    form.profile_image = input.files[0];
+  }
+};
+
+const submitForm = async () => {
+  errorMessage.value = '';
+  successMessage.value = '';
+
+  if (!form.prefix_th || !form.firstname_th || !form.lastname_th || !form.email || !form.phone_number) {
+    errorMessage.value = 'กรุณากรอกข้อมูลในช่องที่มีเครื่องหมาย * ให้ครบถ้วน';
+    return;
   }
 
-  if (!token.value) {
-    router.push('/login')
-    return
+  const formData = new FormData();
+  formData.append('prefix_th', form.prefix_th);
+  formData.append('firstname_th', form.firstname_th);
+  formData.append('lastname_th', form.lastname_th);
+  formData.append('firstname_en', form.firstname_en || '');
+  formData.append('lastname_en', form.lastname_en || '');
+  formData.append('email', form.email);
+  formData.append('phone_number', form.phone_number);
+  formData.append('address', form.address || '');
+  if (form.profile_image) {
+    formData.append('profile_image', form.profile_image);
   }
-
-  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`
 
   try {
-    const me = await axios.get('http://localhost:8000/api/users/me/')
-    currentUser.value = me.data;
+    const response = await axios.patch('http://localhost:8000/api/users/profile/', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    successMessage.value = 'บันทึกข้อมูลสำเร็จ';
+    setTimeout(() => {
+      router.push('/admin28');
+    }, 2000);
+  } catch (err: any) {
+    console.error('Error updating profile:', err);
+    if (err.response?.data) {
+      const errors = err.response.data;
+      const errorFields = Object.keys(errors).map(key => `${key}: ${errors[key].join(', ')}`).join('; ');
+      errorMessage.value = `เกิดข้อผิดพลาด: ${errorFields}`;
+    } else {
+      errorMessage.value = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่';
+    }
+  }
+};
+
+onMounted(async () => {
+  token.value = localStorage.getItem("token");
+
+  if (!token.value) {
+    router.push('/login');
+    return;
+  }
+
+  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`;
+
+  try {
+    const response = await axios.get('http://localhost:8000/api/users/me/');
+    currentUser.value = response.data;
 
     if (currentUser.value.role !== 'admin') {
       router.push('/login');
       return;
     }
-  } catch (err) {
-    console.error(err)
-    router.push('/login')
-  }
-})
 
-function logout() {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("token")
+    form.prefix_th = response.data.prefix_th || '';
+    form.firstname_th = response.data.firstname_th || '';
+    form.lastname_th = response.data.lastname_th || '';
+    form.firstname_en = response.data.firstname_en || '';
+    form.lastname_en = response.data.lastname_en || '';
+    form.email = response.data.email || '';
+    form.phone_number = response.data.phone_number || '';
+    form.address = response.data.address || '';
+
+    console.log('Form data loaded:', form);
+  } catch (err) {
+    console.error('Error fetching user data:', err);
+    router.push('/login');
   }
-  delete axios.defaults.headers.common['Authorization']
-  router.push("/login")
-}
+});
 </script>
 
 <style scoped>
@@ -612,5 +679,14 @@ function logout() {
 .menu-item i {
   width: 20px;
   text-align: center;
+}
+
+.error-message {
+  color: red;
+  margin-bottom: 1rem;
+}
+.success-message {
+  color: green;
+  margin-bottom: 1rem;
 }
 </style>

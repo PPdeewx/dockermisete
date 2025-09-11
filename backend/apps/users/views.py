@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import generics, status
 from rest_framework.decorators import api_view
 from .models import CustomUser, Department
-from .serializers import CustomUserSerializer, DepartmentSerializer , GroupSerializer
+from .serializers import CustomUserSerializer, DepartmentSerializer, GroupSerializer
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 from django.contrib.auth.tokens import default_token_generator
 from rest_framework.authtoken.models import Token
@@ -16,6 +16,7 @@ from django.db.models import Q
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.contrib.auth.models import Group
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -56,7 +57,7 @@ class UserCreateView(generics.CreateAPIView):
     permission_classes = [IsAdminUser]
 
     def perform_create(self, serializer):
-        user = serializer.save()
+        user = serializer.save(context={'quotas': serializer.validated_data.get('quotas', {})})
         self.send_set_password_email(user)
 
     def send_set_password_email(self, user):
@@ -134,8 +135,6 @@ class UserUpdateProfileView(generics.UpdateAPIView):
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-
-        # อัพเดต password เฉพาะเมื่อมีค่าจริง
         password = request.data.get('password', None)
         if password:
             try:
@@ -145,7 +144,6 @@ class UserUpdateProfileView(generics.UpdateAPIView):
             except DjangoValidationError as e:
                 return Response({"password": list(e.messages)}, status=status.HTTP_400_BAD_REQUEST)
 
-        # เอา password ออกจาก request.data ก่อนส่งให้ serializer
         data = request.data.copy()
         data.pop('password', None)
 
@@ -215,6 +213,7 @@ class CurrentUserView(APIView):
     def get(self, request):
         user = request.user
         group_name = user.groups.first().name if user.groups.exists() else None
+        print(f"Fetching quotas for user: {user.username}")
         return Response({
             "id": user.id,
             "username": user.username,
@@ -230,11 +229,9 @@ class CurrentUserView(APIView):
             "start_date": user.start_date,
             "address": user.address,
             "phone_number": user.phone_number,
-            #"fingerprint_id": user.fingerprint_id,
-            # ถ้ามี quota/leave balance ก็ส่งมาด้วย
-            "quota_casual": user.quota_casual if hasattr(user, "quota_casual") else 0,
-            "quota_sick": user.quota_sick if hasattr(user, "quota_sick") else 0,
-            "quota_vacation": user.quota_vacation if hasattr(user, "quota_vacation") else 0,
+            "quota_casual": user.get_quota('ลากิจ'),
+            "quota_sick": user.get_quota('ลาป่วย'),
+            "quota_vacation": user.get_quota('ลาพักร้อน'),
         })
 
 class PasswordResetValidateView(APIView):
@@ -293,7 +290,7 @@ class GroupListView(generics.ListAPIView):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
     permission_classes = [IsAdminUser]
-
+    
 class ChangePasswordView(APIView):
     permission_classes = [IsAuthenticated]
 

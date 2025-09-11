@@ -3,7 +3,8 @@ from rest_framework.validators import UniqueValidator
 from django.contrib.auth.models import Group
 from django.contrib.auth.password_validation import validate_password
 from .models import CustomUser, Department
-
+from apps.leave.models import LeaveType, LeaveQuota
+from django.utils import timezone
 
 class UserSerializerShort(serializers.ModelSerializer):
     class Meta:
@@ -15,14 +16,12 @@ class UserSerializerWithDepartment(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['id','firstname_th','lastname_th','department']
+        fields = ['id', 'firstname_th', 'lastname_th', 'department']
 
     def get_department(self, obj):
         if obj.department:
             return DepartmentSerializer(obj.department).data
-            return {"id": obj.department.id, "name_th": obj.department.name_th}
         return None
-
 
 class DepartmentSerializer(serializers.ModelSerializer):
     head = serializers.SerializerMethodField()
@@ -35,7 +34,6 @@ class DepartmentSerializer(serializers.ModelSerializer):
         fields = ["id", "name_th", "name_en", "head", "personnel", "total_users", "approvers"]
 
     def get_head(self, obj):
-        # สมมติเอา approvers คนแรกเป็นหัวหน้า
         if obj.approvers.exists():
             return f"{obj.approvers.first().firstname_th} {obj.approvers.first().lastname_th}"
         return None
@@ -56,6 +54,9 @@ class CustomUserSerializer(serializers.ModelSerializer):
     )
     department = DepartmentSerializer(read_only=True)
     groupName = serializers.SerializerMethodField()
+    quota_sick = serializers.DecimalField(max_digits=5, decimal_places=1, required=False, write_only=True)
+    quota_casual = serializers.DecimalField(max_digits=5, decimal_places=1, required=False, write_only=True)
+    quota_vacation = serializers.DecimalField(max_digits=5, decimal_places=1, required=False, write_only=True)
 
     employee_code = serializers.CharField(
         validators=[UniqueValidator(queryset=CustomUser.objects.all())]
@@ -80,9 +81,6 @@ class CustomUserSerializer(serializers.ModelSerializer):
             'start_date': {'required': True},
             'phone_number': {'required': True},
             'email': {'required': True},
-            'quota_sick': {'required': True},
-            'quota_casual': {'required': True},
-            'quota_vacation': {'required': True},
             'status': {'required': True},
         }
 
@@ -109,11 +107,19 @@ class CustomUserSerializer(serializers.ModelSerializer):
         if groups and len(groups) > 1:
             raise serializers.ValidationError({'groups': 'Only one group can be assigned. Send groups as an array with a single item.'})
 
+        for quota_field in ['quota_sick', 'quota_casual', 'quota_vacation']:
+            if quota_field in attrs and attrs[quota_field] is not None:
+                if attrs[quota_field] < 0:
+                    raise serializers.ValidationError({quota_field: 'Quota cannot be negative.'})
+
         return attrs
 
     def create(self, validated_data):
         groups_data = validated_data.pop('groups', [])
         password = validated_data.pop('password', None)
+        quota_sick = validated_data.pop('quota_sick', None)
+        quota_casual = validated_data.pop('quota_casual', None)
+        quota_vacation = validated_data.pop('quota_vacation', None)
 
         username = validated_data.get('employee_code') or validated_data.get('email')
         user = CustomUser(**validated_data)
@@ -131,11 +137,20 @@ class CustomUserSerializer(serializers.ModelSerializer):
         if groups_data:
             user.groups.set([Group.objects.get_or_create(name=g)[0] for g in groups_data])
 
+        self.context['quotas'] = {
+            'quota_sick': quota_sick,
+            'quota_casual': quota_casual,
+            'quota_vacation': quota_vacation
+        }
+
         return user
 
     def update(self, instance, validated_data):
         groups_data = validated_data.pop('groups', None)
         password = validated_data.pop('password', None)
+        quota_sick = validated_data.pop('quota_sick', None)
+        quota_casual = validated_data.pop('quota_casual', None)
+        quota_vacation = validated_data.pop('quota_vacation', None)
 
         if 'status' in validated_data and validated_data['status'] == 'active' and instance.status == 'resigned':
             instance.exit_date = None
@@ -152,6 +167,31 @@ class CustomUserSerializer(serializers.ModelSerializer):
         if groups_data is not None:
             instance.groups.set([Group.objects.get_or_create(name=g)[0] for g in groups_data])
 
+        if any([quota_sick, quota_casual, quota_vacation]):
+            current_year = timezone.now().year
+            leave_types = {lt.name: lt for lt in LeaveType.objects.filter(name__in=['ลาป่วย', 'ลากิจ', 'ลาพักร้อน'])}
+            if quota_sick is not None:
+                LeaveQuota.objects.update_or_create(
+                    user=instance,
+                    leave_type=leave_types.get('ลาป่วย'),
+                    year=current_year,
+                    defaults={'quota_total': quota_sick, 'quota_used': 0}
+                )
+            if quota_casual is not None:
+                LeaveQuota.objects.update_or_create(
+                    user=instance,
+                    leave_type=leave_types.get('ลากิจ'),
+                    year=current_year,
+                    defaults={'quota_total': quota_casual, 'quota_used': 0}
+                )
+            if quota_vacation is not None:
+                LeaveQuota.objects.update_or_create(
+                    user=instance,
+                    leave_type=leave_types.get('ลาพักร้อน'),
+                    year=current_year,
+                    defaults={'quota_total': quota_vacation, 'quota_used': 0}
+                )
+
         return instance
 
 class GroupSerializer(serializers.ModelSerializer):
@@ -160,7 +200,7 @@ class GroupSerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    password = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = CustomUser

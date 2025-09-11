@@ -2,9 +2,29 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext_lazy as _
 from .models import CustomUser, Department
+from django import forms
+from apps.leave.models import LeaveType, LeaveQuota
+from django.utils import timezone
+
+class CustomUserAdminForm(forms.ModelForm):
+    quota_sick = forms.DecimalField(max_digits=5, decimal_places=1, required=False)
+    quota_casual = forms.DecimalField(max_digits=5, decimal_places=1, required=False)
+    quota_vacation = forms.DecimalField(max_digits=5, decimal_places=1, required=False)
+
+    class Meta:
+        model = CustomUser
+        fields = '__all__'
+
+    def clean(self):
+        cleaned_data = super().clean()
+        for quota_field in ['quota_sick', 'quota_casual', 'quota_vacation']:
+            if cleaned_data.get(quota_field) is not None and cleaned_data[quota_field] < 0:
+                self.add_error(quota_field, 'Quota cannot be negative.')
+        return cleaned_data
 
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
+    form = CustomUserAdminForm
     model = CustomUser
     list_display = ('employee_code', 'email', 'firstname_th', 'lastname_th', 'status', 'role', 'is_staff')
     list_filter = ('status', 'role', 'is_staff', 'groups')
@@ -14,10 +34,36 @@ class CustomUserAdmin(UserAdmin):
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         (_('Personal info'), {'fields': ('employee_code','time_attendance_code','prefix_th','firstname_th','lastname_th','prefix_en','firstname_en','lastname_en','email','phone_number','address','department')}),
-        (_('Employment'), {'fields': ('start_date','status','exit_date','role','record_attendance','quota_sick','quota_casual','quota_vacation','groups')}),
+        (_('Employment'), {'fields': ('start_date','status','exit_date','role','record_attendance','groups','quota_sick','quota_casual','quota_vacation')}),
         (_('Permissions'), {'fields': ('is_active','is_staff','is_superuser','user_permissions')}),
         (_('Important dates'), {'fields': ('last_login','date_joined')}),
     )
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        current_year = timezone.now().year
+        leave_types = {lt.name: lt for lt in LeaveType.objects.filter(name__in=['ลาป่วย', 'ลากิจ', 'ลาพักร้อน'])}  # เปลี่ยนชื่อ
+        if form.cleaned_data.get('quota_sick'):
+            LeaveQuota.objects.update_or_create(
+                user=obj,
+                leave_type=leave_types.get('ลาป่วย'),
+                year=current_year,
+                defaults={'quota_total': form.cleaned_data['quota_sick'], 'quota_used': 0}
+            )
+        if form.cleaned_data.get('quota_casual'):
+            LeaveQuota.objects.update_or_create(
+                user=obj,
+                leave_type=leave_types.get('ลากิจ'),
+                year=current_year,
+                defaults={'quota_total': form.cleaned_data['quota_casual'], 'quota_used': 0}
+            )
+        if form.cleaned_data.get('quota_vacation'):
+            LeaveQuota.objects.update_or_create(
+                user=obj,
+                leave_type=leave_types.get('ลาพักร้อน'),
+                year=current_year,
+                defaults={'quota_total': form.cleaned_data['quota_vacation'], 'quota_used': 0}
+            )
 
 @admin.register(Department)
 class DepartmentAdmin(admin.ModelAdmin):
