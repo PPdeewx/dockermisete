@@ -4,19 +4,27 @@
       <div class="sidebar-header">
         <span>MIS ETE</span>
       </div>
-        <ul class="nav-menu">
-         <li class="nav-item">
-       <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
-     <i class="fas fa-home"></i> หน้าหลัก
-   </a>
-</li>
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
+            <i class="fas fa-home"></i> หน้าหลัก
+          </a>
+        </li>
         <li class="nav-item has-submenu">
-          <a href="/admin2" class="nav-link"@click.prevent="goToAdmin2Page">
+          <a href="/admin2" class="nav-link" @click.prevent="goToAdmin2Page">
             <i class="fas fa-users"></i> บุคลากร
           </a>
         </li>
-        <li class="nav-item"><a href="/admin10" class="nav-link" @click.prevent="goToAdmin10Page"><i class="fas fa-flask"></i> ห้องวิจัย</a></li>
-        <li class="nav-item"><a href="/admin11" class="nav-link" @click.prevent="goToAdmin11Page"><i class="fas fa-calendar-alt"></i> วันหยุด</a></li>
+        <li class="nav-item">
+          <a href="/admin10" class="nav-link" @click.prevent="goToAdmin10Page">
+            <i class="fas fa-flask"></i> ห้องวิจัย
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/admin11" class="nav-link" @click.prevent="goToAdmin11Page">
+            <i class="fas fa-calendar-alt"></i> วันหยุด
+          </a>
+        </li>
         <li class="nav-item active has-submenu">
           <a href="#" class="nav-link"><i class="fas fa-cog"></i> ระบบการปฏิบัติงาน</a>
           <ul class="submenu">
@@ -48,7 +56,6 @@
             <i class="fas fa-user-circle"></i>
             <span class="username">{{ currentUser?.username }} ตำแหน่ง: {{ currentUser?.role }}</span>
             <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
-
             <div class="user-profile-menu" v-if="showProfileMenu">
               <button class="menu-item" @click.stop="goTo('/admin28')">
                 <i class="fas fa-user"></i>
@@ -74,9 +81,7 @@
       <div class="content-container">
         <div class="header-with-buttons">
           <h2><i class="fas fa-calendar-alt"></i> ระบบการยื่นใบลาแทนคนอื่น</h2>
-          <button class="btn-cancel" @click="goToAdminPage">
-            ยกเลิก
-          </button>
+          <button class="btn-cancel" @click="goToAdminPage">ยกเลิก</button>
         </div>
 
         <div class="form-section">
@@ -84,12 +89,12 @@
             <div class="form-grid">
               <div class="form-group full-width">
                 <label for="submitter-name">พนักงานผู้ยื่นลา <span class="required">*</span></label>
-                <div class="read-only-text">นาย admin usermesss</div>
+                <div class="read-only-text">{{ currentUser?.prefix_th }} {{ currentUser?.firstname_th }} {{ currentUser?.lastname_th }}</div>
               </div>
 
               <div class="form-group full-width">
                 <label for="employee-name">พนักงานผู้ลา <span class="required">*</span></label>
-                <select id="employee-name" v-model="leaveForm.employee" class="form-select">
+                <select id="employee-name" v-model="leaveForm.employee" class="form-select" required>
                   <option value="">เลือกพนักงานผู้ลา</option>
                   <option v-for="employee in employeeList" :key="employee.id" :value="employee.id">
                     {{ employee.name }}
@@ -98,36 +103,37 @@
               </div>
 
               <div class="form-group full-width">
-                <label>ประเภทการลา <span class="required">*</span></label>
+                <label for="leave-type">ประเภทการลา <span class="required">*</span></label>
                 <div class="radio-group">
-                  <label><input type="radio" v-model="leaveForm.leaveType" value="ลาป่วย"> ลาป่วย</label>
-                  <label><input type="radio" v-model="leaveForm.leaveType" value="ลากิจ"> ลากิจ</label>
-                  <label><input type="radio" v-model="leaveForm.leaveType" value="ลาพักร้อน"> ลาพักร้อน</label>
+                  <label v-for="leaveType in leaveTypes" :key="leaveType.id">
+                    <input type="radio" v-model="leaveForm.leaveType" :value="leaveType.id" required>
+                    {{ leaveType.name }}
+                  </label>
                 </div>
               </div>
 
               <div class="form-group">
                 <label for="startDate">ตั้งแต่วันที่ <span class="required">*</span></label>
-                <input type="date" id="startDate" v-model="leaveForm.startDate" class="form-input">
+                <input type="date" id="startDate" v-model="leaveForm.startDate" class="form-input" required>
               </div>
 
               <div class="form-group">
                 <label for="endDate">ถึงวันที่ <span class="required">*</span></label>
-                <input type="date" id="endDate" v-model="leaveForm.endDate" class="form-input">
+                <input type="date" id="endDate" v-model="leaveForm.endDate" class="form-input" required>
               </div>
-              
+
               <div class="form-group full-width">
                 <label>ช่วงเวลา <span class="required">*</span></label>
                 <div class="radio-group">
-                  <label><input type="radio" v-model="leaveForm.timePeriod" value="ครึ่งวันเช้า"> ครึ่งวันเช้า</label>
-                  <label><input type="radio" v-model="leaveForm.timePeriod" value="ครึ่งวันบ่าย"> ครึ่งวันบ่าย</label>
-                  <label><input type="radio" v-model="leaveForm.timePeriod" value="ทั้งวัน"> ทั้งวัน</label>
+                  <label><input type="radio" v-model="leaveForm.timePeriod" value="morning"> ครึ่งวันเช้า</label>
+                  <label><input type="radio" v-model="leaveForm.timePeriod" value="afternoon"> ครึ่งวันบ่าย</label>
+                  <label><input type="radio" v-model="leaveForm.timePeriod" value="full"> ทั้งวัน</label>
                 </div>
               </div>
 
               <div class="form-group full-width">
                 <label for="reason">เหตุผลการลา <span class="required">*</span></label>
-                <textarea id="reason" v-model="leaveForm.reason" class="form-textarea" rows="3"></textarea>
+                <textarea id="reason" v-model="leaveForm.reason" class="form-textarea" rows="3" required></textarea>
               </div>
 
               <div class="form-group full-width">
@@ -139,12 +145,20 @@
                   </option>
                 </select>
               </div>
+
+              <div class="form-group full-width">
+                <label for="approver">หัวหน้างาน <span class="required">*</span></label>
+                <select id="approver" v-model="leaveForm.approver" class="form-select" required>
+                  <option value="">เลือกหัวหน้างาน</option>
+                  <option v-for="approver in approverList" :key="approver.id" :value="approver.id">
+                    {{ approver.name }}
+                  </option>
+                </select>
+              </div>
             </div>
-            
+
             <div class="form-actions">
-              <button type="button" class="btn-submit" @click="goToAdmin14Page">
-                ขอยื่นลา
-              </button>
+              <button type="submit" class="btn-submit">ยื่นคำขอ</button>
             </div>
           </form>
         </div>
@@ -154,17 +168,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, computed } from 'vue';
+import { ref, onMounted, reactive } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const token = ref<string | null>(null);
+const showProfileMenu = ref(false);
+const currentUser = ref<any>(null);
+const employeeList = ref<any[]>([]);
+const approverList = ref<any[]>([]);
+const substituteList = ref<any[]>([]);
+const leaveTypes = ref<any[]>([]);
 
-const showProfileMenu = ref(false)
 const toggleProfileMenu = () => {
-  showProfileMenu.value = !showProfileMenu.value
-}
+  showProfileMenu.value = !showProfileMenu.value;
+};
 
 const goTo = (path: string) => {
   router.push(path);
@@ -175,15 +194,15 @@ const goToAdminPage = () => {
 };
 
 const goToAdmin2Page = () => {
-  window.location.href = '/admin2';
+  router.push('/admin2');
 };
 
 const goToAdmin10Page = () => {
-  window.location.href = '/admin10';
+  router.push('/admin10');
 };
 
 const goToAdmin11Page = () => {
-  window.location.href = '/admin11';
+  router.push('/admin11');
 };
 
 const goToAdmin14Page = () => {
@@ -191,77 +210,140 @@ const goToAdmin14Page = () => {
 };
 
 const leaveForm = reactive({
-  submitter: 'นาย admin usermesss',
   employee: '',
   leaveType: '',
   startDate: '',
   endDate: '',
-  timePeriod: 'ทั้งวัน',
+  timePeriod: 'full',
   reason: '',
   approver: '',
   substitute: '',
+  created_by_admin: true,
 });
 
-const employeeList = ref([
-  { id: 1, name: 'นาย ก. ไก่' },
-  { id: 2, name: 'นาง ข. ไข่' },
-  { id: 3, name: 'นาย ค. ควาย' },
-]);
-
-const approverList = ref([
-  { id: 10, name: 'นาย A หัวหน้าห้องวิจัย' },
-  { id: 20, name: 'นางสาว B ผู้จัดการ' },
-]);
-
-const substituteList = ref([
-  { id: 101, name: 'นาย C พนักงาน' },
-  { id: 102, name: 'นาง D พนักงาน' },
-]);
-
-const submitForm = () => {
-  alert('ทำการส่งแบบฟอร์มขออนุมัติการลาแทนคนอื่น');
-  console.log('Form data:', leaveForm);
+const validateForm = () => {
+  if (!leaveForm.employee) {
+    alert('กรุณาเลือกพนักงานผู้ลา');
+    return false;
+  }
+  if (!leaveForm.leaveType) {
+    alert('กรุณาเลือกประเภทการลา');
+    return false;
+  }
+  if (!leaveForm.startDate || !leaveForm.endDate) {
+    alert('กรุณากรอกวันที่และถึงวันที่');
+    return false;
+  }
+  if (new Date(leaveForm.startDate) > new Date(leaveForm.endDate)) {
+    alert('วันที่สิ้นสุดต้องไม่เร็วกว่าวันที่เริ่มต้น');
+    return false;
+  }
+  if (!leaveForm.timePeriod) {
+    alert('กรุณาเลือกช่วงเวลา');
+    return false;
+  }
+  if (!leaveForm.reason) {
+    alert('กรุณากรอกเหตุผลการลา');
+    return false;
+  }
+  if (!leaveForm.approver) {
+    alert('กรุณาเลือกหัวหน้างาน');
+    return false;
+  }
+  return true;
 };
 
-const cancelForm = () => {
-  alert('ยกเลิกการยื่นใบลา');
+const submitForm = async () => {
+  if (!validateForm()) return;
+
+  const payload = {
+    on_behalf_of_id: leaveForm.employee,
+    leave_type_id: leaveForm.leaveType,
+    start_date: leaveForm.startDate,
+    end_date: leaveForm.endDate,
+    period: leaveForm.timePeriod,
+    reason: leaveForm.reason,
+    approver_id: leaveForm.approver,
+    substitute_id: leaveForm.substitute || null,
+    created_by_admin: leaveForm.created_by_admin,
+  };
+  console.log('Payload sent to API:', payload);
+
+  try {
+    const response = await axios.post(
+      'http://localhost:8000/api/leave/leave-requests/',
+      payload,
+      {
+        headers: { Authorization: `Token ${token.value}` },
+      }
+    );
+    alert('ยื่นคำขอสำเร็จ');
+    router.push('/admin14');
+  } catch (error: any) {
+    console.error('Error submitting form:', error.response?.data);
+    alert(
+      error.response?.data?.detail ||
+      JSON.stringify(error.response?.data) ||
+      'เกิดข้อผิดพลาดในการยื่นคำขอ'
+    );
+  }
 };
 
-const currentUser = ref<any>(null)
+const logout = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('token');
+  }
+  delete axios.defaults.headers.common['Authorization'];
+  router.push('/login');
+};
 
 onMounted(async () => {
-  if (typeof window !== "undefined") {
-    token.value = localStorage.getItem("token")
+  if (typeof window !== 'undefined') {
+    token.value = localStorage.getItem('token');
+    console.log('Token:', token.value);
   }
 
   if (!token.value) {
-    router.push('/login')
-    return
+    router.push('/login');
+    return;
   }
 
-  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`
+  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`;
 
   try {
-    const me = await axios.get('http://localhost:8000/api/users/me/')
-    currentUser.value = me.data;
+    const meResponse = await axios.get('http://localhost:8000/api/users/me/');
+    currentUser.value = meResponse.data;
+    console.log('Current User:', currentUser.value);
 
     if (currentUser.value.role !== 'admin') {
       router.push('/login');
       return;
     }
-  } catch (err) {
-    console.error(err)
-    router.push('/login')
-  }
-})
 
-function logout() {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("token")
+    const usersResponse = await axios.get('http://localhost:8000/api/users/for-list/');
+    console.log('Users:', usersResponse.data);
+    employeeList.value = usersResponse.data.filter(
+      (user: any) => user.id !== currentUser.value.id
+    );
+    approverList.value = usersResponse.data.filter(
+      (user: any) => user.role === 'admin' || user.role === 'manager'
+    );
+    substituteList.value = usersResponse.data.filter(
+      (user: any) => user.id !== currentUser.value.id
+    );
+
+    const leaveTypesResponse = await axios.get('http://localhost:8000/api/leave/leave-types/');
+    leaveTypes.value = leaveTypesResponse.data;
+    console.log('Leave Types:', leaveTypes.value);
+    leaveForm.leaveType = leaveTypes.value.find((lt: any) => lt.name === 'ลาป่วย')?.id || '';
+    if (!leaveForm.leaveType) {
+      console.warn('Warning: No leave type ID found for ลาป่วย');
+    }
+  } catch (error) {
+    console.error('Error during initialization:', error);
+    router.push('/login');
   }
-  delete axios.defaults.headers.common['Authorization']
-  router.push("/login")
-}
+});
 </script>
 
 <style scoped>

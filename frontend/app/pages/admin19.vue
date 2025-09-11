@@ -90,9 +90,10 @@
               <div class="form-group full-width">
                 <label>ประเภทการลา <span class="required">*</span></label>
                 <div class="radio-group">
-                  <label><input type="radio" v-model="leaveForm.leaveType" value="ลาป่วย"> ลาป่วย</label>
-                  <label><input type="radio" v-model="leaveForm.leaveType" value="ลากิจ"> ลากิจ</label>
-                  <label><input type="radio" v-model="leaveForm.leaveType" value="ลาพักร้อน"> ลาพักร้อน</label>
+                  <label v-for="leaveType in leaveTypes" :key="leaveType.id">
+                    <input type="radio" v-model="leaveForm.leaveType" :value="leaveType.id" required>
+                    {{ leaveType.name }}
+                  </label>
                 </div>
               </div>
 
@@ -142,6 +143,7 @@ import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const token = ref<string | null>(null);
+const leaveTypes = ref<any[]>([]);
 
 const showProfileMenu = ref(false)
 const toggleProfileMenu = () => {
@@ -228,6 +230,14 @@ onMounted(async () => {
     if (currentUser.value.role !== 'admin') {
       router.push('/login');
       return;
+    }
+
+    const leaveTypesResponse = await axios.get('http://localhost:8000/api/leave/leave-types/');
+    leaveTypes.value = leaveTypesResponse.data;
+    console.log('Leave Types:', leaveTypes.value);
+    leaveForm.leaveType = leaveTypes.value.find((lt: any) => lt.name === 'ลาป่วย')?.id || '';
+    if (!leaveForm.leaveType) {
+      console.warn('Warning: No leave type ID found for ลาป่วย');
     }
   } catch (err) {
     console.error(err)
