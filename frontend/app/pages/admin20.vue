@@ -144,7 +144,7 @@
             <div class="form-actions">
               <button type="button" class="btn-submit" @click="goToAdmin14Page">
                 ขอยื่นลา
-             </button>
+              </button>
             </div>
           </form>
         </div>
