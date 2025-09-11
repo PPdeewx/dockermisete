@@ -4,32 +4,28 @@
       <div class="sidebar-header">
         <span>MIS ETE</span>
       </div>
-      <ul class="nav-menu">
-        <li class="nav-item">
-          <a href="#" class="nav-link"><i class="fas fa-home"></i> หน้าหลัก</a>
-        </li>
+        <ul class="nav-menu">
+         <li class="nav-item">
+       <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
+     <i class="fas fa-home"></i> หน้าหลัก
+   </a>
+</li>
         <li class="nav-item has-submenu active">
           <a href="#" class="nav-link"><i class="fas fa-users"></i> บุคลากร</a>
           <ul class="submenu active">
-            <li><a href="#" class="submenu-link">พนักงานปัจจุบัน</a></li>
+            <li><a href="/admin2" class="submenu-link">พนักงานปัจจุบัน</a></li>
             <li><a href="#" class="submenu-link active">พนักงานที่ลาออก</a></li>
-            <li><a href="#" class="submenu-link">บุคลากรภายนอก</a></li>
-            <li><a href="#" class="submenu-link">พนักงาน EDDP</a></li>
-            <li><a href="#" class="submenu-link">เพิ่ม/แก้ไข/ลบ พนักงาน</a></li>
-            <li><a href="#" class="submenu-link">เพิ่มบุคลากรภายนอก</a></li>
-            <li><a href="#" class="submenu-link">เปลี่ยนสถานะพนักงาน</a></li>
-            <li><a href="#" class="submenu-link">กำหนดโควต้าลา(ทั้งหมด)</a></li>
+            <li><a href="/admin4" class="submenu-link">บุคลากรภายนอก</a></li>
+            <li><a href="/admin5" class="submenu-link">พนักงาน EDDP</a></li>
+            <li><a href="/admin6" class="submenu-link">เพิ่ม/แก้ไข/ลบ พนักงาน</a></li>
+            <li><a href="/admin7" class="submenu-link">เพิ่มบุคลากรภายนอก</a></li>
+            <li><a href="/admin8" class="submenu-link">เปลี่ยนสถานะพนักงาน</a></li>
+            <li><a href="/admin9" class="submenu-link">กำหนดโควต้าลา(ทั้งหมด)</a></li>
           </ul>
         </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link"><i class="fas fa-flask"></i> ห้องวิจัย</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link"><i class="fas fa-calendar-alt"></i> วันหยุด</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link"><i class="fas fa-cog"></i> ระบบการปฏิบัติงาน</a>
-        </li>
+        <li class="nav-item"><a href="/admin10" class="nav-link" @click.prevent="goToAdmin10Page"><i class="fas fa-flask"></i> ห้องวิจัย</a></li>
+        <li class="nav-item"><a href="/admin11" class="nav-link" @click.prevent="goToAdmin11Page"><i class="fas fa-calendar-alt"></i> วันหยุด</a></li>
+        <li class="nav-item"><a href="/admin12" class="nav-link" @click.prevent="goToAdmin12Page"><i class="fas fa-cog"></i> ระบบการปฏิบัติงาน</a></li>
       </ul>
     </div>
 
@@ -72,6 +68,12 @@
           <div class="left-section">
             <i class="fas fa-user-circle title-icon"></i>
             <h2>พนักงานที่ลาออก</h2>
+          </div>
+          <div class="right-section">
+            <button class="add-external-staff-button" @click.prevent="goToChangeStatusPage">
+              <i class="fas fa-plus-circle"></i>
+              เปลี่ยนสถานะ
+            </button>
           </div>
         </div>
 
@@ -134,6 +136,26 @@ const toggleProfileMenu = () => {
 
 const goTo = (path: string) => {
   router.push(path);
+};
+
+const goToAdminPage = () => {
+  router.push('/admin');
+};
+
+const goToAdmin10Page = () => {
+  router.push('/admin10');
+};
+
+const goToAdmin11Page = () => {
+  router.push('/admin11');
+};
+
+const goToAdmin12Page = () => {
+  router.push('/admin12');
+};
+
+const goToChangeStatusPage = () => {
+  router.push('/admin8');
 };
 
 const employees = ref([])
@@ -474,6 +496,28 @@ tr:nth-child(even) {
 .menu-item i {
   width: 20px;
   text-align: center;
+}
+
+.add-external-staff-button {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 5px;
+  border: none;
+  background-color: #4CAF50;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.add-external-staff-button:hover {
+  background-color: #45a049;
+}
+
+.add-external-staff-button i {
+  margin-right: 5px;
 }
 
 .btn-reinstate {
