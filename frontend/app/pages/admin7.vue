@@ -4,26 +4,28 @@
       <div class="sidebar-header">
         <span>MIS ETE</span>
       </div>
-      <ul class="nav-menu">
-        <li class="nav-item">
-          <a href="#" class="nav-link"><i class="fas fa-home"></i> หน้าหลัก</a>
-        </li>
+        <ul class="nav-menu">
+         <li class="nav-item">
+       <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
+     <i class="fas fa-home"></i> หน้าหลัก
+   </a>
+</li>
         <li class="nav-item has-submenu active">
           <a href="#" class="nav-link"><i class="fas fa-users"></i> บุคลากร</a>
           <ul class="submenu active">
-            <li><a href="#" class="submenu-link">พนักงานปัจจุบัน</a></li>
-            <li><a href="#" class="submenu-link">พนักงานที่ลาออก</a></li>
-            <li><a href="#" class="submenu-link">บุคลากรภายนอก</a></li>
-            <li><a href="#" class="submenu-link">พนักงาน EDDP</a></li>
-            <li><a href="#" class="submenu-link">เพิ่ม/แก้ไข/ลบ พนักงาน</a></li>
+            <li><a href="/admin2" class="submenu-link">พนักงานปัจจุบัน</a></li>
+            <li><a href="/admin3" class="submenu-link">พนักงานที่ลาออก</a></li>
+            <li><a href="/admin4" class="submenu-link">บุคลากรภายนอก</a></li>
+            <li><a href="/admin5" class="submenu-link">พนักงาน EDDP</a></li>
+            <li><a href="/admin6" class="submenu-link">เพิ่ม/แก้ไข/ลบ พนักงาน</a></li>
             <li><a href="#" class="submenu-link active">เพิ่มบุคลากรภายนอก</a></li>
-            <li><a href="#" class="submenu-link">เปลี่ยนสถานะพนักงาน</a></li>
-            <li><a href="#" class="submenu-link">กำหนดโควต้าลา(ทั้งหมด)</a></li>
+            <li><a href="/admin8" class="submenu-link">เปลี่ยนสถานะพนักงาน</a></li>
+            <li><a href="/admin9" class="submenu-link">กำหนดโควต้าลา(ทั้งหมด)</a></li>
           </ul>
         </li>
-        <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-flask"></i> ห้องวิจัย</a></li>
-        <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-calendar-alt"></i> วันหยุด</a></li>
-        <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-cog"></i> ระบบการปฏิบัติงาน</a></li>
+        <li class="nav-item"><a href="/admin10" class="nav-link" @click.prevent="goToAdmin10Page"><i class="fas fa-flask"></i> ห้องวิจัย</a></li>
+        <li class="nav-item"><a href="/admin11" class="nav-link" @click.prevent="goToAdmin11Page"><i class="fas fa-calendar-alt"></i> วันหยุด</a></li>
+        <li class="nav-item"><a href="/admin12" class="nav-link" @click.prevent="goToAdmin12Page"><i class="fas fa-cog"></i> ระบบการปฏิบัติงาน</a></li>
       </ul>
     </div>
 
@@ -160,7 +162,7 @@ const token = ref<string | null>(null);
 const showProfileMenu = ref(false);
 const errorMessage = ref<string | null>(null);
 const successMessage = ref<string | null>(null);
-const fieldErrors = ref<{ [key: string]: string }>({}); // เพิ่มตัวแปรสำหรับเก็บข้อผิดพลาดของแต่ละฟิลด์
+const fieldErrors = ref<{ [key: string]: string }>({}); 
 
 const toggleProfileMenu = () => {
   showProfileMenu.value = !showProfileMenu.value;
@@ -168,6 +170,22 @@ const toggleProfileMenu = () => {
 
 const goTo = (path: string) => {
   router.push(path);
+};
+
+const goToAdminPage = () => {
+  router.push('/admin');
+};
+
+const goToAdmin10Page = () => {
+  router.push('/admin10');
+};
+
+const goToAdmin11Page = () => {
+  router.push('/admin11');
+};
+
+const goToAdmin12Page = () => {
+  router.push('/admin12');
 };
 
 const thaiNamePrefixOptions = ref(['นาย', 'นาง', 'นางสาว']);
@@ -186,11 +204,10 @@ const form = reactive({
 });
 
 const submitForm = async () => {
-  // รีเซ็ตข้อผิดพลาดก่อนหน้า
+
   errorMessage.value = null;
   fieldErrors.value = {};
 
-  // ตรวจสอบข้อมูลใน frontend
   if (!form.email.includes('@')) {
     errorMessage.value = 'กรุณากรอก email ให้ถูกต้อง';
     return;
@@ -229,10 +246,10 @@ const submitForm = async () => {
     }, 2000);
   } catch (error: any) {
     console.error('Full error response:', JSON.stringify(error.response?.data, null, 2));
-    // จัดการข้อผิดพลาดจาก backend
+   
     if (error.response?.data) {
       const errors = error.response.data;
-      // เก็บข้อผิดพลาดของแต่ละฟิลด์
+    
       for (const [field, messages] of Object.entries(errors)) {
         if (Array.isArray(messages)) {
           fieldErrors.value[field] = errorTranslations[messages[0]] || messages[0];
@@ -240,7 +257,7 @@ const submitForm = async () => {
           fieldErrors.value[field] = errorTranslations[messages] || messages;
         }
       }
-      // หากมี non_field_errors หรือข้อผิดพลาดทั่วไป
+      
       errorMessage.value =
         errorTranslations[errors?.email?.[0]] ||
         errorTranslations[errors?.username?.[0]] ||
