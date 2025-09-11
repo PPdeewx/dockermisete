@@ -6,9 +6,9 @@
       </div>
       <ul class="nav-menu">
         <li class="nav-item">
-          <router-link to="/admin16" class="nav-link">
+          <NuxtLink to="/admin16" class="nav-link">
             <i class="fas fa-home"></i> หน้าหลัก
-          </router-link>
+          </NuxtLink>
         </li>
         <li class="nav-item has-submenu active">
           <a href="#" class="nav-link"><i class="fas fa-users"></i> บุคลากร</a>
@@ -24,13 +24,19 @@
           </ul>
         </li>
         <li class="nav-item">
-          <a href="#" class="nav-link"><i class="fas fa-flask"></i> ห้องวิจัย</a>
+          <NuxtLink to="/admin10" class="nav-link">
+            <i class="fas fa-flask"></i> ห้องวิจัย
+          </NuxtLink>
         </li>
         <li class="nav-item">
-          <a href="#" class="nav-link"><i class="fas fa-calendar-alt"></i> วันหยุด</a>
+          <NuxtLink to="/admin11" class="nav-link">
+            <i class="fas fa-calendar-alt"></i> วันหยุด
+          </NuxtLink>
         </li>
         <li class="nav-item">
-          <a href="#" class="nav-link"><i class="fas fa-cog"></i> ระบบการปฏิบัติงาน</a>
+          <NuxtLink to="/admin12" class="nav-link">
+            <i class="fas fa-cog"></i> ระบบการปฏิบัติงาน
+          </NuxtLink>
         </li>
       </ul>
     </div>
@@ -46,7 +52,6 @@
             <i class="fas fa-user-circle"></i>
             <span class="username">{{ currentUser?.username }} ตำแหน่ง: {{ currentUser?.role }}</span>
             <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
-
             <div class="user-profile-menu" v-if="showProfileMenu">
               <button class="menu-item" @click.stop="goTo('/admin28')">
                 <i class="fas fa-user"></i>
@@ -108,6 +113,7 @@
                   <td>{{ emp.phone_number }}</td>
                   <td>{{ emp.email }}</td>
                   <td>
+                    <button @click="viewEmployee(emp.id)">👁️</button>
                     <button @click="editEmployee(emp.id)">✏️</button>
                     <button @click="deleteEmployee(emp.id)">❌</button>
                   </td>
@@ -200,20 +206,19 @@
         </form>
       </div>
     </div>
-
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, reactive } from 'vue'
-import { useRouter } from 'vue-router'
-import axios from 'axios'
+import { ref, onMounted, computed, reactive } from 'vue';
+import { useRouter } from 'vue-router';
+import axios from 'axios';
 
-const router = useRouter()
-const token = ref<string | null>(null)
-const employees = ref<any[]>([])
-const search = ref("")
-const showEditModal = ref(false)
+const router = useRouter();
+const token = ref<string | null>(null);
+const employees = ref<any[]>([]);
+const search = ref("");
+const showEditModal = ref(false);
 const form = reactive<any>({
   id: null,
   username: '',
@@ -227,71 +232,82 @@ const form = reactive<any>({
   quota_sick: 0,
   quota_casual: 0,
   quota_other: 0
-})
+});
 
-const currentUser = ref<any>(null)
+const currentUser = ref<any>(null);
+const showProfileMenu = ref(false);
 
-const showProfileMenu = ref(false)
 const toggleProfileMenu = () => {
-  showProfileMenu.value = !showProfileMenu.value
-}
-const goToAdd = () => router.push('/admin6')
+  showProfileMenu.value = !showProfileMenu.value;
+};
+
+const handleBodyClick = (event: MouseEvent) => {
+  if (showProfileMenu.value && !(event.target as HTMLElement).closest('.user-profile')) {
+    showProfileMenu.value = false;
+  }
+};
+
+const goToAdd = () => router.push('/admin6');
 
 const goTo = (path: string) => {
   router.push(path);
 };
 
-const departments = ref<any[]>([])
-const groups = ref<any[]>([])
+const departments = ref<any[]>([]);
+const groups = ref<any[]>([]);
 
 const loadGroups = async () => {
   try {
-    const res = await axios.get('http://localhost:8000/api/users/groups/')
-    groups.value = res.data.map((g: any) => ({ value: g.name, label: g.name }))
-  } catch(err) {
-    console.error(err)
+    const res = await axios.get('http://localhost:8000/api/users/groups/');
+    groups.value = res.data.map((g: any) => ({ value: g.name, label: g.name }));
+  } catch (err) {
+    console.error(err);
   }
-}
+};
 
 const loadDepartments = async () => {
   try {
-    const res = await axios.get('http://localhost:8000/api/users/departments/')
-    departments.value = res.data
-  } catch(err) {
-    console.error(err)
+    const res = await axios.get('http://localhost:8000/api/users/departments/');
+    departments.value = res.data;
+  } catch (err) {
+    console.error(err);
   }
-}
+};
 
 const loadEmployees = async () => {
   try {
-    const res = await axios.get('http://localhost:8000/api/users/filter/?status=active')
-    employees.value = res.data
+    const res = await axios.get('http://localhost:8000/api/users/filter/?status=active');
+    employees.value = res.data;
   } catch (err) {
-    console.error(err)
+    console.error(err);
   }
-}
+};
+
+const viewEmployee = (id: number) => {
+  router.push(`/admin24/${id}`);
+};
 
 const editEmployee = async (id: number) => {
   try {
-    const res = await axios.get(`http://localhost:8000/api/users/${id}/`)
-    form.id = res.data.id
-    form.username = res.data.username
-    form.email = res.data.email
-    form.phone_number = res.data.phone_number
-    form.role = res.data.role || ''
-    form.position = res.data.groupName || (res.data.groups?.[0]?.name || '')
-    form.status = res.data.status || 'active'
-    form.quota_casual = res.data.quota_casual || 0
-    form.quota_sick = res.data.quota_sick || 0
-    form.quota_vacation = res.data.quota_vacation || 0
-    form.quota_other = res.data.quota_other || 0
-    form.department = res.data.department || { id: null, name_th: '' }
-    showEditModal.value = true
+    const res = await axios.get(`http://localhost:8000/api/users/${id}/`);
+    form.id = res.data.id;
+    form.username = res.data.username;
+    form.email = res.data.email;
+    form.phone_number = res.data.phone_number;
+    form.role = res.data.role || '';
+    form.position = res.data.groupName || (res.data.groups?.[0]?.name || '');
+    form.status = res.data.status || 'active';
+    form.quota_casual = res.data.quota_casual || 0;
+    form.quota_sick = res.data.quota_sick || 0;
+    form.quota_vacation = res.data.quota_vacation || 0;
+    form.quota_other = res.data.quota_other || 0;
+    form.department = res.data.department || { id: null, name_th: '' };
+    showEditModal.value = true;
   } catch (err) {
-    console.error(err)
-    alert("โหลดข้อมูลไม่สำเร็จ")
+    console.error(err);
+    alert("โหลดข้อมูลไม่สำเร็จ");
   }
-}
+};
 
 const saveEdit = async () => {
   try {
@@ -306,60 +322,73 @@ const saveEdit = async () => {
       quota_sick: form.quota_sick,
       quota_vacation: form.quota_vacation,
       quota_other: form.quota_other
-    }
+    };
 
-    await axios.patch(`http://localhost:8000/api/users/${form.id}/`, payload)
-    alert("แก้ไขข้อมูลสำเร็จ")
-    showEditModal.value = false
-    loadEmployees()
+    await axios.patch(`http://localhost:8000/api/users/${form.id}/`, payload);
+    alert("แก้ไขข้อมูลสำเร็จ");
+    showEditModal.value = false;
+    loadEmployees();
   } catch (err: any) {
-    console.error(err.response?.data || err)
-    alert("แก้ไขไม่สำเร็จ: " + JSON.stringify(err.response?.data))
+    console.error(err.response?.data || err);
+    alert("แก้ไขไม่สำเร็จ: " + JSON.stringify(err.response?.data));
   }
-}
+};
 
-const deleteEmployee = async (id:number) => {
-  if(!confirm("คุณต้องการลบพนักงานคนนี้หรือไม่?")) return
+const deleteEmployee = async (id: number) => {
+  if (!confirm("คุณต้องการลบพนักงานคนนี้หรือไม่?")) return;
   try {
-    await axios.delete(`http://localhost:8000/api/users/${id}/`)
-    employees.value = employees.value.filter(emp=>emp.id!==id)
-    alert("ลบพนักงานสำเร็จ")
-  } catch(err) {
-    console.error(err)
-    alert("ไม่สามารถลบได้")
+    await axios.delete(`http://localhost:8000/api/users/${id}/`);
+    employees.value = employees.value.filter(emp => emp.id !== id);
+    alert("ลบพนักงานสำเร็จ");
+  } catch (err) {
+    console.error(err);
+    alert("ไม่สามารถลบได้");
   }
-}
+};
 
-onMounted(async ()=>{
-  if(typeof window!=="undefined") token.value=localStorage.getItem("token")
-  if(!token.value) { router.push('/login'); return }
-  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`
+onMounted(async () => {
+  token.value = localStorage.getItem("token");
+  if (!token.value) {
+    router.push('/login');
+    return;
+  }
+  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`;
   try {
-    const me = await axios.get('http://localhost:8000/api/users/me/')
-    currentUser.value=me.data
-    if(currentUser.value.role!=='admin') { router.push('/login'); return }
-    await loadEmployees()
-    loadGroups()
-    loadDepartments()
-  } catch(err) { console.error(err); router.push('/login') }
-})
+    const me = await axios.get('http://localhost:8000/api/users/me/');
+    currentUser.value = me.data;
+    if (currentUser.value.role !== 'admin') {
+      router.push('/login');
+      return;
+    }
+    await loadEmployees();
+    loadGroups();
+    loadDepartments();
+  } catch (err) {
+    console.error(err);
+    router.push('/login');
+  }
+
+  document.addEventListener('click', handleBodyClick);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleBodyClick);
+});
+
+const filteredEmployees = computed(() => {
+  if (!search.value) return employees.value;
+  return employees.value.filter(emp =>
+    (emp.firstname_th + " " + emp.lastname_th).includes(search.value) ||
+    emp.email.includes(search.value) ||
+    (emp.employee_code || "").includes(search.value)
+  );
+});
 
 function logout() {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("token")
-  }
+  if (typeof window !== "undefined") localStorage.removeItem("token")
   delete axios.defaults.headers.common['Authorization']
   router.push("/login")
 }
-
-const filteredEmployees = computed(()=> {
-  if(!search.value) return employees.value
-  return employees.value.filter(emp=>
-    (emp.firstname_th + " " + emp.lastname_th).includes(search.value) ||
-    emp.email.includes(search.value) ||
-    (emp.employee_code||"").includes(search.value)
-  )
-})
 </script>
 
 <style scoped>

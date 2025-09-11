@@ -4,23 +4,44 @@
       <div class="sidebar-header">
         <span>MIS ETE</span>
       </div>
-        <ul class="nav-menu">
-         <li class="nav-item">
-       <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
-     <i class="fas fa-home"></i> หน้าหลัก
-   </a>
-</li>
-        <li class="nav-item has-submenu">
-          <a href="/admin2" class="nav-link"@click.prevent="goToAdmin2Page">
-            <i class="fas fa-users"></i> บุคลากร
-          </a>
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <NuxtLink to="/admin" class="nav-link" @click.prevent="goToAdminPage">
+            <i class="fas fa-home"></i> หน้าหลัก
+          </NuxtLink>
         </li>
-        <li class="nav-item"><a href="/admin10" class="nav-link" @click.prevent="goToAdmin10Page"><i class="fas fa-flask"></i> ห้องวิจัย</a></li>
-        <li class="nav-item"><a href="/admin11" class="nav-link" @click.prevent="goToAdmin11Page"><i class="fas fa-calendar-alt"></i> วันหยุด</a></li>
-        <li class="nav-item"><a href="/admin12" class="nav-link" @click.prevent="goToAdmin12Page"><i class="fas fa-cog"></i> ระบบการปฏิบัติงาน</a></li>
+        <li class="nav-item has-submenu">
+          <NuxtLink to="/admin2" class="nav-link" @click.prevent="goToAdmin2Page">
+            <i class="fas fa-users"></i> บุคลากร
+          </NuxtLink>
+          <ul class="submenu">
+            <li><a href="#" class="submenu-link">พนักงานปัจจุบัน</a></li>
+            <li><a href="#" class="submenu-link">พนักงานที่ลาออก</a></li>
+            <li><a href="#" class="submenu-link">บุคลากรภายนอก</a></li>
+            <li><a href="#" class="submenu-link">พนักงาน EDDP</a></li>
+            <li><a href="#" class="submenu-link">เพิ่ม/แก้ไข/ลบ พนักงาน</a></li>
+            <li><a href="#" class="submenu-link">เพิ่มบุคลากรภายนอก</a></li>
+            <li><a href="#" class="submenu-link">เปลี่ยนสถานะพนักงาน</a></li>
+            <li><a href="#" class="submenu-link">กำหนดโควต้าลา(ทั้งหมด)</a></li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <NuxtLink to="/admin10" class="nav-link" @click.prevent="goToAdmin10Page">
+            <i class="fas fa-flask"></i> ห้องวิจัย
+          </NuxtLink>
+        </li>
+        <li class="nav-item">
+          <NuxtLink to="/admin11" class="nav-link" @click.prevent="goToAdmin11Page">
+            <i class="fas fa-calendar-alt"></i> วันหยุด
+          </NuxtLink>
+        </li>
+        <li class="nav-item">
+          <NuxtLink to="/admin12" class="nav-link" @click.prevent="goToAdmin12Page">
+            <i class="fas fa-cog"></i> ระบบการปฏิบัติงาน
+          </NuxtLink>
+        </li>
       </ul>
     </div>
-
 
     <div class="main-content">
       <div class="top-bar">
@@ -33,7 +54,6 @@
             <i class="fas fa-user-circle"></i>
             <span class="username">{{ currentUser?.username }} ตำแหน่ง: {{ currentUser?.role }}</span>
             <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
-
             <div class="user-profile-menu" v-if="showProfileMenu">
               <button class="menu-item" @click.stop="goTo('/admin28')">
                 <i class="fas fa-user"></i>
@@ -61,23 +81,25 @@
           <h2><i class="fas fa-user-circle"></i> ข้อมูลพนักงานอย่างละเอียด</h2>
         </div>
 
-        <div class="form-section">
+        <div v-if="loading" class="loading">กำลังโหลด...</div>
+        <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+        <div v-if="employee" class="form-section">
           <div class="form-grid">
             <div class="form-group">
-              <label for="thaiName">ชื่อภาษาไทย :</label>
-              <input type="text" id="thaiName" class="form-input">
+              <label>ชื่อภาษาไทย :</label>
+              <span>{{ employee.prefix_th }} {{ employee.firstname_th }} {{ employee.lastname_th }}</span>
             </div>
             <div class="form-group">
-              <label for="engName">ชื่อภาษาอังกฤษ :</label>
-              <input type="text" id="engName" class="form-input">
+              <label>ชื่อภาษาอังกฤษ :</label>
+              <span>{{ employee.firstname_en || '-' }} {{ employee.lastname_en || '-' }}</span>
             </div>
             <div class="form-group">
-              <label for="position">ตำแหน่ง :</label>
-              <input type="text" id="position" class="form-input">
+              <label>ตำแหน่ง :</label>
+              <span>{{ employee.groupName || employee.groups?.[0]?.name || '-' }}</span>
             </div>
             <div class="form-group">
-              <label for="researchLab">ห้องวิจัย :</label>
-              <input type="text" id="researchLab" class="form-input">
+              <label>ห้องวิจัย :</label>
+              <span>{{ employee.department?.name_th || '-' }}</span>
             </div>
           </div>
 
@@ -85,50 +107,58 @@
             <div class="form-box">
               <label class="box-title">ประเภทการจ้างงาน :</label>
               <div class="form-group">
-                <label for="employmentType">ประเภทการจ้างงาน :</label>
-                <input type="text" id="employmentType" class="form-input">
+                <label>ประเภทการจ้างงาน :</label>
+                <span>{{ employee.employment_type || '-' }}</span>
               </div>
               <div class="form-group">
-                <label for="hireDate">วันที่รับเข้าทำงาน :</label>
-                <input type="text" id="hireDate" class="form-input">
+                <label>วันที่รับเข้าทำงาน :</label>
+                <span>{{ employee.start_date || '-' }}</span>
               </div>
               <div class="form-group">
-                <label for="birthDate">วันเกิด :</label>
-                <input type="text" id="birthDate" class="form-input">
+                <label>วันเกิด :</label>
+                <span>{{ employee.dob || '-' }}</span>
               </div>
               <div class="form-group">
-                <label for="address">ที่อยู่ :</label>
-                <input type="text" id="address" class="form-input">
+                <label>ที่อยู่ :</label>
+                <span>{{ employee.address || '-' }}</span>
               </div>
               <div class="form-group">
-                <label for="email">Email :</label>
-                <input type="text" id="email" class="form-input">
+                <label>Email :</label>
+                <span>{{ employee.email || '-' }}</span>
               </div>
               <div class="form-group">
-                <label for="phone">เบอร์โทรศัพท์ :</label>
-                <input type="text" id="phone" class="form-input">
+                <label>เบอร์โทรศัพท์ :</label>
+                <span>{{ employee.phone_number || '-' }}</span>
               </div>
             </div>
-            
+
             <div class="form-box">
-              <label class="box-title">รหัสของระบบอื่นๆ คือ :</label>
+              <label class="box-title">รหัสของระบบอื่นๆ :</label>
               <div class="form-group">
-                <label for="accountCode">รหัสบัญชีคงเหลือ :</label>
-                <input type="text" id="accountCode" class="form-input">
+                <label>รหัสบัญชี :</label>
+                <span>{{ employee.employee_code || '-' }}</span>
               </div>
               <div class="form-group">
-                <label for="leaveCode">รหัสลาคงเหลือ :</label>
-                <input type="text" id="leaveCode" class="form-input">
+                <label>ลาป่วยคงเหลือ :</label>
+                <span>{{ employee.quota_sick || '0' }}</span>
               </div>
               <div class="form-group">
-                <label for="vacationCode">รหัสลาพักร้อนคงเหลือ :</label>
-                <input type="text" id="vacationCode" class="form-input">
+                <label>ลาพักร้อนคงเหลือ :</label>
+                <span>{{ employee.quota_vacation || '0' }}</span>
               </div>
               <div class="form-group">
-                <label for="allowanceCode">รหัสเบี้ยเลี้ยงคงเหลือ :</label>
-                <input type="text" id="allowanceCode" class="form-input">
+                <label>ลากิจคงเหลือ :</label>
+                <span>{{ employee.quota_casual || '0' }}</span>
+              </div>
+              <div class="form-group">
+                <label>ลาอื่นๆคงเหลือ :</label>
+                <span>{{ employee.quota_other || '0' }}</span>
               </div>
             </div>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn-back" @click="goToAdmin2Page">ย้อนกลับ</button>
           </div>
         </div>
       </div>
@@ -137,17 +167,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, computed } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import axios from 'axios';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 
 const router = useRouter();
+const route = useRoute();
 const token = ref<string | null>(null);
+const currentUser = ref<any>(null);
+const employee = ref<any>(null);
+const loading = ref(false);
+const errorMessage = ref('');
+const showProfileMenu = ref(false);
 
-const showProfileMenu = ref(false)
 const toggleProfileMenu = () => {
-  showProfileMenu.value = !showProfileMenu.value
-}
+  showProfileMenu.value = !showProfileMenu.value;
+};
+
+const handleBodyClick = (event: MouseEvent) => {
+  if (showProfileMenu.value && !(event.target as HTMLElement).closest('.user-profile')) {
+    showProfileMenu.value = false;
+  }
+};
 
 const goTo = (path: string) => {
   router.push(path);
@@ -158,57 +199,83 @@ const goToAdminPage = () => {
 };
 
 const goToAdmin2Page = () => {
-  window.location.href = '/admin2';
+  router.push('/admin2');
 };
 
 const goToAdmin10Page = () => {
-  window.location.href = '/admin10';
+  router.push('/admin10');
 };
 
 const goToAdmin11Page = () => {
-  window.location.href = '/admin11';
+  router.push('/admin11');
 };
 
 const goToAdmin12Page = () => {
-  window.location.href = '/admin12';
+  router.push('/admin12');
 };
 
-const currentUser = ref<any>(null)
+const logout = () => {
+  localStorage.removeItem("token");
+  delete axios.defaults.headers.common['Authorization'];
+  router.push("/login");
+};
+
+const loadEmployee = async (id: number) => {
+  loading.value = true;
+  errorMessage.value = '';
+  try {
+    const response = await axios.get(`http://localhost:8000/api/users/${id}/`);
+    employee.value = response.data;
+    console.log('Employee data:', employee.value);
+  } catch (err: any) {
+    console.error('Error fetching employee data:', err);
+    if (err.response?.status === 404) {
+      errorMessage.value = 'ไม่พบข้อมูลพนักงาน';
+    } else {
+      errorMessage.value = 'ไม่สามารถโหลดข้อมูลพนักงานได้';
+    }
+  } finally {
+    loading.value = false;
+  }
+};
 
 onMounted(async () => {
-  if (typeof window !== "undefined") {
-    token.value = localStorage.getItem("token")
-  }
+  token.value = localStorage.getItem("token");
 
   if (!token.value) {
-    router.push('/login')
-    return
+    router.push('/login');
+    return;
   }
 
-  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`
+  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`;
 
   try {
-    const me = await axios.get('http://localhost:8000/api/users/me/')
+    const me = await axios.get('http://localhost:8000/api/users/me/');
     currentUser.value = me.data;
 
     if (currentUser.value.role !== 'admin') {
       router.push('/login');
       return;
     }
+
+    const employeeId = route.params.id;
+    if (employeeId) {
+      await loadEmployee(Number(employeeId));
+    } else {
+      errorMessage.value = 'ไม่พบรหัสพนักงาน';
+      router.push('/admin2');
+    }
   } catch (err) {
-    console.error(err)
-    router.push('/login')
+    console.error('Error fetching user data:', err);
+    router.push('/login');
   }
-})
 
-function logout() {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("token")
-  }
-  delete axios.defaults.headers.common['Authorization']
-  router.push("/login")
-}
+  document.addEventListener('click', handleBodyClick);
+});
 
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleBodyClick);
+});
 </script>
 
 <style scoped>
@@ -416,26 +483,33 @@ function logout() {
 }
 
 .form-section {
-  padding: 10px 0;
+  margin-top: 1rem;
+}
+
+.form-grid, .form-grid-columns-2 {
+  display: grid;
+  gap: 1rem;
 }
 
 .form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
 }
 
 .form-grid-columns-2 {
-  display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  margin-top: 20px;
 }
 
 .form-box {
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 15px;
+  border: 1px solid #ddd;
+  padding: 1rem;
+  border-radius: 4px;
+}
+
+.box-title {
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  display: block;
 }
 
 .form-box .box-title {
@@ -447,14 +521,19 @@ function logout() {
 
 .form-group {
   display: flex;
-  align-items: center;
-  margin-bottom: 10px;
+  flex-direction: column;
 }
 
 .form-group label {
   font-weight: bold;
-  margin-right: 10px;
-  min-width: 150px;
+  margin-bottom: 0.5rem;
+}
+
+.form-group span {
+  padding: 0.5rem;
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 4px;
 }
 
 .form-group .form-input {
@@ -503,5 +582,34 @@ function logout() {
 .menu-item i {
   width: 20px;
   text-align: center;
+}
+
+.loading {
+  text-align: center;
+  font-size: 1.2rem;
+  margin: 2rem 0;
+}
+
+.error-message {
+  color: red;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.form-actions {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.btn-back {
+  padding: 0.5rem 1rem;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.btn-back:hover {
+  background: #5a6268;
 }
 </style>

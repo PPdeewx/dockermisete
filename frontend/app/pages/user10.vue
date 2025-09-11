@@ -155,7 +155,7 @@
                   <p>วันลากิจคงเหลือ : {{ user?.quota_casual ?? 0 }} วัน</p>
                   <p>วันลาป่วยคงเหลือ : {{ user?.quota_sick ?? 0 }} วัน</p>
                   <p>วันลาพักร้อนคงเหลือ : {{ user?.quota_vacation ?? 0 }} วัน</p>
-                  <p>วันลาอื่นๆคงเหลือ : {{ user?.leave.other ?? 0 }} วัน</p>
+                  <p>วันลาอื่นๆคงเหลือ : {{ user?.quota_other ?? 0 }} วัน</p>
                 </div>
               </div>
             </div>
