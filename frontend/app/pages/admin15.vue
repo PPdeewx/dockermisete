@@ -73,10 +73,7 @@
 
       <div class="content-container">
         <div class="header-with-button">
-          <h2><i class="fas fa-list-alt"></i> รายการลา ETE</h2>
-          <button class="btn-export" @click="exportData">
-            <i class="fas fa-file-export"></i> Export
-          </button>
+          <h2><i class="fas fa-list-alt"></i>รายการลา ETE</h2>
         </div>
         
         <div class="search-export-container">
@@ -106,20 +103,24 @@
           <table class="leave-table">
             <thead>
               <tr>
+                <th>วันที่</th>
                 <th>ชื่อ - นามสกุล</th>
                 <th>ห้องวิจัย</th>
                 <th>ประเภทการลา</th>
                 <th>ชั่วโมง/วัน</th>
                 <th>สถานะ</th>
+                <th>เหตุผล</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="(leave, index) in filteredLeaveList" :key="index">
+                <td>{{ leave.date }}</td>
                 <td>{{ leave.name }}</td>
                 <td>{{ roomNameById(leave.room) }}</td>
                 <td>{{ leave.type }}</td>
                 <td>{{ leave.duration }}</td>
                 <td><span :class="`status-badge ${leave.status}`">{{ leave.status_th }}</span></td>
+                <td>{{ leave.reason || '-' }}</td>
               </tr>
             </tbody>
           </table>
@@ -130,129 +131,132 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, computed } from 'vue';
-import axios from 'axios';
-import { useRouter } from 'vue-router';
+import { ref, onMounted, computed } from "vue";
+import axios from "axios";
+import { useRouter } from "vue-router";
 
 const router = useRouter();
 const token = ref<string | null>(null);
-const dateRange = ref('');
-const selectedRoom = ref('');
-const searchName = ref('');
+const selectedRoom = ref("");
+const searchName = ref("");
 
-const showProfileMenu = ref(false)
-const toggleProfileMenu = () => {
-  showProfileMenu.value = !showProfileMenu.value
-}
+// ห้องวิจัยจาก API
+const roomList = ref<any[]>([]);
 
-const goTo = (path: string) => {
-  router.push(path);
-};
-
-const goToAdminPage = () => {
-  router.push('/admin');
-};
-
-const goToAdmin2Page = () => {
-  window.location.href = '/admin2';
-};
-
-const goToAdmin10Page = () => {
-  window.location.href = '/admin10';
-};
-
-const goToAdmin11Page = () => {
-  window.location.href = '/admin11';
-};
-
-const roomList = reactive([
-  { id: 'eedp', name: 'โครงการพัฒนาการศึกษาด้านพลังงาน' },
-  { id: 'reec', name: 'ห้องวิจัยพลังงานทดแทนและอนุรักษ์พลังงาน' },
-  { id: 'cceme', name: 'ห้องวิจัยด้านวิศวกรรมและการบริหารจัดการการเปลี่ยนแปลงสภาพภูมิอากาศด้านพลังงาน' },
-]);
-
-const leaveList = ref([
-  {
-    name: 'นาย ก. ไก่',
-    room: 'reec',
-    type: 'ลาป่วย',
-    duration: '1 วัน',
-    status: 'pending',
-    status_th: 'รอดำเนินการ'
-  },
-  {
-    name: 'นาง ข. ไข่',
-    room: 'eedp',
-    type: 'ลาพักร้อน',
-    duration: '2 วัน',
-    status: 'approved',
-    status_th: 'อนุมัติแล้ว'
-  },
-  {
-    name: 'นาย ค. ควาย',
-    room: 'cceme',
-    type: 'ลากิจ',
-    duration: '0.5 วัน',
-    status: 'rejected',
-    status_th: 'ไม่อนุมัติ'
-  },
-]);
+// รายการการลา
+const leaveList = ref<any[]>([]);
 
 const filteredLeaveList = computed(() => {
-  return leaveList.value.filter(leave => {
-    const roomMatch = !selectedRoom.value || leave.room === selectedRoom.value;
-    const nameMatch = leave.name.toLowerCase().includes(searchName.value.toLowerCase());
+  return leaveList.value.filter((leave) => {
+    const roomMatch =
+      !selectedRoom.value || leave.room === parseInt(selectedRoom.value);
+    const nameMatch = leave.name
+      ?.toLowerCase()
+      .includes(searchName.value.toLowerCase());
     return roomMatch && nameMatch;
   });
 });
 
-const roomNameById = (id: string) => {
-  const room = roomList.find(r => r.id === id);
-  return room ? room.name : 'ไม่ระบุ';
+const roomNameById = (id: number) => {
+  const room = roomList.value.find((r) => r.id === id);
+  return room ? room.name : "ไม่ระบุ";
 };
 
-const search = () => {
-  alert('ทำการค้นหาข้อมูล');
+const search = async () => {
+  await fetchLeaveRequests();
 };
 
-const exportData = () => {
-  alert('ส่งออกข้อมูล');
-};
+// โหลดห้องวิจัยจาก API
+async function fetchDepartments() {
+  try {
+    const res = await axios.get(
+      "http://localhost:8000/api/users/departments/"
+    );
+    roomList.value = res.data.map((dept: any) => ({
+      id: dept.id,
+      name: dept.name_th,
+    }));
+  } catch (err) {
+    console.error("โหลดห้องวิจัยไม่สำเร็จ:", err);
+  }
+}
 
-const currentUser = ref<any>(null)
+// โหลดการลาจาก API
+async function fetchLeaveRequests() {
+  try {
+    const res = await axios.get(
+      "http://localhost:8000/api/leave/leave-requests/"
+    );
+    leaveList.value = res.data.map((item: any) => ({
+      id: item.id,
+      name: `${item.user?.firstname_th || ""} ${
+        item.user?.lastname_th || ""
+      }`.trim(),
+      room: item.user?.department?.id || null,
+      type: item.leave_type?.name || "-",
+      duration: `${item.days} วัน`,
+      status: item.status,
+      status_th: statusToThai(item.status),
+      date: item.start_date || "-",   // วันที่เริ่มลา
+      reason: item.reason || "-"      // เหตุผลการลา
+    }));
+  } catch (err) {
+    console.error("โหลดข้อมูลการลาไม่สำเร็จ:", err);
+  }
+}
+
+function statusToThai(status: string) {
+  switch (status) {
+    case "pending":
+      return "รอดำเนินการ";
+    case "approved":
+      return "อนุมัติแล้ว";
+    case "rejected":
+      return "ไม่อนุมัติ";
+    case "cancelled":
+      return "ยกเลิก";
+    default:
+      return status;
+  }
+}
+
+const currentUser = ref<any>(null);
 
 onMounted(async () => {
   if (typeof window !== "undefined") {
-    token.value = localStorage.getItem("token")
+    token.value = localStorage.getItem("token");
   }
 
   if (!token.value) {
-    router.push('/login')
-    return
+    router.push("/login");
+    return;
   }
 
-  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`
+  axios.defaults.headers.common["Authorization"] = `Token ${token.value}`;
 
   try {
-    const me = await axios.get('http://localhost:8000/api/users/me/')
+    const me = await axios.get("http://localhost:8000/api/users/me/");
     currentUser.value = me.data;
 
-    if (currentUser.value.role !== 'admin') {
-      router.push('/login');
+    if (currentUser.value.role !== "admin") {
+      router.push("/login");
       return;
     }
+
+    await fetchDepartments();
+    await fetchLeaveRequests();
   } catch (err) {
-    console.error(err)
-    router.push('/login')
+    console.error(err);
+    router.push("/login");
   }
-})
+});
 
 function logout() {
   if (typeof window !== "undefined") {
-    localStorage.removeItem("token")
+    localStorage.removeItem("token");
   }
-  delete axios.defaults.headers.common['Authorization']
-  router.push("/login")
+  delete axios.defaults.headers.common["Authorization"];
+  router.push("/login");
 }
 </script>
 
