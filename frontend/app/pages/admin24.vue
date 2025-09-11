@@ -14,16 +14,6 @@
           <a href="/admin2" class="nav-link"@click.prevent="goToAdmin2Page">
             <i class="fas fa-users"></i> บุคลากร
           </a>
-            <ul class="submenu">
-            <li><a href="#" class="submenu-link">พนักงานปัจจุบัน</a></li>
-            <li><a href="#" class="submenu-link">พนักงานที่ลาออก</a></li>
-            <li><a href="#" class="submenu-link">บุคลากรภายนอก</a></li>
-            <li><a href="#" class="submenu-link">พนักงาน EDDP</a></li>
-            <li><a href="#" class="submenu-link">เพิ่ม/แก้ไข/ลบ พนักงาน</a></li>
-            <li><a href="#" class="submenu-link">เพิ่มบุคลากรภายนอก</a></li>
-            <li><a href="#" class="submenu-link">เปลี่ยนสถานะพนักงาน</a></li>
-            <li><a href="#" class="submenu-link">กำหนดโควต้าลา(ทั้งหมด)</a></li>
-          </ul>
         </li>
         <li class="nav-item"><a href="/admin10" class="nav-link" @click.prevent="goToAdmin10Page"><i class="fas fa-flask"></i> ห้องวิจัย</a></li>
         <li class="nav-item"><a href="/admin11" class="nav-link" @click.prevent="goToAdmin11Page"><i class="fas fa-calendar-alt"></i> วันหยุด</a></li>
