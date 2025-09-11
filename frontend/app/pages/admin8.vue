@@ -4,26 +4,28 @@
       <div class="sidebar-header">
         <span>MIS ETE</span>
       </div>
-      <ul class="nav-menu">
-        <li class="nav-item">
-          <a href="#" class="nav-link"><i class="fas fa-home"></i> หน้าหลัก</a>
-        </li>
+        <ul class="nav-menu">
+         <li class="nav-item">
+       <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
+     <i class="fas fa-home"></i> หน้าหลัก
+   </a>
+</li>
         <li class="nav-item has-submenu active">
           <a href="#" class="nav-link"><i class="fas fa-users"></i> บุคลากร</a>
           <ul class="submenu active">
-            <li><a href="#" class="submenu-link">พนักงานปัจจุบัน</a></li>
-            <li><a href="#" class="submenu-link">พนักงานที่ลาออก</a></li>
-            <li><a href="#" class="submenu-link">บุคลากรภายนอก</a></li>
-            <li><a href="#" class="submenu-link">พนักงาน EDDP</a></li>
-            <li><a href="#" class="submenu-link">เพิ่ม/แก้ไข/ลบ พนักงาน</a></li>
-            <li><a href="#" class="submenu-link">เพิ่มบุคลากรภายนอก</a></li>
+            <li><a href="/admin2" class="submenu-link">พนักงานปัจจุบัน</a></li>
+            <li><a href="/admin3" class="submenu-link">พนักงานที่ลาออก</a></li>
+            <li><a href="/admin4" class="submenu-link">บุคลากรภายนอก</a></li>
+            <li><a href="/admin5" class="submenu-link">พนักงาน EDDP</a></li>
+            <li><a href="/admin6" class="submenu-link">เพิ่ม/แก้ไข/ลบ พนักงาน</a></li>
+            <li><a href="/admin7" class="submenu-link">เพิ่มบุคลากรภายนอก</a></li>
             <li><a href="#" class="submenu-link active">เปลี่ยนสถานะพนักงาน</a></li>
-            <li><a href="#" class="submenu-link">กำหนดโควต้าลา(ทั้งหมด)</a></li>
+            <li><a href="/admin9" class="submenu-link">กำหนดโควต้าลา(ทั้งหมด)</a></li>
           </ul>
         </li>
-        <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-flask"></i> ห้องวิจัย</a></li>
-        <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-calendar-alt"></i> วันหยุด</a></li>
-        <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-cog"></i> ระบบการปฏิบัติงาน</a></li>
+        <li class="nav-item"><a href="/admin10" class="nav-link" @click.prevent="goToAdmin10Page"><i class="fas fa-flask"></i> ห้องวิจัย</a></li>
+        <li class="nav-item"><a href="/admin11" class="nav-link" @click.prevent="goToAdmin11Page"><i class="fas fa-calendar-alt"></i> วันหยุด</a></li>
+        <li class="nav-item"><a href="/admin12" class="nav-link" @click.prevent="goToAdmin12Page"><i class="fas fa-cog"></i> ระบบการปฏิบัติงาน</a></li>
       </ul>
     </div>
 
@@ -70,7 +72,7 @@
               <input type="text" v-model="searchQuery" placeholder="ค้นหา..." />
             </div>
             <button class="btn-save" @click="saveChanges">
-              <i class="fas fa-plus"></i> บันทึกการเปลี่ยนแปลง
+              <i class="fas fa-plus"></i> บันทึกข้อมูล
             </button>
           </div>
         </div>
@@ -133,6 +135,22 @@ const goTo = (path: string) => {
   router.push(path);
 };
 
+const goToAdminPage = () => {
+  router.push('/admin');
+};
+
+const goToAdmin10Page = () => {
+  router.push('/admin10');
+};
+
+const goToAdmin11Page = () => {
+  router.push('/admin11');
+};
+
+const goToAdmin12Page = () => {
+  router.push('/admin12');
+};
+
 const loadEmployees = async () => {
   try {
     const res = await axios.get('http://localhost:8000/api/users/filter/', {
@@ -182,6 +200,9 @@ const saveChanges = async () => {
       emp.status = emp.newStatus;
     }
     alert('บันทึกการเปลี่ยนแปลงเรียบร้อยแล้ว');
+    
+    router.push('/admin3');
+
   } catch (err) {
     console.error('Error saving changes:', err);
     alert('เกิดข้อผิดพลาดในการบันทึก');
