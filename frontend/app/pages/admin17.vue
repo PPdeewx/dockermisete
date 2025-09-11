@@ -4,42 +4,34 @@
       <div class="sidebar-header">
         <span>MIS ETE</span>
       </div>
-      <ul class="nav-menu">
-        <li class="nav-item">
-          <a href="#" class="nav-link"><i class="fas fa-home"></i> หน้าหลัก</a>
-        </li>
+        <ul class="nav-menu">
+         <li class="nav-item">
+       <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
+     <i class="fas fa-home"></i> หน้าหลัก
+   </a>
+</li>
         <li class="nav-item has-submenu">
-          <a href="#" class="nav-link"><i class="fas fa-users"></i> บุคลากร</a>
-          <ul class="submenu">
-            <li><a href="#" class="submenu-link">พนักงานปัจจุบัน</a></li>
-            <li><a href="#" class="submenu-link">พนักงานที่ลาออก</a></li>
-            <li><a href="#" class="submenu-link">บุคลากรภายนอก</a></li>
-            <li><a href="#" class="submenu-link">พนักงาน EDDP</a></li>
-            <li><a href="#" class="submenu-link">เพิ่ม/แก้ไข/ลบ พนักงาน</a></li>
-            <li><a href="#" class="submenu-link">เพิ่มบุคลากรภายนอก</a></li>
-            <li><a href="#" class="submenu-link">เปลี่ยนสถานะพนักงาน</a></li>
-            <li><a href="#" class="submenu-link">กำหนดโควต้าลา(ทั้งหมด)</a></li>
-          </ul>
+          <a href="/admin2" class="nav-link"@click.prevent="goToAdmin2Page">
+            <i class="fas fa-users"></i> บุคลากร
+          </a>
         </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link"><i class="fas fa-flask"></i> ห้องวิจัย</a>
-        </li>
-        <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-calendar-alt"></i> วันหยุด</a></li>
+        <li class="nav-item"><a href="/admin10" class="nav-link" @click.prevent="goToAdmin10Page"><i class="fas fa-flask"></i> ห้องวิจัย</a></li>
+        <li class="nav-item"><a href="/admin11" class="nav-link" @click.prevent="goToAdmin11Page"><i class="fas fa-calendar-alt"></i> วันหยุด</a></li>
         <li class="nav-item active has-submenu">
           <a href="#" class="nav-link"><i class="fas fa-cog"></i> ระบบการปฏิบัติงาน</a>
           <ul class="submenu">
-            <li><a href="#" class="submenu-link">ตรวจสอบเวลาทำงาน</a></li>
-            <li><a href="#" class="submenu-link">เวลางานคนลาออก</a></li>
-            <li><a href="#" class="submenu-link">รายการลาตัวเอง</a></li>
-            <li><a href="#" class="submenu-link">รายการลา ETE</a></li>
-            <li><a href="#" class="submenu-link">ปฏิบัติงานนอกสถานที่</a></li>
+            <li><a href="/admin12" class="submenu-link">ตรวจสอบเวลาทำงาน</a></li>
+            <li><a href="/admin13" class="submenu-link">เวลางานคนลาออก</a></li>
+            <li><a href="/admin14" class="submenu-link">รายการลาตัวเอง</a></li>
+            <li><a href="/admin15" class="submenu-link">รายการลา ETE</a></li>
+            <li><a href="/admin16" class="submenu-link">ปฏิบัติงานนอกสถานที่</a></li>
             <li><a href="#" class="submenu-link active">รายการอนุมัติการลาปฏิบัติงานนอกสถานที่</a></li>
-            <li><a href="#" class="submenu-link">รายการอนุมัติการลา</a></li>
-            <li><a href="#" class="submenu-link">ขออนุมัติลา</a></li>
-            <li><a href="#" class="submenu-link">ขอลาให้คนอื่น</a></li>
-            <li><a href="#" class="submenu-link">ขอปฏิบัติงานนอกสถานที่</a></li>
-            <li><a href="#" class="submenu-link">ขอปฏิบัติงานนอกสถานที่ให้คนอื่น</a></li>
-            <li><a href="#" class="submenu-link">Upload เวลางาน</a></li>
+            <li><a href="/admin18" class="submenu-link">รายการอนุมัติการลา</a></li>
+            <li><a href="/admin19" class="submenu-link">ขออนุมัติลา</a></li>
+            <li><a href="/admin20" class="submenu-link">ขอลาให้คนอื่น</a></li>
+            <li><a href="/admin21" class="submenu-link">ขอปฏิบัติงานนอกสถานที่</a></li>
+            <li><a href="/admin22" class="submenu-link">ขอปฏิบัติงานนอกสถานที่ให้คนอื่น</a></li>
+            <li><a href="/admin23" class="submenu-link">Upload เวลางาน</a></li>
           </ul>
         </li>
       </ul>
@@ -159,6 +151,22 @@ const toggleProfileMenu = () => {
 
 const goTo = (path: string) => {
   router.push(path);
+};
+
+const goToAdminPage = () => {
+  router.push('/admin');
+};
+
+const goToAdmin2Page = () => {
+  window.location.href = '/admin2';
+};
+
+const goToAdmin10Page = () => {
+  window.location.href = '/admin10';
+};
+
+const goToAdmin11Page = () => {
+  window.location.href = '/admin11';
 };
 
 const departments = ref([])
