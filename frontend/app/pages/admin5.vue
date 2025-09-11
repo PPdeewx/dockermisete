@@ -70,10 +70,6 @@
             <h2>พนักงาน EDDP</h2>
           </div>
           <div class="right-section">
-            <button class="add-external-staff-button" @click.prevent="addExternalStaff">
-              <i class="fas fa-plus-circle"></i>
-              เพิ่มบุคลากรภายนอก
-            </button>
           </div>
         </div>
 
@@ -154,10 +150,6 @@ const goToAdmin11Page = () => {
 
 const goToAdmin12Page = () => {
   router.push('/admin12');
-};
-
-const addExternalStaff = () => {
-  router.push('/admin7');
 };
 
 onMounted(async () => {
