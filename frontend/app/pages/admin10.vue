@@ -131,6 +131,10 @@ const goToAdmin26Page = () => {
   router.push('/admin26');
 };
 
+const editDepartment = (dept: any) => {
+  router.push(`/admin26?deptId=${dept.id}`);
+};
+
 const departments = ref<any[]>([])
 
 onMounted(async () => {
@@ -172,9 +176,6 @@ const addDepartment = () => {
   alert('ฟังก์ชันสำหรับเพิ่ม Department')
 }
 
-const editDepartment = (dept: any) => {
-  alert(`แก้ไขข้อมูลห้องวิจัย: ${dept.name_th}`)
-}
 
 const deleteDepartment = async (dept: any) => {
   if (confirm(`คุณต้องการลบห้องวิจัย ${dept.name_th} หรือไม่?`)) {

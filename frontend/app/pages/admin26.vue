@@ -4,27 +4,39 @@
       <div class="sidebar-header">
         <span>MIS ETE</span>
       </div>
-        <ul class="nav-menu">
-         <li class="nav-item">
-       <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
-     <i class="fas fa-home"></i> หน้าหลัก
-   </a>
-</li>
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
+            <i class="fas fa-home"></i> หน้าหลัก
+          </a>
+        </li>
         <li class="nav-item has-submenu">
-          <a href="/admin2" class="nav-link"@click.prevent="goToAdmin2Page">
+          <a href="/admin2" class="nav-link" @click.prevent="goToAdmin2Page">
             <i class="fas fa-users"></i> บุคลากร
           </a>
         </li>
-        <li class="nav-item"><a href="/admin10" class="nav-link" @click.prevent="goToAdmin10Page"><i class="fas fa-flask"></i> ห้องวิจัย</a></li>
-        <li class="nav-item"><a href="/admin11" class="nav-link" @click.prevent="goToAdmin11Page"><i class="fas fa-calendar-alt"></i> วันหยุด</a></li>
-        <li class="nav-item"><a href="/admin12" class="nav-link" @click.prevent="goToAdmin12Page"><i class="fas fa-cog"></i> ระบบการปฏิบัติงาน</a></li>
+        <li class="nav-item">
+          <a href="/admin10" class="nav-link" @click.prevent="goToAdmin10Page">
+            <i class="fas fa-flask"></i> ห้องวิจัย
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/admin11" class="nav-link" @click.prevent="goToAdmin11Page">
+            <i class="fas fa-calendar-alt"></i> วันหยุด
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/admin12" class="nav-link" @click.prevent="goToAdmin12Page">
+            <i class="fas fa-cog"></i> ระบบการปฏิบัติงาน
+          </a>
+        </li>
       </ul>
     </div>
 
     <div class="main-content">
       <div class="top-bar">
         <div class="breadcrumbs">
-          <span><i class="fas fa-home"></i> หน้าหลัก > เพิ่ม / แก้ไข ห้องวิจัย</span>
+          <span><i class="fas fa-home"></i> หน้าหลัก > {{ isEditMode ? 'แก้ไข' : 'เพิ่ม' }} ห้องวิจัย</span>
         </div>
         <div class="user-profile-container">
           <div class="user-profile" @click="toggleProfileMenu">
@@ -32,7 +44,6 @@
             <i class="fas fa-user-circle"></i>
             <span class="username">{{ currentUser?.username }} ตำแหน่ง: {{ currentUser?.role }}</span>
             <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
-
             <div class="user-profile-menu" v-if="showProfileMenu">
               <button class="menu-item" @click.stop="goTo('/admin28')">
                 <i class="fas fa-user"></i>
@@ -59,31 +70,34 @@
         <div class="header-with-button">
           <div class="header-with-icon">
             <i class="fas fa-flask"></i>
-            <h2>เพิ่ม / แก้ไข ห้องวิจัย</h2>
+            <h2>{{ isEditMode ? 'แก้ไข' : 'เพิ่ม' }} ห้องวิจัย</h2>
           </div>
           <button class="btn-cancel" @click="goToAdmin10Page"><i class="fas fa-times"></i> ยกเลิก</button>
         </div>
 
-        <div class="form-section">
+        <div v-if="loading" class="loading">กำลังโหลด...</div>
+        <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+
+        <div class="form-section" v-if="!loading">
           <div class="form-row">
             <label for="labNameTh">ชื่อห้องปฏิบัติการภาษาไทย * :</label>
             <div class="input-container">
-              <input type="text" id="labNameTh" v-model="form.labNameTh" class="form-input">
-              <span class="input-description">Labels can have inline descriptions</span>
+              <input type="text" id="labNameTh" v-model="form.labNameTh" class="form-input" required />
+              <span class="input-description">กรุณากรอกชื่อห้องปฏิบัติการภาษาไทย</span>
             </div>
           </div>
           <div class="form-row">
             <label for="labNameEn">ชื่อห้องปฏิบัติการอังกฤษ * :</label>
             <div class="input-container">
-              <input type="text" id="labNameEn" v-model="form.labNameEn" class="form-input">
-              <span class="input-description">Labels can have inline descriptions</span>
+              <input type="text" id="labNameEn" v-model="form.labNameEn" class="form-input" required />
+              <span class="input-description">กรุณากรอกชื่อห้องปฏิบัติการภาษาอังกฤษ</span>
             </div>
           </div>
           <div class="form-row">
             <label for="labNameAbbr">ชื่อย่อห้องวิจัย :</label>
             <div class="input-container">
-              <input type="text" id="labNameAbbr" v-model="form.labNameAbbr" class="form-input">
-              <span class="input-description">มี หรือ ไม่มีก็ได้</span>
+              <input type="text" id="labNameAbbr" v-model="form.labNameAbbr" class="form-input" />
+              <span class="input-description">มีหรือไม่มีก็ได้</span>
             </div>
           </div>
           <div class="form-row">
@@ -91,19 +105,21 @@
             <div class="input-container">
               <select id="labHead" v-model="form.labHead" class="form-input">
                 <option value="">กรุณาเลือกหัวหน้าห้องวิจัย</option>
-                <option v-for="employee in employees" :key="employee.id" :value="employee.name">{{ employee.name }}</option>
+                <option v-for="employee in allEmployees" :key="employee.id" :value="employee.id">
+                  {{ employee.firstname_th }} {{ employee.lastname_th }}
+                </option>
               </select>
             </div>
           </div>
           <div class="form-row">
             <label for="labDesc">คำอธิบายห้องวิจัย * :</label>
             <div class="input-container">
-              <textarea id="labDesc" v-model="form.labDesc" class="form-input textarea-input"></textarea>
+              <textarea id="labDesc" v-model="form.labDesc" class="form-input textarea-input" required></textarea>
             </div>
           </div>
         </div>
 
-        <div class="member-selection-section">
+        <div class="member-selection-section" v-if="!loading">
           <div class="section-header">
             <h3>พนักงานในห้องวิจัย:</h3>
             <span>รายชื่อในช่องด้านขวามือ คือ พนักงานในห้องวิจัย</span>
@@ -113,7 +129,7 @@
               <div class="list-title">พนักงานที่ไม่ได้สังกัด</div>
               <ul class="employee-list">
                 <li v-for="employee in unassignedEmployees" :key="employee.id" @click="selectEmployee(employee)">
-                  {{ employee.name }}
+                  {{ employee.firstname_th }} {{ employee.lastname_th }}
                 </li>
               </ul>
             </div>
@@ -125,7 +141,7 @@
               <div class="list-title">พนักงานในห้องวิจัย</div>
               <ul class="employee-list">
                 <li v-for="employee in assignedEmployees" :key="employee.id" @click="unselectEmployee(employee)">
-                  {{ employee.name }}
+                  {{ employee.firstname_th }} {{ employee.lastname_th }}
                 </li>
               </ul>
             </div>
@@ -133,7 +149,7 @@
         </div>
 
         <div class="button-footer">
-          <button class="btn-save-data" @click="goToAdmin10Page"><i class="fas fa-save"></i> บันทึกข้อมูล</button>
+          <button class="btn-save-data" @click="saveData"><i class="fas fa-save"></i> บันทึกข้อมูล</button>
         </div>
       </div>
     </div>
@@ -143,19 +159,15 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive, computed } from 'vue';
 import axios from 'axios';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 
 const router = useRouter();
+const route = useRoute();
 const token = ref<string | null>(null);
-
-const showProfileMenu = ref(false)
-const toggleProfileMenu = () => {
-  showProfileMenu.value = !showProfileMenu.value
-}
-
-const goTo = (path: string) => {
-  router.push(path);
-};
+const currentUser = ref<any>(null);
+const showProfileMenu = ref(false);
+const loading = ref(false);
+const errorMessage = ref('');
 
 const form = reactive({
   labNameTh: '',
@@ -165,28 +177,20 @@ const form = reactive({
   labDesc: ''
 });
 
-const allEmployees = ref([
-  { id: 1, name: 'นาย A พนักงาน' },
-  { id: 2, name: 'นาย B พนักงาน' },
-  { id: 3, name: 'นาง C พนักงาน' },
-  { id: 4, name: 'นาย D พนักงาน' },
-  { id: 5, name: 'นาย E พนักงาน' },
-]);
-
-const unassignedEmployees = ref([...allEmployees.value]);
-const assignedEmployees = ref<typeof allEmployees.value>([]);
-
+const allEmployees = ref<any[]>([]);
+const unassignedEmployees = ref<any[]>([]);
+const assignedEmployees = ref<any[]>([]);
 const selectedUnassigned = ref<any>(null);
 const selectedAssigned = ref<any>(null);
+const deptId = ref<number | null>(null);
+const isEditMode = computed(() => !!deptId.value);
 
-
-const selectEmployee = (employee: any) => {
-  selectedUnassigned.value = employee;
+const toggleProfileMenu = () => {
+  showProfileMenu.value = !showProfileMenu.value;
 };
 
-const unselectEmployee = (employee: any) => {
-  selectedAssigned.value = employee;
-
+const goTo = (path: string) => {
+  router.push(path);
 };
 
 const goToAdminPage = () => {
@@ -194,19 +198,27 @@ const goToAdminPage = () => {
 };
 
 const goToAdmin2Page = () => {
-  window.location.href = '/admin2';
+  router.push('/admin2');
 };
 
 const goToAdmin10Page = () => {
-  window.location.href = '/admin10';
+  router.push('/admin10');
 };
 
 const goToAdmin11Page = () => {
-  window.location.href = '/admin11';
+  router.push('/admin11');
 };
 
 const goToAdmin12Page = () => {
-  window.location.href = '/admin12';
+  router.push('/admin12');
+};
+
+const selectEmployee = (employee: any) => {
+  selectedUnassigned.value = employee;
+};
+
+const unselectEmployee = (employee: any) => {
+  selectedAssigned.value = employee;
 };
 
 const assignSelected = () => {
@@ -225,48 +237,116 @@ const unassignSelected = () => {
   }
 };
 
-const saveData = () => {
-  console.log('บันทึกข้อมูล:', {
-    form: form,
-    assignedEmployees: assignedEmployees.value
-  });
-
-};
-
-const currentUser = ref<any>(null)
-
-onMounted(async () => {
-  if (typeof window !== "undefined") {
-    token.value = localStorage.getItem("token")
+const saveData = async () => {
+  if (!form.labNameTh || !form.labNameEn || !form.labDesc) {
+    errorMessage.value = 'กรุณากรอกข้อมูลที่จำเป็นทั้งหมด';
+    return;
   }
 
-  if (!token.value) {
-    router.push('/login')
-    return
-  }
-
-  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`
+  const payload = {
+    name_th: form.labNameTh,
+    name_en: form.labNameEn,
+    name_abbr: form.labNameAbbr,
+    description: form.labDesc,
+    approvers: form.labHead ? [form.labHead] : [],
+    personnel: assignedEmployees.value.map(emp => emp.id)
+  };
 
   try {
-    const me = await axios.get('http://localhost:8000/api/users/me/')
-    currentUser.value = me.data;
+    loading.value = true;
+    errorMessage.value = '';
+    if (isEditMode.value) {
+      await axios.put(`http://localhost:8000/api/users/departments/${deptId.value}/`, payload, {
+        headers: { Authorization: `Token ${token.value}` }
+      });
+    } else {
+      await axios.post('http://localhost:8000/api/users/departments/', payload, {
+        headers: { Authorization: `Token ${token.value}` }
+      });
+    }
+    router.push('/admin10');
+  } catch (err: any) {
+    errorMessage.value = err.response?.data?.detail || 'ไม่สามารถบันทึกข้อมูลได้';
+    console.error('Error saving department:', err);
+  } finally {
+    loading.value = false;
+  }
+};
 
+const loadDepartment = async (id: number) => {
+  try {
+    loading.value = true;
+    errorMessage.value = '';
+    const response = await axios.get(`http://localhost:8000/api/users/departments/${id}/`, {
+      headers: { Authorization: `Token ${token.value}` }
+    });
+    const dept = response.data;
+    form.labNameTh = dept.name_th;
+    form.labNameEn = dept.name_en;
+    form.labNameAbbr = dept.name_abbr || '';
+    form.labDesc = dept.description || '';
+    form.labHead = dept.approvers && dept.approvers.length > 0 ? dept.approvers[0].id : '';
+
+    assignedEmployees.value = allEmployees.value.filter(emp =>
+      dept.personnel.includes(`${emp.firstname_th} ${emp.lastname_th}`)
+    );
+    unassignedEmployees.value = allEmployees.value.filter(emp =>
+      !dept.personnel.includes(`${emp.firstname_th} ${emp.lastname_th}`)
+    );
+  } catch (err: any) {
+    errorMessage.value = 'ไม่สามารถโหลดข้อมูลห้องวิจัยได้';
+    console.error('Error loading department:', err);
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(async () => {
+  token.value = localStorage.getItem("token");
+  if (!token.value) {
+    router.push('/login');
+    return;
+  }
+
+  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`;
+
+  try {
+    const me = await axios.get('http://localhost:8000/api/users/me/');
+    currentUser.value = me.data;
     if (currentUser.value.role !== 'admin') {
       router.push('/login');
       return;
     }
   } catch (err) {
-    console.error(err)
-    router.push('/login')
+    console.error('Error fetching user:', err);
+    router.push('/login');
+    return;
   }
-})
+
+  try {
+    loading.value = true;
+    const response = await axios.get('http://localhost:8000/api/users/', {
+      headers: { Authorization: `Token ${token.value}` }
+    });
+    allEmployees.value = response.data;
+    unassignedEmployees.value = [...allEmployees.value];
+  } catch (err) {
+    errorMessage.value = 'ไม่สามารถโหลดรายชื่อพนักงานได้';
+    console.error('Error loading employees:', err);
+  } finally {
+    loading.value = false;
+  }
+
+  deptId.value = Number(route.query.deptId) || null;
+  if (deptId.value) {
+    await loadDepartment(deptId.value);
+  }
+});
 
 function logout() {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("token")
-  }
-  delete axios.defaults.headers.common['Authorization']
-  router.push("/login")
+  localStorage.removeItem("token");
+  delete axios.defaults.headers.common['Authorization'];
+  router.push("/login");
 }
 </script>
 
@@ -277,6 +357,17 @@ function logout() {
 * {
   box-sizing: border-box;
   font-family: 'Noto Sans Thai', sans-serif;
+}
+
+.loading {
+  text-align: center;
+  font-size: 1.2rem;
+  margin: 2rem 0;
+}
+.error-message {
+  color: red;
+  text-align: center;
+  margin: 1rem 0;
 }
 
 .full-page-container {
