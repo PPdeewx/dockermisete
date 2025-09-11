@@ -104,7 +104,7 @@ const goTo = (path: string) => {
   router.push(path);
 };
 
- const goToAdminPage = () => {
+const goToAdminPage = () => {
   router.push('/admin');
 };
 
