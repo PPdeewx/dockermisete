@@ -9,10 +9,11 @@ class HolidaySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate_date(self, value):
+        if self.instance and self.instance.date == value:
+            return value
         if Holiday.objects.filter(date=value).exists():
             raise serializers.ValidationError("วันหยุดนี้มีอยู่แล้ว")
         return value
-
 
 class HolidayRangeSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=100)

@@ -4,20 +4,26 @@
       <div class="sidebar-header">
         <span>MIS ETE</span>
       </div>
-        <ul class="nav-menu">
-         <li class="nav-item">
-       <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
-     <i class="fas fa-home"></i> หน้าหลัก
-   </a>
-</li>
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
+            <i class="fas fa-home"></i> หน้าหลัก
+          </a>
+        </li>
         <li class="nav-item has-submenu">
-          <a href="/admin2" class="nav-link"@click.prevent="goToAdmin2Page">
+          <a href="/admin2" class="nav-link" @click.prevent="goToAdmin2Page">
             <i class="fas fa-users"></i> บุคลากร
           </a>
         </li>
-        <li class="nav-item"><a href="/admin10" class="nav-link" @click.prevent="goToAdmin10Page"><i class="fas fa-flask"></i> ห้องวิจัย</a></li>
-        <li class="nav-item"><a href="/admin11" class="nav-link" @click.prevent="goToAdmin11Page"><i class="fas fa-calendar-alt"></i> วันหยุด</a></li>
-        <li class="nav-item"><a href="/admin12" class="nav-link" @click.prevent="goToAdmin12Page"><i class="fas fa-cog"></i> ระบบการปฏิบัติงาน</a></li>
+        <li class="nav-item">
+          <a href="/admin10" class="nav-link" @click.prevent="goToAdmin10Page"><i class="fas fa-flask"></i> ห้องวิจัย</a>
+        </li>
+        <li class="nav-item">
+          <a href="/admin11" class="nav-link" @click.prevent="goToAdmin11Page"><i class="fas fa-calendar-alt"></i> วันหยุด</a>
+        </li>
+        <li class="nav-item">
+          <a href="/admin12" class="nav-link" @click.prevent="goToAdmin12Page"><i class="fas fa-cog"></i> ระบบการปฏิบัติงาน</a>
+        </li>
       </ul>
     </div>
     <div class="main-content">
@@ -57,9 +63,14 @@
       <div class="content-container">
         <div class="header-with-button">
           <h2><i class="fas fa-calendar-alt"></i> วันหยุด/ตาราง</h2>
-          <button class="btn-add-room" @click="switchToTableView">
-            <i class="fas fa-calendar-alt"></i> สลับเป็นรูปแบบปฏิทิน
-          </button>
+          <div class="button-group">
+            <button class="btn-add-holiday" @click="goToAddHoliday">
+              <i class="fas fa-plus"></i> เพิ่มวันหยุด
+            </button>
+            <button class="btn-add-room" @click="switchToTableView">
+              <i class="fas fa-calendar-alt"></i> สลับเป็นรูปแบบปฏิทิน
+            </button>
+          </div>
         </div>
         
         <div class="holiday-table-container">
@@ -69,6 +80,7 @@
                 <th>วันที่</th>
                 <th>ชื่อวันหยุด</th>
                 <th>ประเภทวันหยุด</th>
+                <th>การจัดการ</th>
               </tr>
             </thead>
             <tbody>
@@ -76,6 +88,11 @@
                 <td>{{ holiday.date }}</td>
                 <td>{{ holiday.name }}</td>
                 <td>{{ holiday.type }}</td>
+                <td>
+                  <button class="btn-edit" @click="goToEditHoliday(holiday.id)">
+                    <i class="fas fa-edit"></i> แก้ไข
+                  </button>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -95,10 +112,10 @@ const token = ref<string | null>(null);
 
 const viewMode = ref('table');
 
-const showProfileMenu = ref(false)
+const showProfileMenu = ref(false);
 const toggleProfileMenu = () => {
-  showProfileMenu.value = !showProfileMenu.value
-}
+  showProfileMenu.value = !showProfileMenu.value;
+};
 
 const goTo = (path: string) => {
   router.push(path);
@@ -109,30 +126,31 @@ const goToAdminPage = () => {
 };
 
 const goToAdmin2Page = () => {
-  window.location.href = '/admin2';
+  router.push('/admin2');
 };
 
 const goToAdmin10Page = () => {
-  window.location.href = '/admin10';
+  router.push('/admin10');
 };
 
 const goToAdmin11Page = () => {
-  window.location.href = '/admin11';
+  router.push('/admin11');
 };
 
 const goToAdmin12Page = () => {
-  window.location.href = '/admin12';
+  router.push('/admin12');
 };
 
+const goToAddHoliday = () => {
+  router.push('/admin25');
+};
 
-const toggleView = () => {
-  viewMode.value = viewMode.value === 'table' ? 'calendar' : 'table';
-  alert(`สลับไปที่มุมมอง: ${viewMode.value}`);
+const goToEditHoliday = (id: number) => {
+  router.push(`/admin25?id=${id}`);
 };
 
 const holidayList = ref<any[]>([]);
-
-const currentUser = ref<any>(null)
+const currentUser = ref<any>(null);
 
 onMounted(async () => {
   if (typeof window !== "undefined") {
@@ -157,11 +175,11 @@ onMounted(async () => {
 
     const res = await axios.get('http://localhost:8000/api/holiday/list/');
     holidayList.value = res.data.map((h: any) => ({
+      id: h.id,
       date: h.date,
       name: h.name,
       type: h.holiday_type_display,
     }));
-
   } catch (err) {
     console.error(err);
     router.push('/login');
@@ -170,14 +188,14 @@ onMounted(async () => {
 
 function logout() {
   if (typeof window !== "undefined") {
-    localStorage.removeItem("token")
+    localStorage.removeItem("token");
   }
-  delete axios.defaults.headers.common['Authorization']
-  router.push("/login")
+  delete axios.defaults.headers.common['Authorization'];
+  router.push("/login");
 }
 
 const switchToTableView = () => {
-  window.location.href = '/admin27';
+  router.push('/admin27');
 };
 </script>
 
@@ -382,7 +400,7 @@ const switchToTableView = () => {
 }
 
 .btn-add-room {
-  background-color: #4CAF50;
+  background-color: #5b74e6;
   color: white;
   border: none;
   padding: 10px 15px;
@@ -396,7 +414,7 @@ const switchToTableView = () => {
 }
 
 .btn-add-room:hover {
-  background-color: #45a049;
+  background-color: #454ba0;
 }
 
 .holiday-table-container {
@@ -458,5 +476,37 @@ const switchToTableView = () => {
 .menu-item i {
   width: 20px;
   text-align: center;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-add-holiday {
+  background-color: #28a745;
+  color: white;
+  padding: 8px 16px;
+  font-size: 1em;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-add-holiday:hover {
+  background-color: #218838;
+}
+
+.btn-edit {
+  background-color: #007bff;
+  color: white;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-edit:hover {
+  background-color: #0056b3;
 }
 </style>

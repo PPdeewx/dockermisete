@@ -12,7 +12,7 @@
         </li>
         <li class="nav-item has-submenu">
           <a href="#" class="nav-link" @click.prevent="goToAdmin2Page">
-             <i class="fas fa-users"></i> บุคลากร</a>
+            <i class="fas fa-users"></i> บุคลากร</a>
         </li>
         <li class="nav-item">
           <a href="/admin10" class="nav-link" @click.prevent="goToAdmin10Page"><i class="fas fa-flask"></i> ห้องวิจัย</a>
@@ -33,7 +33,7 @@
     <div class="main-content">
       <div class="top-bar">
         <div class="breadcrumbs">
-          <span><i class="fas fa-home"></i> หน้าหลัก > วันหยุด > เพิ่มวันหยุด</span>
+          <span><i class="fas fa-home"></i> หน้าหลัก > วันหยุด > {{ isEditing ? 'แก้ไขวันหยุด' : 'เพิ่มวันหยุด' }}</span>
         </div>
         <div class="user-profile-container">
           <div class="user-profile" @click="toggleProfileMenu">
@@ -66,7 +66,7 @@
 
       <div class="content-container">
         <div class="form-header">
-          <h2>เพิ่มวันหยุด</h2>
+          <h2>{{ isEditing ? 'แก้ไขวันหยุด' : 'เพิ่มวันหยุด' }}</h2>
           <button class="btn-cancel" @click.prevent="cancelForm">
             <i class="fas fa-times"></i> ยกเลิก
           </button>
@@ -85,15 +85,15 @@
           <div class="form-row">
             <div class="form-group">
               <label for="holiday-date">วันที่ *</label>
-              <input type="date" id="holiday-date" v-model="form.date" required />
+              <input type="date" id="holiday-date" v-model="form.date" required placeholder="mm/dd/yyyy" />
               <div v-if="fieldErrors.date" class="error-message">{{ fieldErrors.date }}</div>
             </div>
             <div class="form-group">
               <label for="holiday-type">ประเภทวันหยุด *</label>
               <select id="holiday-type" v-model="form.type" required>
                 <option value="">กรุณาเลือกประเภท</option>
-                <option v-for="type in holidayTypes" :key="type" :value="type">
-                  {{ type }}
+                <option v-for="type in holidayTypes" :key="type.value" :value="type.value">
+                  {{ type.label }}
                 </option>
               </select>
               <div v-if="fieldErrors.type" class="error-message">{{ fieldErrors.type }}</div>
@@ -101,9 +101,18 @@
           </div>
 
           <div class="form-actions">
-            <button type="button" class="btn-save" @click="submitForm('save')">บันทึก</button>
-            <button type="button" class="btn-save-add" @click="submitForm('save_add')">บันทึกและเพิ่ม</button>
-            <button type="button" class="btn-save-edit" @click="submitForm('save_edit')">บันทึกและแก้ไข</button>
+            <button v-if="isEditing" type="button" class="btn-save" @click="submitForm" :disabled="isLoading">
+              <span v-if="isLoading">กำลังบันทึก...</span>
+              <span v-else>บันทึก</span>
+            </button>
+            <button v-if="isEditing" type="button" class="btn-delete" @click="deleteHoliday" :disabled="isLoading">
+              <span v-if="isLoading">กำลังลบ...</span>
+              <span v-else>ลบ</span>
+            </button>
+            <button v-if="!isEditing" type="button" class="btn-save" @click="submitForm" :disabled="isLoading">
+              <span v-if="isLoading">กำลังเพิ่ม...</span>
+              <span v-else>เพิ่ม</span>
+            </button>
           </div>
         </form>
       </div>
@@ -114,14 +123,30 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue';
 import axios from 'axios';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 
 const router = useRouter();
+const route = useRoute();
 const token = ref<string | null>(null);
 const showProfileMenu = ref(false);
 const errorMessage = ref<string | null>(null);
 const successMessage = ref<string | null>(null);
 const fieldErrors = ref<{ [key: string]: string }>({});
+const isLoading = ref(false);
+const isEditing = ref(false);
+
+const holidayTypes = ref([
+  { value: 'public', label: 'วันหยุดราชการ' },
+  { value: 'company', label: 'วันหยุดบริษัท' },
+  { value: 'religious', label: 'วันหยุดทางศาสนา' },
+  { value: 'other', label: 'อื่น' },
+]);
+
+const form = reactive({
+  name: '',
+  date: '',
+  type: '',
+});
 
 const toggleProfileMenu = () => {
   showProfileMenu.value = !showProfileMenu.value;
@@ -143,69 +168,121 @@ const goToAdmin10Page = () => {
   router.push('/admin10');
 };
 
-const goToAdmin11Page = () => {
-  router.push('/admin11');
-};
-
 const goToAdmin12Page = () => {
   router.push('/admin12');
 };
 
-const holidayTypes = ref(['วันหยุดราชการ','วันหยุดบริษัท','วันหยุดทางศาสนา','อื่น']);
-
-const form = reactive({
-  name: '',
-  date: '',
-  type: '',
-});
-
 const cancelForm = () => {
-  if (confirm('คุณต้องการยกเลิกการเพิ่มวันหยุดหรือไม่?')) {
+  if (confirm('คุณต้องการยกเลิกหรือไม่?')) {
     resetForm();
     router.push('/admin11');
   }
 };
 
-const submitForm = async (action: 'save' | 'save_add' | 'save_edit') => {
+const submitForm = async () => {
+  if (isLoading.value) return;
+  isLoading.value = true;
   errorMessage.value = null;
   successMessage.value = null;
   fieldErrors.value = {};
 
+  if (!form.name.trim()) {
+    fieldErrors.value.name = 'กรุณากรอกชื่อวันหยุด';
+    isLoading.value = false;
+    return;
+  }
+  if (!form.date) {
+    fieldErrors.value.date = 'กรุณาเลือกวันที่';
+    isLoading.value = false;
+    return;
+  }
+  if (!form.type) {
+    fieldErrors.value.type = 'กรุณาเลือกประเภทวันหยุด';
+    isLoading.value = false;
+    return;
+  }
+  const today = new Date().toISOString().split('T')[0];
+  if (form.date < today) {
+    fieldErrors.value.date = 'วันที่ต้องไม่เป็นวันในอดีต';
+    isLoading.value = false;
+    return;
+  }
+
   try {
-    const response = await axios.post('http://localhost:8000/api/holidays/', {
+    const holidayId = route.query.id;
+    const method = holidayId && isEditing.value ? axios.put : axios.post;
+    const url = holidayId && isEditing.value
+      ? `http://localhost:8000/api/holiday/${holidayId}/`
+      : 'http://localhost:8000/api/holiday/';
+
+    const response = await method(url, {
       name: form.name,
       date: form.date,
       holiday_type: form.type,
     });
 
-    successMessage.value = 'บันทึกวันหยุดเรียบร้อยแล้ว';
-    
-    if (action === 'save') {
-      setTimeout(() => {
-        router.push('/admin11');
-      }, 1000);
-    } else if (action === 'save_add') {
-      resetForm();
-    } else if (action === 'save_edit') {
-      // Stay on the same page, no action needed other than showing success message
-    }
-
+    successMessage.value = isEditing.value ? 'แก้ไขวันหยุดเรียบร้อยแล้ว' : 'เพิ่มวันหยุดเรียบร้อยแล้ว';
+    setTimeout(() => {
+      router.push('/admin11');
+    }, 1000);
   } catch (error: any) {
     console.error('Full error response:', JSON.stringify(error.response?.data, null, 2));
-    if (error.response?.data) {
+    if (error.response?.status === 400) {
       const errors = error.response.data;
-      if (typeof errors === 'object' && errors !== null) {
+      if (errors.date && errors.date.includes('วันหยุดนี้มีอยู่แล้ว')) {
+        fieldErrors.value.date = 'วันหยุดในวันที่เลือกมีอยู่แล้ว กรุณาเลือกวันที่อื่น';
+      } else if (errors.holiday_type) {
+        fieldErrors.value.type = 'ประเภทวันหยุดไม่ถูกต้อง กรุณาเลือกใหม่';
+      } else {
         for (const [field, messages] of Object.entries(errors)) {
           fieldErrors.value[field] = Array.isArray(messages) ? messages[0] : messages;
         }
-      } else {
-        errorMessage.value = 'เกิดข้อผิดพลาดในการบันทึก กรุณาลองใหม่';
       }
+    } else if (error.response?.status === 404) {
+      errorMessage.value = 'ไม่พบวันหยุดที่ระบุ';
     } else {
-      errorMessage.value = 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์';
+      errorMessage.value = 'เกิดข้อผิดพลาดในการบันทึก กรุณาลองใหม่';
     }
     successMessage.value = null;
-    console.error('Error creating holiday:', error);
+    console.error('Error processing holiday:', error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const deleteHoliday = async () => {
+  if (isLoading.value) return;
+  if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการลบวันหยุดนี้?')) return;
+
+  isLoading.value = true;
+  errorMessage.value = null;
+  successMessage.value = null;
+
+  try {
+    const holidayId = route.query.id;
+    if (!holidayId) {
+      errorMessage.value = 'ไม่พบ ID วันหยุด';
+      isLoading.value = false;
+      return;
+    }
+
+    await axios.delete(`http://localhost:8000/api/holiday/${holidayId}/`, {
+      headers: { Authorization: `Token ${token.value}` },
+    });
+
+    successMessage.value = 'ลบวันหยุดเรียบร้อยแล้ว';
+    setTimeout(() => {
+      router.push('/admin11');
+    }, 1000);
+  } catch (error: any) {
+    console.error('Error deleting holiday:', JSON.stringify(error.response?.data, null, 2));
+    if (error.response?.status === 404) {
+      errorMessage.value = 'ไม่พบวันหยุดที่ระบุ';
+    } else {
+      errorMessage.value = 'เกิดข้อผิดพลาดในการลบวันหยุด';
+    }
+  } finally {
+    isLoading.value = false;
   }
 };
 
@@ -217,6 +294,7 @@ const resetForm = () => {
   });
   errorMessage.value = null;
   fieldErrors.value = {};
+  isEditing.value = false;
 };
 
 const currentUser = ref<any>(null);
@@ -241,8 +319,30 @@ onMounted(async () => {
       router.push('/login');
       return;
     }
+
+    const holidayId = route.query.id;
+    console.log('Holiday ID from query:', holidayId);
+    if (holidayId) {
+      isEditing.value = true;
+      try {
+        const response = await axios.get(`http://localhost:8000/api/holiday/${holidayId}/`);
+        console.log('Holiday data:', response.data);
+        Object.assign(form, {
+          name: response.data.name,
+          date: response.data.date,
+          type: response.data.holiday_type,
+        });
+      } catch (error: any) {
+        console.error('Error fetching holiday:', error);
+        if (error.response?.status === 404) {
+          errorMessage.value = 'ไม่พบวันหยุดที่ระบุ กรุณาตรวจสอบ ID';
+        } else {
+          errorMessage.value = 'ไม่สามารถดึงข้อมูลวันหยุดได้';
+        }
+      }
+    }
   } catch (err) {
-    console.error(err);
+    console.error('Error fetching user:', err);
     router.push('/login');
   }
 });
@@ -527,9 +627,7 @@ function logout() {
   gap: 15px;
 }
 
-.btn-save,
-.btn-save-add,
-.btn-save-edit {
+.btn-save {
   border: none;
   padding: 12px 30px;
   border-radius: 5px;
@@ -537,9 +635,6 @@ function logout() {
   font-size: 1em;
   transition: background-color 0.2s;
   color: white;
-}
-
-.btn-save {
   background-color: #4caf50;
 }
 
@@ -547,19 +642,18 @@ function logout() {
   background-color: #45a049;
 }
 
-.btn-save-add {
-  background-color: #2196f3;
+.btn-delete {
+  border: none;
+  padding: 12px 30px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.2s;
+  color: white;
+  background-color: #ff6b6b;
 }
 
-.btn-save-add:hover {
-  background-color: #1a7bb9;
-}
-
-.btn-save-edit {
-  background-color: #ffc107;
-}
-
-.btn-save-edit:hover {
-  background-color: #e0ac00;
+.btn-delete:hover {
+  background-color: #e55a5a;
 }
 </style>

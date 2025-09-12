@@ -4,20 +4,26 @@
       <div class="sidebar-header">
         <span>MIS ETE</span>
       </div>
-        <ul class="nav-menu">
-         <li class="nav-item">
-       <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
-     <i class="fas fa-home"></i> หน้าหลัก
-   </a>
-</li>
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
+            <i class="fas fa-home"></i> หน้าหลัก
+          </a>
+        </li>
         <li class="nav-item has-submenu">
-          <a href="/admin2" class="nav-link"@click.prevent="goToAdmin2Page">
+          <a href="/admin2" class="nav-link" @click.prevent="goToAdmin2Page">
             <i class="fas fa-users"></i> บุคลากร
           </a>
         </li>
-        <li class="nav-item"><a href="/admin10" class="nav-link" @click.prevent="goToAdmin10Page"><i class="fas fa-flask"></i> ห้องวิจัย</a></li>
-        <li class="nav-item"><a href="/admin11" class="nav-link" @click.prevent="goToAdmin11Page"><i class="fas fa-calendar-alt"></i> วันหยุด</a></li>
-        <li class="nav-item"><a href="/admin12" class="nav-link" @click.prevent="goToAdmin12Page"><i class="fas fa-cog"></i> ระบบการปฏิบัติงาน</a></li>
+        <li class="nav-item">
+          <a href="/admin10" class="nav-link" @click.prevent="goToAdmin10Page"><i class="fas fa-flask"></i> ห้องวิจัย</a>
+        </li>
+        <li class="nav-item">
+          <a href="/admin11" class="nav-link" @click.prevent="goToAdmin11Page"><i class="fas fa-calendar-alt"></i> วันหยุด</a>
+        </li>
+        <li class="nav-item">
+          <a href="/admin12" class="nav-link" @click.prevent="goToAdmin12Page"><i class="fas fa-cog"></i> ระบบการปฏิบัติงาน</a>
+        </li>
       </ul>
     </div>
 
@@ -61,9 +67,14 @@
             <i class="fas fa-calendar-alt"></i>
             <h2>วันหยุด/ปฏิทิน</h2>
           </div>
-          <button type="button" class="btn-add-room" @click="switchToTableView">
-            <i class="fas fa-th"></i> สลับเป็นรูปแบบตาราง
-          </button>
+          <div class="button-group">
+            <button type="button" class="btn-add-holiday" @click="goToAddHoliday">
+              <i class="fas fa-plus"></i> เพิ่มวันหยุด
+            </button>
+            <button type="button" class="btn-add-room" @click="switchToTableView">
+              <i class="fas fa-th"></i> สลับเป็นรูปแบบตาราง
+            </button>
+          </div>
         </div>
 
         <div class="calendar-grid">
@@ -76,7 +87,12 @@
             <div class="day-name" v-for="day in ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์']" :key="day">{{ day }}</div>
           </div>
           <div class="calendar-body">
-            <div class="calendar-cell empty" v-for="(day, index) in calendarDays" :key="index" :class="{ 'holiday': day.holidayName }" :title="day.holidayName">
+            <div class="calendar-cell" 
+                 v-for="(day, index) in calendarDays" 
+                 :key="index" 
+                 :class="{ 'holiday': day.holidayName, 'clickable': day.holidayName }" 
+                 :title="day.holidayName"
+                 @click="day.holidayId ? goToEditHoliday(day.holidayId) : null">
               <span v-if="!day.empty" class="day-number">{{ day.date }}</span>
               <div v-if="day.holidayName" class="holiday-name">{{ day.holidayName }}</div>
             </div>
@@ -88,7 +104,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, computed } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 
@@ -96,10 +112,10 @@ const router = useRouter();
 const token = ref<string | null>(null);
 const holidays = ref<any[]>([]);
 
-const showProfileMenu = ref(false)
+const showProfileMenu = ref(false);
 const toggleProfileMenu = () => {
-  showProfileMenu.value = !showProfileMenu.value
-}
+  showProfileMenu.value = !showProfileMenu.value;
+};
 
 const goTo = (path: string) => {
   router.push(path);
@@ -110,42 +126,49 @@ const goToAdminPage = () => {
 };
 
 const goToAdmin2Page = () => {
-  window.location.href = '/admin2';
+  router.push('/admin2');
 };
 
 const goToAdmin10Page = () => {
-  window.location.href = '/admin10';
+  router.push('/admin10');
 };
 
 const goToAdmin11Page = () => {
-  window.location.href = '/admin11';
+  router.push('/admin11');
 };
 
 const goToAdmin12Page = () => {
-  window.location.href = '/admin12';
+  router.push('/admin12');
+};
+
+const goToAddHoliday = () => {
+  router.push('/admin25');
+};
+
+const goToEditHoliday = (id: number) => {
+  router.push(`/admin25?id=${id}`);
 };
 
 const switchToTableView = () => {
-  window.location.href = '/admin11';
+  router.push('/admin11');
 };
 
-
-const currentUser = ref<any>(null)
+const currentUser = ref<any>(null);
 
 onMounted(async () => {
   if (typeof window !== "undefined") {
-    token.value = localStorage.getItem("token")
+    token.value = localStorage.getItem("token");
   }
 
   if (!token.value) {
-    router.push('/login')
-    return
+    router.push('/login');
+    return;
   }
 
-  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`
+  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`;
 
   try {
-    const me = await axios.get('http://localhost:8000/api/users/me/')
+    const me = await axios.get('http://localhost:8000/api/users/me/');
     currentUser.value = me.data;
 
     if (currentUser.value.role !== 'admin') {
@@ -153,13 +176,14 @@ onMounted(async () => {
       return;
     }
   } catch (err) {
-    console.error(err)
-    router.push('/login')
+    console.error(err);
+    router.push('/login');
   }
 
   try {
     const res = await axios.get('http://localhost:8000/api/holiday/list/');
     holidays.value = res.data.map((h: any) => ({
+      id: h.id,
       date: new Date(h.date),
       name: h.name,
       type: h.holiday_type_display,
@@ -171,10 +195,10 @@ onMounted(async () => {
 
 function logout() {
   if (typeof window !== "undefined") {
-    localStorage.removeItem("token")
+    localStorage.removeItem("token");
   }
-  delete axios.defaults.headers.common['Authorization']
-  router.push("/login")
+  delete axios.defaults.headers.common['Authorization'];
+  router.push("/login");
 }
 
 const calendarDays = ref<any[]>([]);
@@ -211,6 +235,7 @@ function generateCalendar(offset = 0) {
     daysArray.push({
       date: day,
       fullDate,
+      holidayId: holiday ? holiday.id : null,
       holidayName: holiday ? holiday.name : '',
       holidayType: holiday ? holiday.type : ''
     });
@@ -221,7 +246,6 @@ function generateCalendar(offset = 0) {
 }
 
 onMounted(() => generateCalendar());
-
 </script>
 
 <style scoped>
@@ -435,7 +459,7 @@ onMounted(() => generateCalendar());
 }
 
 .btn-add-room {
-  background-color: #4CAF50;
+  background-color: #5b74e6;
   color: white;
   border: none;
   padding: 10px 15px;
@@ -449,7 +473,7 @@ onMounted(() => generateCalendar());
 }
 
 .btn-add-room:hover {
-  background-color: #45a049;
+  background-color: #454ba0;
 }
 
 .calendar-grid {
@@ -460,7 +484,7 @@ onMounted(() => generateCalendar());
 
 .calendar-header {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(7, 1fr);
   background-color: #f5f5f5;
   border-bottom: 1px solid #ddd;
 }
@@ -473,7 +497,7 @@ onMounted(() => generateCalendar());
 
 .calendar-body {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(7, 1fr);
 }
 
 .calendar-cell {
@@ -567,5 +591,31 @@ onMounted(() => generateCalendar());
 .menu-item i {
   width: 20px;
   text-align: center;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-add-holiday {
+  background-color: #28a745;
+  color: white;
+  padding: 8px 16px;
+  font-size: 1em;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.btn-add-holiday:hover {
+  background-color: #218838;
+}
+
+.calendar-cell.clickable {
+  cursor: pointer;
+}
+
+.calendar-cell.clickable:hover {
+  background-color: #e9ecef;
 }
 </style>
