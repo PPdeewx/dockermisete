@@ -7,9 +7,16 @@ from apps.leave.models import LeaveType, LeaveQuota
 from django.utils import timezone
 
 class UserSerializerShort(serializers.ModelSerializer):
+    department = serializers.SerializerMethodField()
+
     class Meta:
         model = CustomUser
-        fields = ['id', 'employee_code', 'firstname_th', 'lastname_th', 'email']
+        fields = ['id', 'employee_code', 'firstname_th', 'lastname_th', 'email', 'department']
+
+    def get_department(self, obj):
+        if obj.department:
+            return {'id': obj.department.id, 'name_th': obj.department.name_th}
+        return None
 
 class UserSerializerWithDepartment(serializers.ModelSerializer):
     department = serializers.SerializerMethodField()

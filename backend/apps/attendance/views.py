@@ -1,5 +1,5 @@
 import pandas as pd
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -9,8 +9,33 @@ from .serializers import AttendanceRecordSerializer
 from apps.users.models import CustomUser
 
 class AttendanceRecordListView(generics.ListCreateAPIView):
-    queryset = AttendanceRecord.objects.all()
     serializer_class = AttendanceRecordSerializer
+
+    def get_queryset(self):
+        queryset = AttendanceRecord.objects.all()
+        start_date = self.request.query_params.get('start_date')
+        end_date = self.request.query_params.get('end_date')
+        department_id = self.request.query_params.get('room')
+        search_name = self.request.query_params.get('name')
+
+        if start_date and end_date:
+            try:
+                start = datetime.strptime(start_date, '%Y-%m-%d').date()
+                end = datetime.strptime(end_date, '%Y-%m-%d').date()
+                queryset = queryset.filter(date__range=[start, end])  # เปลี่ยนจาก date__date__range เป็น date__range
+            except ValueError:
+                return Response(
+                    {"error": "รูปแบบวันที่ไม่ถูกต้อง ต้องเป็น YYYY-MM-DD"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        if department_id:
+            queryset = queryset.filter(user__department__id=department_id)
+        if search_name:
+            queryset = queryset.filter(
+                Q(user__firstname_th__icontains=search_name) |
+                Q(user__lastname_th__icontains=search_name)
+            )
+        return queryset.order_by('date')
 
 class AttendanceRecordDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = AttendanceRecord.objects.all()
@@ -72,9 +97,10 @@ class UploadAttendanceExcel(APIView):
     def post(self, request):
         file = request.FILES.get('file')
         if not file:
-            return Response({"error": "No file uploaded"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "ไม่มีไฟล์อัปโหลด"}, status=status.HTTP_400_BAD_REQUEST)
 
         df = pd.read_excel(file)
+        errors = []
         for _, row in df.iterrows():
             try:
                 user = CustomUser.objects.get(time_attendance_code=row['time_attendance_code'])
@@ -89,6 +115,9 @@ class UploadAttendanceExcel(APIView):
                     }
                 )
             except CustomUser.DoesNotExist:
+                errors.append(f"ไม่พบผู้ใช้ที่มี time_attendance_code: {row['time_attendance_code']}")
                 continue
 
-        return Response({"message": "Upload completed"})
+        if errors:
+            return Response({"message": "อัปโหลดเสร็จสิ้น แต่มีข้อผิดพลาดบางประการ", "errors": errors}, status=status.HTTP_207_MULTI_STATUS)
+        return Response({"message": "อัปโหลดเสร็จสมบูรณ์"})

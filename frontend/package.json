@@ -15,6 +15,7 @@
     "@fullcalendar/interaction": "^6.1.19",
     "@fullcalendar/vue3": "^6.1.19",
     "axios": "^1.11.0",
+    "flatpickr": "^4.6.13",
     "nuxt": "^4.0.3",
     "vue": "^3.5.18",
     "vue-router": "^4.5.1"

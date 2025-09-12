@@ -1,11 +1,13 @@
 from rest_framework import serializers
 from .models import AttendanceRecord
 from apps.users.models import CustomUser
+from apps.users.serializers import UserSerializerShort
 
 class AttendanceRecordSerializer(serializers.ModelSerializer):
     employee_code = serializers.CharField(source='user.employee_code', read_only=True)
     time_attendance_code = serializers.CharField(source='user.time_attendance_code', read_only=True)
     full_name = serializers.SerializerMethodField()
+    user = UserSerializerShort(read_only=True)
 
     class Meta:
         model = AttendanceRecord

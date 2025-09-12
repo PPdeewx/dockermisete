@@ -78,19 +78,18 @@
             <i class="fas fa-pen"></i> แก้ไขข้อมูล
           </button>
         </div>
-        
         <div class="search-export-container">
           <div class="search-inputs">
             <div class="input-group">
               <label for="date-range">ช่วงวันที่</label>
-              <input type="text" id="date-range" placeholder="ช่วงวันที่" class="form-input">
+              <input type="text" id="date-range" placeholder="เลือกช่วงวันที่" class="form-input">
             </div>
             <div class="input-group">
               <label for="room-select">ห้องวิจัย</label>
               <select id="room-select" class="form-select" v-model="selectedRoom">
                 <option value="">ทั้งหมด</option>
                 <option v-for="room in roomList" :key="room.id" :value="room.id">
-                  {{ room.name }}
+                  {{ room.name_th }}
                 </option>
               </select>
             </div>
@@ -102,8 +101,9 @@
           </div>
           <button class="btn-export" @click="exportData">Export</button>
         </div>
-        
-        <div class="work-time-table-container">
+        <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+        <div v-else-if="filteredWorkTimeList.length === 0" class="no-data">ไม่มีข้อมูลเวลาทำงาน</div>
+        <div v-else class="work-time-table-container">
           <table class="work-time-table">
             <thead>
               <tr>
@@ -138,16 +138,124 @@
 import { ref, onMounted, reactive, computed } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
 
 const router = useRouter();
 const token = ref<string | null>(null);
 const selectedRoom = ref('');
 const searchName = ref('');
+const dateRange = ref(['', '']);
+const showProfileMenu = ref(false);
+const currentUser = ref<any>(null);
+const errorMessage = ref('');
+const isLoading = ref(false);
+const roomList = reactive([]);
+const workTimeList = ref([]);
 
-const showProfileMenu = ref(false)
-const toggleProfileMenu = () => {
-  showProfileMenu.value = !showProfileMenu.value
-}
+onMounted(async () => {
+  if (typeof window !== "undefined") {
+    token.value = localStorage.getItem("token");
+  }
+
+  if (!token.value) {
+    router.push('/login');
+    return;
+  }
+
+  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`;
+
+  try {
+    const me = await axios.get('http://localhost:8000/api/users/me/');
+    currentUser.value = me.data;
+
+    if (currentUser.value.role !== 'admin') {
+      router.push('/login');
+      return;
+    }
+
+    const roomsResponse = await axios.get('http://localhost:8000/api/users/departments/');
+    console.log('Departments Response:', roomsResponse.data);
+    roomList.splice(0, roomList.length, ...roomsResponse.data);
+
+    await fetchWorkTimeList();
+
+    flatpickr('#date-range', {
+      mode: 'range',
+      dateFormat: 'Y-m-d',
+      onChange: (selectedDates) => {
+        dateRange.value = selectedDates.map(date => date.toISOString().split('T')[0]);
+        console.log('Selected Date Range:', dateRange.value);
+      },
+    });
+  } catch (err) {
+    console.error('Error during mount:', err);
+    errorMessage.value = 'เกิดข้อผิดพลาดในการโหลดข้อมูล';
+    router.push('/login');
+  }
+});
+
+const fetchWorkTimeList = async () => {
+  isLoading.value = true;
+  try {
+    const params = {
+      start_date: dateRange.value[0] || undefined,
+      end_date: dateRange.value[1] || undefined,
+      room: selectedRoom.value || undefined,
+      name: searchName.value || undefined,
+    };
+    console.log('API Params:', params);
+    const response = await axios.get('http://localhost:8000/api/attendance/records/', { params });
+    console.log('Attendance Records Response:', response.data);
+    workTimeList.value = response.data.map(record => {
+      console.log('Record User:', record.user);
+      return {
+        date: record.date,
+        name: record.full_name,
+        room: record.user?.department?.id || '',
+        checkIn: record.check_in || '-',
+        checkOut: record.check_out || '-',
+        late: record.late_minutes ? `${record.late_minutes} นาที` : '-',
+        status: record.status === 'normal' ? 'ปกติ' : record.status === 'leave' ? 'ลา' : record.status === 'remote' ? 'นอกสถานที่' : 'ขาดงาน',
+      };
+    });
+  } catch (err) {
+    console.error('Error fetching work time list:', err);
+    errorMessage.value = 'ไม่สามารถดึงข้อมูลเวลาทำงานได้';
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const filteredWorkTimeList = computed(() => {
+  return workTimeList.value.filter(record => {
+    const roomMatch = !selectedRoom.value || record.room === selectedRoom.value;
+    const nameMatch = !searchName.value || record.name.toLowerCase().includes(searchName.value.toLowerCase());
+    return roomMatch && nameMatch;
+  });
+});
+
+const roomNameById = (id: string) => {
+  const room = roomList.find(r => String(r.id) === String(id));
+  return room ? room.name_th : 'ไม่ระบุ';
+};
+
+const search = async () => {
+  await fetchWorkTimeList();
+};
+
+const exportData = () => {
+  const headers = ['วันที่,ชื่อ - นามสกุล,ห้องวิจัย,เข้างาน,ออกงาน,มาสาย,สถานะ'];
+  const rows = filteredWorkTimeList.value.map(record =>
+    `${record.date},${record.name},${roomNameById(record.room)},${record.checkIn},${record.checkOut},${record.late},${record.status}`
+  );
+  const csv = headers.concat(rows).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'work_time_export.csv';
+  link.click();
+};
 
 const goTo = (path: string) => {
   router.push(path);
@@ -173,86 +281,17 @@ const goToAdmin9Page = () => {
   router.push('/admin9');
 };
 
-const roomList = reactive([
-  { id: 'eedp', name: 'โครงการพัฒนาการศึกษาด้านพลังงาน' },
-  { id: 'reec', name: 'ห้องวิจัยพลังงานทดแทนและอนุรักษ์พลังงาน' },
-  { id: 'cceme', name: 'ห้องวิจัยด้านวิศวกรรมและการบริหารจัดการการเปลี่ยนแปลงสภาพภูมิอากาศด้านพลังงาน' },
-]);
-
-const workTimeList = ref([
-  { date: '13/ส.ค./2568', name: 'นายแอ๊ดมิน แอ๊ดมิน', room: 'reec', checkIn: 'D', checkOut: 'D', late: 'D', status: 'พนักงานปัจจุบัน' },
-  { date: '14/ส.ค./2568', name: 'นาย ก. ไก่', room: 'cceme', checkIn: '08:30', checkOut: '17:30', late: '0', status: 'พนักงานปัจจุบัน' },
-  { date: '15/ส.ค./2568', name: 'นาย ข. ไข่', room: 'eedp', checkIn: '09:00', checkOut: '18:00', late: '30', status: 'พนักงานปัจจุบัน' },
-  { date: '16/ส.ค./2568', name: 'นายแอ๊ดมิน แอ๊ดมิน', room: 'reec', checkIn: '08:00', checkOut: '17:00', late: '0', status: 'พนักงานปัจจุบัน' },
-  { date: '17/ส.ค./2568', name: 'นางสาว ค. ควาย', room: 'cceme', checkIn: '08:15', checkOut: '17:15', late: '15', status: 'พนักงานปัจจุบัน' },
-  { date: '18/ส.ค./2568', name: 'นาย ง. งู', room: 'eedp', checkIn: 'D', checkOut: 'D', late: 'D', status: 'พนักงาน EDDP' },
-]);
-
-
-const filteredWorkTimeList = computed(() => {
-  return workTimeList.value.filter(record => {
-
-    const roomMatch = !selectedRoom.value || record.room === selectedRoom.value;
-
-    const nameMatch = record.name.toLowerCase().includes(searchName.value.toLowerCase());
-
-    return roomMatch && nameMatch;
-  });
-});
-
-const roomNameById = (id: string) => {
-  const room = roomList.find(r => r.id === id);
-  return room ? room.name : 'ไม่ระบุ';
+const toggleProfileMenu = () => {
+  showProfileMenu.value = !showProfileMenu.value;
 };
 
-const editData = () => {
-  alert('ฟังก์ชันแก้ไขข้อมูล');
-};
-
-const search = () => {
- 
-  console.log('Searching...');
-};
-
-const exportData = () => {
-  alert('ฟังก์ชัน Export');
-};
-
-const currentUser = ref<any>(null)
-
-onMounted(async () => {
+const logout = () => {
   if (typeof window !== "undefined") {
-    token.value = localStorage.getItem("token")
+    localStorage.removeItem("token");
   }
-
-  if (!token.value) {
-    router.push('/login')
-    return
-  }
-
-  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`
-
-  try {
-    const me = await axios.get('http://localhost:8000/api/users/me/')
-    currentUser.value = me.data;
-
-    if (currentUser.value.role !== 'admin') {
-      router.push('/login');
-      return;
-    }
-  } catch (err) {
-    console.error(err)
-    router.push('/login')
-  }
-})
-
-function logout() {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("token")
-  }
-  delete axios.defaults.headers.common['Authorization']
-  router.push("/login")
-}
+  delete axios.defaults.headers.common['Authorization'];
+  router.push("/login");
+};
 </script>
 
 <style scoped>
