@@ -20,7 +20,7 @@
         <li class="nav-item"><a href="/admin12" class="nav-link" @click.prevent="goToAdmin12Page"><i class="fas fa-cog"></i> ระบบการปฏิบัติงาน</a></li>
       </ul>
     </div>
-
+                   
     <div class="main-content">
       <div class="top-bar">
         <div class="breadcrumbs">
@@ -148,7 +148,7 @@ const showProfileMenu = ref(false);
 const currentUser = ref<any>(null);
 const errorMessage = ref<string>('');
 const successMessage = ref<string>('');
-const profileImageUrl = ref<string | null>(null); // ตัวแปรใหม่สำหรับเก็บ URL รูปภาพ
+const profileImageUrl = ref<string | null>(null);
 
 const form = reactive({
   prefix_th: '',
@@ -203,8 +203,10 @@ const logout = () => {
 const handleFileUpload = (event: Event) => {
   const input = event.target as HTMLInputElement;
   if (input.files && input.files.length > 0) {
-    form.profile_image = input.files[0];
-    profileImageUrl.value = URL.createObjectURL(form.profile_image); // แสดงตัวอย่างรูปภาพที่เลือกทันที
+    const file = input.files[0];
+    form.profile_image = file;
+
+    profileImageUrl.value = URL.createObjectURL(file);
   }
 };
 
@@ -236,13 +238,13 @@ const submitForm = async () => {
         'Content-Type': 'multipart/form-data',
       },
     });
-    
-    // อัปเดต URL รูปภาพเมื่อบันทึกสำเร็จ
+
     if (response.data.profile_image) {
       profileImageUrl.value = response.data.profile_image;
     }
 
     successMessage.value = 'บันทึกข้อมูลสำเร็จ';
+    
     setTimeout(() => {
       router.push('/admin28');
     }, 2000);
@@ -258,25 +260,13 @@ const submitForm = async () => {
   }
 };
 
-onMounted(async () => {
-  token.value = localStorage.getItem("token");
-
-  if (!token.value) {
-    router.push('/login');
-    return;
-  }
-
-  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`;
-
+const fetchUserProfile = async () => {
   try {
     const response = await axios.get('http://localhost:8000/api/users/me/');
     currentUser.value = response.data;
-    
-    // อัปเดต URL รูปภาพเมื่อโหลดข้อมูลผู้ใช้ครั้งแรก
     if (response.data.profile_image) {
       profileImageUrl.value = response.data.profile_image;
     }
-
     if (currentUser.value.role !== 'admin') {
       router.push('/login');
       return;
@@ -295,6 +285,16 @@ onMounted(async () => {
     console.error('Error fetching user data:', err);
     router.push('/login');
   }
+};
+
+onMounted(async () => {
+  token.value = localStorage.getItem("token");
+  if (!token.value) {
+    router.push('/login');
+    return;
+  }
+  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`;
+  await fetchUserProfile();
 });
 </script>
 

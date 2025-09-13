@@ -32,7 +32,6 @@
             <i class="fas fa-user-circle"></i>
             <span class="username">{{ currentUser?.username }} ตำแหน่ง: {{ currentUser?.role }}</span>
             <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
-
             <div class="user-profile-menu" v-if="showProfileMenu">
               <button class="menu-item" @click.stop="goTo('/admin28')">
                 <i class="fas fa-user"></i>
@@ -77,7 +76,8 @@
             </div>
           </div>
           <div class="profile-image-section">
-            <div class="profile-placeholder">
+            <img :src="profileImageUrl" v-if="profileImageUrl" class="profile-image" />
+            <div v-else class="profile-placeholder">
               Profile
             </div>
           </div>
@@ -117,6 +117,7 @@ const router = useRouter();
 const token = ref<string | null>(null);
 const showProfileMenu = ref(false);
 const currentUser = ref<any>(null);
+const profileImageUrl = ref<string | null>(null);
 
 const profile = reactive({
   nameTh: '',
@@ -168,26 +169,27 @@ const logout = () => {
   router.push("/login");
 };
 
-onMounted(async () => {
-  token.value = localStorage.getItem("token");
-
-  if (!token.value) {
-    router.push('/login');
-    return;
-  }
-
-  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`;
-
+// ฟังก์ชันสำหรับดึงข้อมูลผู้ใช้
+const fetchUserProfile = async () => {
   try {
     const response = await axios.get('http://localhost:8000/api/users/me/');
     currentUser.value = response.data;
+    
+    const imageUrl = response.data.profile_image;
+    if (imageUrl) {
+      // ใช้ Cache-Buster เพื่อให้แน่ใจว่าเบราว์เซอร์จะโหลดรูปภาพใหม่ทุกครั้ง
+      profileImageUrl.value = `${imageUrl}?t=${new Date().getTime()}`;
+    } else {
+      profileImageUrl.value = null;
+    }
 
     if (currentUser.value.role !== 'admin') {
       router.push('/login');
       return;
     }
 
-    profile.nameTh = `${response.data.firstname_th || ''} ${response.data.lastname_th || ''}`.trim();
+    // อัปเดตข้อมูลใน reactive object
+    profile.nameTh = `${response.data.prefix_th || ''} ${response.data.firstname_th || ''} ${response.data.lastname_th || ''}`.trim();
     profile.nameEn = `${response.data.firstname_en || ''} ${response.data.lastname_en || ''}`.trim();
     profile.position = response.data.position || response.data.role || '';
     profile.startDate = response.data.start_date || '';
@@ -201,11 +203,21 @@ onMounted(async () => {
       other: response.data.leave?.other || 0
     };
 
-    console.log("Profile data:", profile);
   } catch (err) {
     console.error("Error fetching user data:", err);
     router.push('/login');
   }
+};
+
+onMounted(async () => {
+  token.value = localStorage.getItem("token");
+  if (!token.value) {
+    router.push('/login');
+    return;
+  }
+  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`;
+  
+  await fetchUserProfile();
 });
 </script>
 
@@ -454,6 +466,13 @@ onMounted(async () => {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.profile-image {
+  width: 150px;
+  height: 150px;
+  border-radius: 8px;
+  object-fit: cover;
 }
 
 .profile-placeholder {
