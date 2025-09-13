@@ -35,22 +35,31 @@ class DepartmentSerializer(serializers.ModelSerializer):
     personnel = serializers.SerializerMethodField()
     total_users = serializers.SerializerMethodField()
     approvers = UserSerializerShort(many=True, read_only=True)
+    approvers_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Department
-        fields = ["id", "name_th", "name_en", "head", "personnel", "total_users", "approvers"]
+        fields = ["id", "name_th", "name_en", "head", "personnel", "total_users", "approvers", "approvers_count"]
 
     def get_head(self, obj):
-        if obj.approvers.exists():
-            return f"{obj.approvers.first().firstname_th} {obj.approvers.first().lastname_th}"
+        if obj.head:
+            return {
+                "id": obj.head.id,
+                "firstname_th": obj.head.firstname_th,
+                "lastname_th": obj.head.lastname_th,
+                "email": obj.head.email
+            }
         return None
 
     def get_personnel(self, obj):
         users = CustomUser.objects.filter(department=obj)
-        return [f"{u.firstname_th} {u.lastname_th}" for u in users]
-    
+        return [f"{u.firstname_th} {u.lastname_th}".strip() for u in users]
+
     def get_total_users(self, obj):
         return CustomUser.objects.filter(department=obj).count()
+
+    def get_approvers_count(self, obj):
+        return obj.approvers.count()
 
 class CustomUserSerializer(serializers.ModelSerializer):
     groups = serializers.SlugRelatedField(

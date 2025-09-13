@@ -94,14 +94,14 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="i in 10" :key="i">
-                  <td>{{ i }}</td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
+                <tr v-for="(emp, index) in filteredEmployees" :key="emp.id">
+                  <td>{{ index + 1 }}</td>
+                  <td>{{ emp.employee_code }}</td>
+                  <td>{{ emp.username }}</td>
+                  <td>{{ emp.department?.name_th || emp.external_department || '-' }}</td>
+                  <td>{{ emp.firstname_th }} {{ emp.lastname_th }}</td>
+                  <td>{{ emp.phone_number || '-' }}</td>
+                  <td>{{ emp.email }}</td>
                   <td>
                     <i class="fas fa-search action-icon view-icon"></i>
                     <i class="fas fa-edit action-icon edit-icon" @click="goTo('/admin6')"></i>
@@ -118,7 +118,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue';
+import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 
@@ -126,37 +126,22 @@ const router = useRouter();
 const token = ref<string | null>(null);
 
 const currentUser = ref<any>(null)
-
 const showProfileMenu = ref(false)
-const toggleProfileMenu = () => {
-  showProfileMenu.value = !showProfileMenu.value
-}
+const toggleProfileMenu = () => { showProfileMenu.value = !showProfileMenu.value }
 
-const goTo = (path: string) => {
-  router.push(path);
-};
+const goTo = (path: string) => { router.push(path) }
+const goToAdminPage = () => { router.push('/admin') }
+const goToAdmin10Page = () => { router.push('/admin10') }
+const goToAdmin11Page = () => { router.push('/admin11') }
+const goToAdmin12Page = () => { router.push('/admin12') }
 
-const goToAdminPage = () => {
-  router.push('/admin');
-};
-
-const goToAdmin10Page = () => {
-  router.push('/admin10');
-};
-
-const goToAdmin11Page = () => {
-  router.push('/admin11');
-};
-
-const goToAdmin12Page = () => {
-  router.push('/admin12');
-};
+const employees = ref<any[]>([])   // เก็บพนักงาน EDDP
+const searchQuery = ref("")        // เก็บข้อความค้นหา
 
 onMounted(async () => {
   if (typeof window !== "undefined") {
     token.value = localStorage.getItem("token")
   }
-
   if (!token.value) {
     router.push('/login')
     return
@@ -166,12 +151,15 @@ onMounted(async () => {
 
   try {
     const me = await axios.get('http://localhost:8000/api/users/me/')
-    currentUser.value = me.data;
-
+    currentUser.value = me.data
     if (currentUser.value.role !== 'admin') {
-      router.push('/login');
-      return;
+      router.push('/login')
+      return
     }
+
+    // โหลดพนักงาน EDDP
+    const res = await axios.get('http://localhost:8000/api/users/eddp/')
+    employees.value = res.data
   } catch (err) {
     console.error(err)
     router.push('/login')
@@ -185,6 +173,16 @@ function logout() {
   delete axios.defaults.headers.common['Authorization']
   router.push("/login")
 }
+
+// ฟิลเตอร์ค้นหา
+const filteredEmployees = computed(() => {
+  if (!searchQuery.value) return employees.value
+  return employees.value.filter(emp =>
+    (emp.firstname_th + " " + emp.lastname_th).includes(searchQuery.value) ||
+    (emp.username || "").includes(searchQuery.value) ||
+    (emp.email || "").includes(searchQuery.value)
+  )
+})
 </script>
 
 <style scoped>

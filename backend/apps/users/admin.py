@@ -46,7 +46,7 @@ class CustomUserAdmin(UserAdmin):
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         current_year = timezone.now().year
-        leave_types = {lt.name: lt for lt in LeaveType.objects.filter(name__in=['ลาป่วย', 'ลากิจ', 'ลาพักร้อน'])}  # เปลี่ยนชื่อ
+        leave_types = {lt.name: lt for lt in LeaveType.objects.filter(name__in=['ลาป่วย', 'ลากิจ', 'ลาพักร้อน'])}
         if form.cleaned_data.get('quota_sick'):
             LeaveQuota.objects.update_or_create(
                 user=obj,
@@ -71,8 +71,34 @@ class CustomUserAdmin(UserAdmin):
 
 @admin.register(Department)
 class DepartmentAdmin(admin.ModelAdmin):
-    list_display = ('full_name',)
+    list_display = ('full_name', 'head_name', 'total_users', 'approvers_count')
+    list_filter = ('name_th',)
+    search_fields = ('name_th', 'name_en')
+    fields = ('name_th', 'name_en', 'head', 'approvers')
 
     def full_name(self, obj):
         return f"{obj.name_th} ({obj.name_en})"
     full_name.short_description = "ห้องวิจัย"
+
+    def head_name(self, obj):
+        return f"{obj.head.firstname_th} {obj.head.lastname_th}" if obj.head else "-"
+    head_name.short_description = "หัวหน้าห้องวิจัย"
+
+    def total_users(self, obj):
+        return CustomUser.objects.filter(department=obj).count()
+    total_users.short_description = "จำนวนพนักงาน"
+
+    def approvers_count(self, obj):
+        return obj.approvers.count()
+    approvers_count.short_description = "จำนวนผู้มีสิทธิ์อนุมัติ"
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj and CustomUser.objects.filter(department=obj).exists():
+            return ('name_th', 'name_en')
+        return ()
+
+    def delete_model(self, request, obj):
+        if CustomUser.objects.filter(department=obj).exists():
+            self.message_user(request, "ไม่สามารถลบห้องวิจัยได้เนื่องจากยังมีพนักงานอยู่ในแผนกนี้", level='error')
+            return
+        obj.delete()

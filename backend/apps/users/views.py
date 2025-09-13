@@ -270,27 +270,51 @@ class UserForListView(APIView):
                 "role": u.role
             })
         return Response(data)
-    
+
 class DepartmentListCreateView(generics.ListCreateAPIView):
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
     permission_classes = [IsAdminUser]
+
+    def perform_create(self, serializer):
+        head_id = self.request.data.get('head')
+        approver_ids = self.request.data.get('approvers', [])
+        instance = serializer.save()
+        if head_id:
+            instance.head = CustomUser.objects.get(id=head_id)
+        if approver_ids:
+            instance.approvers.set(CustomUser.objects.filter(id__in=approver_ids))
+        instance.save()
 
 class DepartmentDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
     permission_classes = [IsAdminUser]
 
+    def perform_update(self, serializer):
+        head_id = self.request.data.get('head')
+        approver_ids = self.request.data.get('approvers', [])
+        instance = serializer.save()
+        if head_id:
+            instance.head = CustomUser.objects.get(id=head_id)
+        else:
+            instance.head = None
+        if approver_ids:
+            instance.approvers.set(CustomUser.objects.filter(id__in=approver_ids))
+        else:
+            instance.approvers.clear()
+        instance.save()
+
     def perform_destroy(self, instance):
         if CustomUser.objects.filter(department=instance).exists():
-            raise ValidationError("ไม่สามารถลบห้องวิจัย ได้เนื่องจากยังมีพนักงานอยู่ในแผนกนี้")
+            raise ValidationError("ไม่สามารถลบห้องวิจัยได้เนื่องจากยังมีพนักงานอยู่ในแผนกนี้")
         instance.delete()
 
 class GroupListView(generics.ListAPIView):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
     permission_classes = [IsAdminUser]
-    
+
 class ChangePasswordView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -317,7 +341,7 @@ class ChangePasswordView(APIView):
         user.set_password(new_password)
         user.save()
         return Response({"message": "เปลี่ยนรหัสผ่านเรียบร้อยแล้ว"}, status=status.HTTP_200_OK)
-    
+
 class ExternalUserCreateView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
@@ -347,3 +371,10 @@ class ExternalUserCreateView(generics.CreateAPIView):
             )
         except Exception as e:
             print(f"Email sending failed: {e}")
+
+class EDDPUserListView(generics.ListAPIView):
+    serializer_class = CustomUserSerializer
+    permission_classes = [IsAdminUser]
+
+    def get_queryset(self):
+        return CustomUser.objects.filter(headed_departments__isnull=False).distinct()

@@ -6,10 +6,15 @@ from django.core.exceptions import ValidationError
 class Department(models.Model):
     name_th = models.CharField(max_length=200, verbose_name="ชื่อห้องวิจัย (ไทย)", default="-")
     name_en = models.CharField(max_length=200, verbose_name="ชื่อห้องวิจัย (อังกฤษ)", default="-")
-    approvers = models.ManyToManyField('CustomUser', related_name='approver_departments', blank=True)
+    head = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='headed_departments', verbose_name="หัวหน้าห้องวิจัย")
+    approvers = models.ManyToManyField('CustomUser', related_name='approver_departments', blank=True, verbose_name="ผู้มีสิทธิ์อนุมัติ")
 
     def __str__(self):
         return f"{self.name_th} ({self.name_en})"
+
+    def clean(self):
+        if self.head and self.pk and not self.approvers.filter(id=self.head.id).exists():
+            raise ValidationError({'head': 'หัวหน้าห้องวิจัยต้องอยู่ในรายชื่อผู้มีสิทธิ์อนุมัติ'})
 
 class CustomUser(AbstractUser):
     ROLE_CHOICES = (
@@ -47,7 +52,7 @@ class CustomUser(AbstractUser):
     external_department = models.CharField(max_length=200, blank=True, null=True, verbose_name="หน่วยงานภายนอก")
 
     def __str__(self):
-        return f"{self.prefix_th} {self.firstname_th} {self.lastname_th}"
+        return f"{self.prefix_th or ''} {self.firstname_th or ''} {self.lastname_th or ''}".strip()
 
     def clean(self):
         if self.status == 'resigned' and not self.exit_date:
