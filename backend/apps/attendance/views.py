@@ -7,6 +7,7 @@ from django.db.models import Sum, Q
 from .models import AttendanceRecord
 from .serializers import AttendanceRecordSerializer
 from apps.users.models import CustomUser
+from apps.users.serializers import CustomUserSerializer
 
 class AttendanceRecordListView(generics.ListCreateAPIView):
     serializer_class = AttendanceRecordSerializer
@@ -22,7 +23,7 @@ class AttendanceRecordListView(generics.ListCreateAPIView):
             try:
                 start = datetime.strptime(start_date, '%Y-%m-%d').date()
                 end = datetime.strptime(end_date, '%Y-%m-%d').date()
-                queryset = queryset.filter(date__range=[start, end])  # เปลี่ยนจาก date__date__range เป็น date__range
+                queryset = queryset.filter(date__range=[start, end])
             except ValueError:
                 return Response(
                     {"error": "รูปแบบวันที่ไม่ถูกต้อง ต้องเป็น YYYY-MM-DD"},
@@ -121,3 +122,56 @@ class UploadAttendanceExcel(APIView):
         if errors:
             return Response({"message": "อัปโหลดเสร็จสิ้น แต่มีข้อผิดพลาดบางประการ", "errors": errors}, status=status.HTTP_207_MULTI_STATUS)
         return Response({"message": "อัปโหลดเสร็จสมบูรณ์"})
+    
+class ResignedAttendanceSummaryView(APIView):
+    def get(self, request):
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        department_id = request.query_params.get('room')
+
+        users = CustomUser.objects.filter(status='resigned')
+
+        if department_id:
+            users = users.filter(department_id=department_id)
+
+        data = []
+        for user in users:
+            if start_date and end_date:
+                try:
+                    start = datetime.strptime(start_date, '%Y-%m-%d').date()
+                    end = datetime.strptime(end_date, '%Y-%m-%d').date()
+
+                    records = AttendanceRecord.objects.filter(
+                        user=user,
+                        date__range=[start, end]
+                    )
+                except ValueError:
+                    return Response({"error": "รูปแบบวันที่ไม่ถูกต้อง"}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                start = user.start_date
+                end = user.exit_date or date.today()
+                records = AttendanceRecord.objects.filter(
+                    user=user,
+                    date__range=[start, end]
+                )
+
+            total_days = records.count()
+            actual_hours = total_days * 8.0
+
+            total_late_minutes = records.aggregate(total_late=Sum('late_minutes'))['total_late'] or 0
+
+            expected_days = (end - start).days + 1
+            expected_hours = expected_days * 8.0
+
+            data.append({
+                'id': user.id,
+                'name': f"{user.firstname_th} {user.lastname_th}",
+                'room': user.department.id if user.department else None,
+                'dateResigned': user.exit_date.strftime('%Y-%m-%d') if user.exit_date else 'ไม่ระบุ',
+                'workHours': f"{expected_hours} ชม.",
+                'actualHours': f"{actual_hours} ชม.",
+                'lateMinutes': f"{total_late_minutes} นาที",
+                'status': 'ลาออก'
+            })
+
+        return Response(data)

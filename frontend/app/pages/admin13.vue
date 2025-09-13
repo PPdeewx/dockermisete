@@ -4,14 +4,14 @@
       <div class="sidebar-header">
         <span>MIS ETE</span>
       </div>
-        <ul class="nav-menu">
-         <li class="nav-item">
-       <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
-     <i class="fas fa-home"></i> หน้าหลัก
-   </a>
-</li>
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
+            <i class="fas fa-home"></i> หน้าหลัก
+          </a>
+        </li>
         <li class="nav-item has-submenu">
-          <a href="/admin2" class="nav-link"@click.prevent="goToAdmin2Page">
+          <a href="/admin2" class="nav-link" @click.prevent="goToAdmin2Page">
             <i class="fas fa-users"></i> บุคลากร
           </a>
         </li>
@@ -80,26 +80,29 @@
           <div class="search-inputs">
             <div class="input-group">
               <label for="date-range">ช่วงวันที่</label>
-              <input type="text" id="date-range" placeholder="ช่วงวันที่" class="form-input">
+              <input type="text" id="date-range" placeholder="เลือกช่วงวันที่" class="form-input">
             </div>
             <div class="input-group">
               <label for="room-select">ห้องวิจัย</label>
               <select id="room-select" class="form-select" v-model="selectedRoom">
                 <option value="">ทั้งหมด</option>
                 <option v-for="room in roomList" :key="room.id" :value="room.id">
-                  {{ room.name }}
+                  {{ room.name_th }}
                 </option>
               </select>
             </div>
             <button class="btn-search" @click="search">ค้นหา</button>
           </div>
           <div class="status-radio-group">
-              <input type="radio" id="resigned-status" name="status" checked>
-              <label for="resigned-status">พนักงานลาออก</label>
-            </div>
+            <input type="radio" id="resigned-status" name="status" checked>
+            <label for="resigned-status">พนักงานลาออก</label>
+          </div>
         </div>
         
-        <div class="work-time-table-container">
+        <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+        <div v-else-if="isLoading" class="loading">กำลังโหลด...</div>
+        <div v-else-if="filteredWorkTimeList.length === 0" class="no-data">ไม่มีข้อมูลพนักงานลาออก</div>
+        <div v-else class="work-time-table-container">
           <table class="work-time-table">
             <thead>
               <tr>
@@ -134,15 +137,24 @@
 import { ref, onMounted, reactive, computed } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
 
 const router = useRouter();
 const token = ref<string | null>(null);
 const selectedRoom = ref('');
+const dateRange = ref(['', '']);
+const showProfileMenu = ref(false);
+const currentUser = ref<any>(null);
+const errorMessage = ref('');
+const isLoading = ref(false);
 
-const showProfileMenu = ref(false)
+const roomList = reactive([]);
+const workTimeList = ref([]);
+
 const toggleProfileMenu = () => {
-  showProfileMenu.value = !showProfileMenu.value
-}
+  showProfileMenu.value = !showProfileMenu.value;
+};
 
 const goTo = (path: string) => {
   router.push(path);
@@ -164,85 +176,95 @@ const goToAdmin11Page = () => {
   window.location.href = '/admin11';
 };
 
-
-const roomList = reactive([
-  { id: 'eedp', name: 'โครงการพัฒนาการศึกษาด้านพลังงาน' },
-  { id: 'reec', name: 'ห้องวิจัยพลังงานทดแทนและอนุรักษ์พลังงาน' },
-  { id: 'cceme', name: 'ห้องวิจัยด้านวิศวกรรมและการบริหารจัดการการเปลี่ยนแปลงสภาพภูมิอากาศด้านพลังงาน' },
-]);
-
-const workTimeList = ref([
-  {
-    name: 'นาย ก. ไก่',
-    room: 'reec',
-    dateResigned: '15/ก.ค./2568',
-    workHours: '8',
-    actualHours: '8',
-    lateMinutes: '0',
-    status: 'ลาออก'
-  },
-  {
-    name: 'นาง ข. ไข่',
-    room: 'cceme',
-    dateResigned: '10/ส.ค./2568',
-    workHours: '8',
-    actualHours: '7.5',
-    lateMinutes: '30',
-    status: 'ลาออก'
-  },
-]);
-
-const filteredWorkTimeList = computed(() => {
-  if (!selectedRoom.value) {
-    return workTimeList.value;
-  }
-  return workTimeList.value.filter(record => record.room === selectedRoom.value);
-});
-
-const roomNameById = (id: string) => {
-  const room = roomList.find(r => r.id === id);
-  return room ? room.name : 'ไม่ระบุ';
-};
-
-const search = () => {
-  alert('ทำการค้นหาข้อมูล');
-};
-
-const currentUser = ref<any>(null)
-
 onMounted(async () => {
   if (typeof window !== "undefined") {
-    token.value = localStorage.getItem("token")
+    token.value = localStorage.getItem("token");
   }
 
   if (!token.value) {
-    router.push('/login')
-    return
+    router.push('/login');
+    return;
   }
 
-  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`
+  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`;
 
   try {
-    const me = await axios.get('http://localhost:8000/api/users/me/')
+    const me = await axios.get('http://localhost:8000/api/users/me/');
     currentUser.value = me.data;
 
     if (currentUser.value.role !== 'admin') {
       router.push('/login');
       return;
     }
-  } catch (err) {
-    console.error(err)
-    router.push('/login')
-  }
-})
 
-function logout() {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("token")
+    const roomsResponse = await axios.get('http://localhost:8000/api/users/departments/');
+    roomList.splice(0, roomList.length, ...roomsResponse.data);
+
+    await fetchWorkTimeList();
+
+    flatpickr('#date-range', {
+      mode: 'range',
+      dateFormat: 'Y-m-d',
+      onChange: (selectedDates) => {
+        dateRange.value = selectedDates.map(date => date.toISOString().split('T')[0]);
+        console.log('Selected Date Range:', dateRange.value);
+      },
+    });
+  } catch (err) {
+    console.error('Error during mount:', err);
+    errorMessage.value = 'เกิดข้อผิดพลาดในการโหลดข้อมูล';
+    router.push('/login');
   }
-  delete axios.defaults.headers.common['Authorization']
-  router.push("/login")
-}
+});
+
+const fetchWorkTimeList = async () => {
+  isLoading.value = true;
+  try {
+    const params = {
+      start_date: dateRange.value[0] || undefined,
+      end_date: dateRange.value[1] || undefined,
+      room: selectedRoom.value || undefined,
+    };
+    console.log('API Params:', params);
+    const response = await axios.get('http://localhost:8000/api/attendance/resigned-summary/', { params });
+    console.log('Resigned Attendance Summary Response:', response.data);
+    workTimeList.value = response.data;
+  } catch (err) {
+    console.error('Error fetching resigned work time list:', err);
+    errorMessage.value = 'ไม่สามารถดึงข้อมูลพนักงานลาออกได้';
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const filteredWorkTimeList = computed(() => {
+  let filtered = workTimeList.value;
+  if (selectedRoom.value) {
+    filtered = filtered.filter(record => record.room === selectedRoom.value);
+  }
+  return filtered;
+});
+
+const roomNameById = (id: string) => {
+  const room = roomList.find(r => String(r.id) === String(id));
+  return room ? room.name_th : 'ไม่ระบุ';
+};
+
+const search = async () => {
+  if (!dateRange.value[0] || !dateRange.value[1]) {
+    errorMessage.value = 'กรุณาเลือกช่วงวันที่ให้ครบถ้วน';
+    return;
+  }
+  await fetchWorkTimeList();
+};
+
+const logout = () => {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("token");
+  }
+  delete axios.defaults.headers.common['Authorization'];
+  router.push("/login");
+};
 </script>
 
 <style scoped>
@@ -565,9 +587,11 @@ function logout() {
 }
 
 .status-badge.resigned {
-  background-color: #ffe8e6;
-  color: #fa541c;
-  border-color: #ffb3a7;
+  background-color: #f44336;
+  color: rgb(255, 255, 255);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8em;
 }
 
 .user-profile-menu {
@@ -604,4 +628,26 @@ function logout() {
   width: 20px;
   text-align: center;
 }
+
+.error-message {
+  color: red;
+  margin: 10px 0;
+  padding: 10px;
+  background: #ffebee;
+  border-radius: 4px;
+}
+
+.loading {
+  color: blue;
+  margin: 10px 0;
+  text-align: center;
+}
+
+.no-data {
+  color: #888;
+  margin: 10px 0;
+  text-align: center;
+}
+
+
 </style>

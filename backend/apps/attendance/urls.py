@@ -8,4 +8,5 @@ urlpatterns = [
     path('user-attendance/<int:user_id>/', views.UserAttendanceView.as_view(), name='user_attendance'),
     path('annual-summary/', views.AnnualAttendanceSummary.as_view(), name='annual_summary'),
     path('upload-excel/', views.UploadAttendanceExcel.as_view(), name='upload_attendance_excel'),
+    path('resigned-summary/', views.ResignedAttendanceSummaryView.as_view(), name='resigned_attendance_summary'),
 ]
