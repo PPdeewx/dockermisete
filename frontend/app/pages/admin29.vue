@@ -119,7 +119,8 @@
             </div>
           </div>
           <div class="profile-image-section">
-            <div class="profile-placeholder">
+            <img :src="profileImageUrl" v-if="profileImageUrl" class="profile-image" />
+            <div v-else class="profile-placeholder">
               Profile
             </div>
             <input type="file" id="chooseFile" class="file-input" @change="handleFileUpload" />
@@ -147,6 +148,7 @@ const showProfileMenu = ref(false);
 const currentUser = ref<any>(null);
 const errorMessage = ref<string>('');
 const successMessage = ref<string>('');
+const profileImageUrl = ref<string | null>(null); // ตัวแปรใหม่สำหรับเก็บ URL รูปภาพ
 
 const form = reactive({
   prefix_th: '',
@@ -202,6 +204,7 @@ const handleFileUpload = (event: Event) => {
   const input = event.target as HTMLInputElement;
   if (input.files && input.files.length > 0) {
     form.profile_image = input.files[0];
+    profileImageUrl.value = URL.createObjectURL(form.profile_image); // แสดงตัวอย่างรูปภาพที่เลือกทันที
   }
 };
 
@@ -233,6 +236,12 @@ const submitForm = async () => {
         'Content-Type': 'multipart/form-data',
       },
     });
+    
+    // อัปเดต URL รูปภาพเมื่อบันทึกสำเร็จ
+    if (response.data.profile_image) {
+      profileImageUrl.value = response.data.profile_image;
+    }
+
     successMessage.value = 'บันทึกข้อมูลสำเร็จ';
     setTimeout(() => {
       router.push('/admin28');
@@ -262,6 +271,11 @@ onMounted(async () => {
   try {
     const response = await axios.get('http://localhost:8000/api/users/me/');
     currentUser.value = response.data;
+    
+    // อัปเดต URL รูปภาพเมื่อโหลดข้อมูลผู้ใช้ครั้งแรก
+    if (response.data.profile_image) {
+      profileImageUrl.value = response.data.profile_image;
+    }
 
     if (currentUser.value.role !== 'admin') {
       router.push('/login');
@@ -277,7 +291,6 @@ onMounted(async () => {
     form.phone_number = response.data.phone_number || '';
     form.address = response.data.address || '';
 
-    console.log('Form data loaded:', form);
   } catch (err) {
     console.error('Error fetching user data:', err);
     router.push('/login');
@@ -555,6 +568,13 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   gap: 10px;
+}
+
+.profile-image {
+  width: 150px;
+  height: 150px;
+  border-radius: 8px;
+  object-fit: cover;
 }
 
 .profile-placeholder {
