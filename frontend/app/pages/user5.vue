@@ -141,6 +141,13 @@
 
           <div class="form-row">
             <div class="form-group full-width">
+              <label>สถานที่ *:</label>
+              <input type="text" v-model="form.location" class="text-input" required />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group full-width">
               <label>หัวหน้างาน *:</label>
               <select v-model="form.approver" class="select-input">
                 <option disabled value="">เลือกหัวหน้างาน</option>
@@ -183,11 +190,14 @@ onMounted(async () => {
       router.push("/login");
     }
 
-    const resApprovers = await axios.get("http://localhost:8000/api/users/?role=approver"); // หรือใช้ filter ของ backend
-    approvers.value = resApprovers.data.map((u: any) => ({
-      id: u.id,
-      name: `${u.firstname_th} ${u.lastname_th}`
-    }));
+    const approversResponse = await axios.get("http://localhost:8000/api/users/departments/");
+    console.log('Departments:', approversResponse.data);
+    approvers.value = approversResponse.data.flatMap((dept: any) =>
+      dept.approvers.map((approver: any) => ({
+        id: approver.id,
+        name: `${approver.firstname_th} ${approver.lastname_th}`.trim()
+      }))
+    );
 
     const resEmployees = await axios.get("http://localhost:8000/api/users/?role=employee");
     collaboratorsList.value = resEmployees.data
@@ -235,8 +245,9 @@ const form = ref({
   collaborators: [] as number[],
   startDate: '',
   endDate: '',
-  period: 'ครึ่งวันเช้า',
+  period: 'ทั้งวัน',
   reason: '',
+  location: '',
   approver: '' as number | '',
 });
 
@@ -250,6 +261,7 @@ const submitForm = async () => {
       end_date: form.value.endDate,
       time_period: form.value.period,
       reason: form.value.reason,
+      location: form.value.location,
       approver: form.value.approver,
       collaborators: form.value.collaborators
     };

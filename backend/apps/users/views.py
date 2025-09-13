@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import generics, status
+from rest_framework import generics, status, permissions
 from rest_framework.decorators import api_view
 from .models import CustomUser, Department
 from .serializers import CustomUserSerializer, DepartmentSerializer, GroupSerializer
@@ -274,7 +274,7 @@ class UserForListView(APIView):
 class DepartmentListCreateView(generics.ListCreateAPIView):
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
         head_id = self.request.data.get('head')

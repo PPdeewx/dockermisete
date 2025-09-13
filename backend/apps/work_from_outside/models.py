@@ -14,7 +14,8 @@ class WorkOutsideRequest(models.Model):
         ('morning', 'ครึ่งเช้า'),
         ('afternoon', 'ครึ่งบ่าย'),
     )
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='work_outside_requests')
+    proxy_user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='proxy_work_outside_requests')
     start_date = models.DateField()
     end_date = models.DateField()
     time_period = models.CharField(max_length=10, choices=TIME_CHOICES)
@@ -35,4 +36,4 @@ class WorkOutsideRequest(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.request_number} - {self.user}"
+        return f"{self.request_number} - {self.user} (ยื่นโดย: {self.proxy_user or self.user})"

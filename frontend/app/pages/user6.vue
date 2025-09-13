@@ -1,4 +1,4 @@
-<template>
+vue<template>
   <div class="full-page-container">
     <aside class="sidebar">
       <div class="sidebar-header">
@@ -93,62 +93,87 @@
           <button type="button" class="btn-cancel" @click="cancelForm"><i class="fas fa-times-circle"></i> ยกเลิก</button>
         </div>
 
-        <div class="user-info-section">
-          <span class="user-label">พนักงาน *:</span>
-          <span class="user-name">{{ user?.first_name }} {{ user?.last_name }}</span>
-        </div>
-
         <form @submit.prevent="submitForm" class="leave-form">
           <div class="form-row">
             <div class="form-group full-width">
-              <label>ผู้ร่วมปฏิบัติงาน (Optional):</label>
-              <input type="text" v-model="form.coworkers" class="text-input" />
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group-dates">
-              <label>วันที่ *:</label>
-              <input type="date" v-model="form.startDate" class="date-input" />
-            </div>
-            <div class="form-group-dates">
-              <label>ถึงวันที่ *:</label>
-              <input type="date" v-model="form.endDate" class="date-input" />
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label>ช่วงเวลา :</label>
-              <div class="radio-group">
-                <label><input type="radio" value="ครึ่งวันเช้า" v-model="form.period" /> ครึ่งวันเช้า</label>
-                <label><input type="radio" value="ครึ่งวันบ่าย" v-model="form.period" /> ครึ่งวันบ่าย</label>
-                <label><input type="radio" value="ทั้งวัน" v-model="form.period" /> ทั้งวัน</label>
-              </div>
+              <label>ผู้ปฏิบัติงาน *:</label>
+              <select v-model="form.employee" class="select-input" required>
+                <option disabled value="">เลือกผู้ปฏิบัติงาน</option>
+                <option v-for="employee in employees" :key="employee.id" :value="employee.id">
+                  {{ employee.name }}
+                </option>
+              </select>
+              <span v-if="errors.employee" class="error">{{ errors.employee }}</span>
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group full-width">
-              <label>เหตุผล*:</label>
-              <input type="text" v-model="form.reason" class="text-input" />
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group full-width">
-              <label>หัวหน้างาน *:</label>
-              <select v-model="form.approver" class="select-input">
-                <option disabled value="">เลือกหัวหน้างาน</option>
-                <option v-for="person in approvers" :key="person.id" :value="person.name">
+              <label>ผู้ร่วมปฏิบัติงาน (เลือกได้หลายคน):</label>
+              <select v-model="form.collaborators" class="select-input" multiple>
+                <option v-for="person in collaboratorsList" :key="person.id" :value="person.id">
                   {{ person.name }}
                 </option>
               </select>
             </div>
           </div>
 
+          <div class="form-row">
+            <div class="form-group-dates">
+              <label>วันที่ *:</label>
+              <input type="date" v-model="form.startDate" class="date-input" required />
+              <span v-if="errors.startDate" class="error">{{ errors.startDate }}</span>
+            </div>
+            <div class="form-group-dates">
+              <label>ถึงวันที่ *:</label>
+              <input type="date" v-model="form.endDate" class="date-input" required />
+              <span v-if="errors.endDate" class="error">{{ errors.endDate }}</span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>ช่วงเวลา *:</label>
+              <div class="radio-group">
+                <label><input type="radio" value="ครึ่งวันเช้า" v-model="form.period" /> ครึ่งวันเช้า</label>
+                <label><input type="radio" value="ครึ่งวันบ่าย" v-model="form.period" /> ครึ่งวันบ่าย</label>
+                <label><input type="radio" value="ทั้งวัน" v-model="form.period" /> ทั้งวัน</label>
+              </div>
+              <span v-if="errors.period" class="error">{{ errors.period }}</span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group full-width">
+              <label>เหตุผล *:</label>
+              <input type="text" v-model="form.reason" class="text-input" required />
+              <span v-if="errors.reason" class="error">{{ errors.reason }}</span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group full-width">
+              <label>สถานที่ *:</label>
+              <input type="text" v-model="form.location" class="text-input" required />
+              <span v-if="errors.location" class="error">{{ errors.location }}</span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group full-width">
+              <label>หัวหน้างาน *:</label>
+              <select v-model="form.approver" class="select-input" required>
+                <option disabled value="">เลือกหัวหน้างาน</option>
+                <option v-for="person in approvers" :key="person.id" :value="person.id">
+                  {{ person.name }}
+                </option>
+              </select>
+              <span v-if="errors.approver" class="error">{{ errors.approver }}</span>
+            </div>
+          </div>
+
           <div class="form-buttons-bottom">
-            <button type="submit" class="btn-submit">ขออนุมัติลา</button>
+            <button type="submit" class="btn-submit">ขออนุมัติ</button>
           </div>
         </form>
       </div>
@@ -161,75 +186,154 @@ import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import axios from 'axios';
 
+const router = useRouter();
+const route = useRoute();
 const user = ref<any>(null);
-const token = ref<string | null>(null);
+const employees = ref<any[]>([]);
+const approvers = ref<any[]>([]);
+const collaboratorsList = ref<any[]>([]);
+const showProfileMenu = ref(false);
+const errors = ref<any>({});
+
+const form = ref({
+  employee: '',
+  collaborators: [] as number[],
+  startDate: '',
+  endDate: '',
+  period: 'ทั้งวัน',
+  reason: '',
+  location: '',
+  approver: ''
+});
 
 onMounted(async () => {
   const tokenStored = localStorage.getItem("token");
   if (!tokenStored) {
+    alert('กรุณาล็อกอินเพื่อใช้งาน');
     router.push("/login");
     return;
   }
   axios.defaults.headers.common['Authorization'] = `Token ${tokenStored}`;
 
   try {
-    const response = await axios.get("http://localhost:8000/api/users/me/");
-    user.value = response.data;
+    const userResponse = await axios.get("http://localhost:8000/api/users/me/");
+    user.value = userResponse.data;
     if (user.value.role !== "employee") {
+      alert('เฉพาะพนักงานเท่านั้นที่สามารถใช้งานหน้านี้ได้');
       router.push("/login");
+      return;
+    }
+
+    const employeesResponse = await axios.get("http://localhost:8000/api/users/for-list/");
+    employees.value = employeesResponse.data;
+    console.log('Employees:', employees.value);
+
+    const approversResponse = await axios.get("http://localhost:8000/api/users/departments/");
+    console.log('Departments:', approversResponse.data);
+    approvers.value = approversResponse.data.flatMap((dept: any) =>
+      dept.approvers.map((approver: any) => ({
+        id: approver.id,
+        name: `${approver.firstname_th} ${approver.lastname_th}`.trim()
+      }))
+    );
+
+    const resEmployees = await axios.get("http://localhost:8000/api/users/?role=employee");
+    collaboratorsList.value = resEmployees.data
+    .filter((u: any) => u.role === "employee")
+    .map((u: any) => ({
+      id: u.id,
+      name: `${u.firstname_th} ${u.lastname_th}`
+    }));
+    
+    console.log('Approvers:', approvers.value);
+
+    if (employees.value.length === 0) {
+      alert('ไม่พบรายชื่อผู้ปฏิบัติงาน กรุณาติดต่อผู้ดูแลระบบ');
+    }
+    if (approvers.value.length === 0) {
+      alert('ไม่พบรายชื่อหัวหน้างาน กรุณาติดต่อผู้ดูแลระบบ');
     }
   } catch (err) {
-    console.error(err);
+    console.error('Error fetching data:', err);
+    if (err.response?.status === 403) {
+      alert('คุณไม่มีสิทธิ์เข้าถึงข้อมูลนี้ กรุณาติดต่อผู้ดูแลระบบ');
+    } else {
+      alert('เกิดข้อผิดพลาดในการโหลดข้อมูล');
+    }
     router.push("/login");
   }
+
+  document.addEventListener('click', handleBodyClick);
 });
 
-const showProfileMenu = ref(false);
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleBodyClick);
+});
+
 function toggleProfileMenu() {
   showProfileMenu.value = !showProfileMenu.value;
 }
+
 function handleBodyClick(event: MouseEvent) {
   if (showProfileMenu.value && !(event.target as HTMLElement).closest('.user-profile')) {
     showProfileMenu.value = false;
   }
 }
-onMounted(() => {
-  document.addEventListener('click', handleBodyClick);
-});
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleBodyClick);
-});
-
-const router = useRouter();
-const route = useRoute();
 
 function goTo(path: string) {
   router.push(path);
 }
+
 function logout() {
-  localStorage.removeItem("token")
-  delete axios.defaults.headers.common['Authorization']
-  router.push("/login")
+  localStorage.removeItem("token");
+  delete axios.defaults.headers.common['Authorization'];
+  router.push("/login");
 }
 
-const form = ref({
-  coworkers: '',
-  startDate: '',
-  endDate: '',
-  period: 'ครึ่งวันเช้า',
-  reason: '',
-  approver: ''
-});
+const submitForm = async () => {
+  errors.value = {};
 
-const approvers = ref([
-  { id: 1, name: 'หัวหน้า A' },
-  { id: 2, name: 'หัวหน้า B' }
-]);
+  if (!form.value.employee) errors.value.employee = 'กรุณาเลือกผู้ปฏิบัติงาน';
+  if (!form.value.startDate) errors.value.startDate = 'กรุณาเลือกวันที่เริ่มต้น';
+  if (!form.value.endDate) errors.value.endDate = 'กรุณาเลือกวันที่สิ้นสุด';
+  if (!form.value.period) errors.value.period = 'กรุณาเลือกช่วงเวลา';
+  if (!form.value.reason) errors.value.reason = 'กรุณาระบุเหตุผล';
+  if (!form.value.location) errors.value.location = 'กรุณาระบุสถานที่';
+  if (!form.value.approver) errors.value.approver = 'กรุณาเลือกหัวหน้างาน';
+  if (form.value.startDate && form.value.endDate && form.value.startDate > form.value.endDate) {
+    errors.value.endDate = 'วันที่สิ้นสุดต้องไม่มาก่อนวันที่เริ่มต้น';
+  }
+  if (form.value.employee && form.value.approver && form.value.employee === form.value.approver) {
+    errors.value.approver = 'ผู้ปฏิบัติงานและผู้อนุมัติต้องไม่เป็นคนเดียวกัน';
+  }
 
-const submitForm = () => {
-  console.log('ส่งฟอร์ม:', form.value);
-  alert('ส่งคำขอสำเร็จ!');
-  router.push('/user7');
+  if (Object.keys(errors.value).length > 0) {
+    return;
+  }
+
+  try {
+    const response = await axios.post("http://localhost:8000/api/work-from-outside/requests/proxy/", {
+      user: form.value.employee,
+      collaborators: form.value.collaborators,
+      start_date: form.value.startDate,
+      end_date: form.value.endDate,
+      time_period: form.value.period === 'ทั้งวัน' ? 'full' : form.value.period === 'ครึ่งวันเช้า' ? 'morning' : 'afternoon',
+      reason: form.value.reason,
+      location: form.value.location,
+      approver: form.value.approver,
+      proxy_user: user.value.id
+    });
+    console.log('ส่งฟอร์มสำเร็จ:', response.data);
+    alert('ส่งคำขอสำเร็จ!');
+    router.push('/user7');
+  } catch (err) {
+    console.error('เกิดข้อผิดพลาด:', err);
+    if (err.response?.data?.detail) {
+      alert(`เกิดข้อผิดพลาด: ${err.response.data.detail}`);
+    } else {
+      alert('เกิดข้อผิดพลาดในการส่งคำขอ');
+    }
+  }
 };
 
 const cancelForm = () => {

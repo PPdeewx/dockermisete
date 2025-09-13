@@ -7,4 +7,5 @@ router.register(r'requests', WorkOutsideRequestViewSet, basename='work-outside-r
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('requests/proxy/', WorkOutsideRequestViewSet.as_view({'post': 'proxy'}), name='work-outside-proxy'),
 ]

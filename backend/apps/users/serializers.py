@@ -17,6 +17,15 @@ class UserSerializerShort(serializers.ModelSerializer):
         if obj.department:
             return {'id': obj.department.id, 'name_th': obj.department.name_th}
         return None
+    
+class UserSimpleSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+    class Meta:
+        model = CustomUser
+        fields = ["id", "full_name"]
+
+    def get_full_name(self, obj):
+        return f"{obj.firstname_th} {obj.lastname_th}"
 
 class UserSerializerWithDepartment(serializers.ModelSerializer):
     department = serializers.SerializerMethodField()
