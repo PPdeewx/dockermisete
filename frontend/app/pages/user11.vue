@@ -100,10 +100,12 @@
             </div>
             <div class="profile-body" v-if="user">
               <div class="profile-image-section">
-                <div class="profile-placeholder">
+                <img :src="profileImageUrl" v-if="profileImageUrl" class="profile-image" />
+                <div v-else class="profile-placeholder">
                   Profile
                 </div>
-                <button class="btn-choose-file">Choose File</button>
+                <input type="file" id="chooseFile" @change="handleFileUpload" class="file-input" />
+                <label for="chooseFile" class="btn-choose-file">Choose File</label>
               </div>
               <form @submit.prevent="submitForm">
                 <div class="form-row">
@@ -168,26 +170,38 @@ import axios from 'axios';
 
 const user = ref<any>(null);
 const token = ref<string | null>(null);
+const profileImageUrl = ref<string | null>(null);
 
-onMounted(async () => {
-  const tokenStored = localStorage.getItem("token");
-  if (!tokenStored) {
-    router.push("/login");
-    return;
-  }
-  axios.defaults.headers.common['Authorization'] = `Token ${tokenStored}`;
-
+const fetchUserProfile = async () => {
   try {
+    const tokenStored = localStorage.getItem("token");
+    if (!tokenStored) {
+      router.push("/login");
+      return;
+    }
+    axios.defaults.headers.common['Authorization'] = `Token ${tokenStored}`;
+    
     const response = await axios.get("http://localhost:8000/api/users/me/");
     user.value = response.data;
     if (user.value.role !== "employee") {
       router.push("/login");
+      return;
     }
+    
+    // ตั้งค่า URL รูปภาพเริ่มต้น
+    if (user.value.profile_image) {
+      profileImageUrl.value = user.value.profile_image;
+    } else {
+      profileImageUrl.value = null;
+    }
+
   } catch (err) {
     console.error(err);
     router.push("/login");
   }
-});
+};
+
+onMounted(fetchUserProfile);
 
 const showProfileMenu = ref(false);
 function toggleProfileMenu() {
@@ -216,28 +230,53 @@ function logout() {
   router.push("/login")
 }
 
+const handleFileUpload = (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  if (input.files && input.files.length > 0) {
+    const file = input.files[0];
+    user.value.profile_image_file = file;
+    // สร้าง URL ชั่วคราวจากไฟล์ที่เลือกเพื่อให้แสดงภาพพรีวิวได้ทันที
+    profileImageUrl.value = URL.createObjectURL(file);
+  }
+};
+
 const submitForm = async () => {
   try {
-    const payload: any = {
-      prefix_th: user.value.prefix_th,
-      firstname_th: user.value.firstname_th,
-      lastname_th: user.value.lastname_th,
-      email: user.value.email,
-      phone_number: user.value.phone_number,
-      address: user.value.address,
-    };
+    const formData = new FormData();
+    formData.append('prefix_th', user.value.prefix_th);
+    formData.append('firstname_th', user.value.firstname_th);
+    formData.append('lastname_th', user.value.lastname_th);
+    formData.append('email', user.value.email);
+    formData.append('phone_number', user.value.phone_number);
+    formData.append('address', user.value.address);
 
-    // ส่ง password เฉพาะเมื่อกรอกจริง
     if (user.value.password && user.value.password.trim() !== "") {
-      payload.password = user.value.password;
+      formData.append('password', user.value.password);
     }
-
-    const response = await axios.put(
+    
+    if (user.value.profile_image_file) {
+      formData.append('profile_image', user.value.profile_image_file);
+    }
+    
+    const response = await axios.patch(
       "http://localhost:8000/api/users/profile/",
-      payload
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }
     );
+
     user.value = response.data;
+    // อัปเดต URL รูปภาพหลังจากบันทึกสำเร็จ
+    if (response.data.profile_image) {
+      profileImageUrl.value = response.data.profile_image;
+    }
+    
     alert('บันทึกข้อมูลส่วนตัวเรียบร้อย!');
+    router.push('/user10');
+    
   } catch (error: any) {
     console.error(error);
     if (error.response?.data) {
@@ -249,12 +288,9 @@ const submitForm = async () => {
 };
 
 const cancelForm = async () => {
-  try {
-    const response = await axios.get("http://localhost:8000/api/users/me/");
-    user.value = response.data;
-  } catch (error) {
-    console.error(error);
-  }
+  await fetchUserProfile(); // ดึงข้อมูลล่าสุดมาแสดงผล
+  alert('ยกเลิกการแก้ไขแล้ว');
+  router.push('/user10');
 };
 
 const breadcrumbs = computed(() => {
@@ -530,6 +566,14 @@ const breadcrumbs = computed(() => {
   margin-bottom: 20px;
 }
 
+.profile-image {
+  width: 150px;
+  height: 150px;
+  border-radius: 8px;
+  object-fit: cover;
+  margin-right: 20px;
+}
+
 .profile-placeholder {
   width: 150px;
   height: 150px;
@@ -539,6 +583,10 @@ const breadcrumbs = computed(() => {
   justify-content: center;
   align-items: center;
   margin-right: 20px;
+}
+
+.file-input {
+  display: none;
 }
 
 .btn-choose-file {
