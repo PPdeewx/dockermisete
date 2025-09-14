@@ -95,7 +95,6 @@
           </button>
         </div>
 
-        <!-- ปุ่มเลื่อนเดือน -->
         <div class="calendar-header">
           <button @click="prevMonth" class="month-btn"><i class="fas fa-chevron-left"></i></button>
           <span class="month-label">{{ getMonthName(currentMonth) }} {{ currentYear }}</span>
@@ -178,7 +177,6 @@ onBeforeUnmount(() => {
   document.removeEventListener('click', handleBodyClick);
 });
 
-// โหลด user และ holidays
 onMounted(async () => {
   const tokenStored = localStorage.getItem("token");
   if (!tokenStored) {
@@ -202,7 +200,6 @@ onMounted(async () => {
   }
 });
 
-// ฟังก์ชันวันหยุด
 function isHoliday(dateStr: string) {
   return holidays.value.some(h => h.date === dateStr);
 }
@@ -211,7 +208,6 @@ function getHolidayName(dateStr: string) {
   return h ? h.name : '';
 }
 
-// ฟังก์ชันปฏิทิน
 const calendarWeeks = computed(() => {
   const weeks: any[] = [];
   const month = currentMonth.value;
@@ -263,7 +259,6 @@ function formatDate(dateStr: string) {
   return `${day}/${month}/${year}`;
 }
 
-// เลื่อนเดือน
 function prevMonth() {
   if (currentMonth.value === 0) {
     currentMonth.value = 11;
@@ -325,7 +320,7 @@ const breadcrumbs = computed(() => {
 
 * {
   box-sizing: border-box;
-  font-family: 'Noto Sans Thai', sans-serif;
+  font-family: 'Inter', 'Prompt', sans-serif;
 }
 
 .full-page-container {

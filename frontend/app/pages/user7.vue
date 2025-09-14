@@ -139,7 +139,7 @@
         </div>
       </div>
     </main>
-    <!-- Modal แก้ไข -->
+ 
     <div v-if="showEditModal" class="modal-backdrop">
       <div class="modal-content">
         <div class="modal-header">
@@ -152,7 +152,6 @@
             <span class="form-text">{{ selectedItem?.employee }}</span>
           </div>
 
-          <!-- ผู้ร่วมปฏิบัติงาน -->
           <div class="form-row">
             <label>ผู้ร่วมปฏิบัติงาน :</label>
             <select class="select-input" v-model="selectedItem.collaborators" multiple>
@@ -189,7 +188,6 @@
             <input type="text" v-model="selectedItem.reason" class="text-input" />
           </div>
 
-          <!-- หัวหน้างาน -->
           <div class="form-row">
             <label>หัวหน้างาน :</label>
             <select class="select-input" v-model="selectedItem.approver">
@@ -283,7 +281,7 @@ const showEditModal = ref(false);
 const selectedItem = ref<any>(null);
 
 function openEditModal(item: any) {
-  selectedItem.value = { ...item }; // ค่า collaborators และ approver เป็น ID อยู่แล้ว
+  selectedItem.value = { ...item }; 
   showEditModal.value = true;
 }
 
@@ -295,10 +293,9 @@ function closeEditModal() {
 async function saveEdit() {
   if (!selectedItem.value) return;
   try {
-    // ตัวอย่างเรียก API PATCH เพื่อแก้ไขข้อมูล
+
     await axios.patch(`http://localhost:8000/api/work-from-outside/requests/${selectedItem.value.id}/`, selectedItem.value);
     
-    // อัปเดตใน workHistory
     const index = workHistory.value.findIndex((w) => w.id === selectedItem.value.id);
     if (index !== -1) workHistory.value[index] = { ...selectedItem.value };
     
@@ -315,8 +312,8 @@ const loadWorkHistory = async () => {
     workHistory.value = res.data.map((item: any) => ({
       id: item.request_number,
       date: `${item.start_date} - ${item.end_date}`,
-      start_date: item.start_date,    // เพิ่ม
-      end_date: item.end_date,        // เพิ่ม
+      start_date: item.start_date,    
+      end_date: item.end_date,        
       employee: item.user.full_name || "ไม่ระบุ",
       collaborators: item.collaborators ? item.collaborators.map((u: any) => u.id) : [],
       approver: item.approver?.id || null,
@@ -374,7 +371,7 @@ const breadcrumbs = computed(() => {
 
 * {
   box-sizing: border-box;
-  font-family: 'Noto Sans Thai', sans-serif;
+  font-family: 'Inter', 'Prompt', sans-serif;
 }
 
 .full-page-container {

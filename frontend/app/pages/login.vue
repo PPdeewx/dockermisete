@@ -56,7 +56,7 @@ const handleLogin = async () => {
     localStorage.setItem("token", token);
     axios.defaults.headers.common['Authorization'] = `Token ${token}`;
 
-    // ดึงข้อมูลผู้ใช้เพื่อตรวจสอบ role
+  
     const userResponse = await axios.get("http://localhost:8000/api/users/me/");
     const user = userResponse.data;
 
@@ -72,7 +72,7 @@ const handleLogin = async () => {
   }
 };
 
-// ใช้ฟังก์ชัน logout ในหน้า user/admin
+
 const logout = () => {
   localStorage.removeItem("token");
   delete axios.defaults.headers.common['Authorization'];
@@ -87,7 +87,7 @@ const logout = () => {
 
 * {
   box-sizing: border-box;
-  font-family: 'Noto Sans Thai', sans-serif;
+  font-family:'Inter', 'Prompt', sans-serif;
 }
 
 body, html {

@@ -58,7 +58,7 @@ async function handleForgotPassword() {
 
 * {
   box-sizing: border-box;
-  font-family: 'Noto Sans Thai', sans-serif;
+  font-family: 'Inter', 'Prompt', sans-serif;
 }
 
 body, html {

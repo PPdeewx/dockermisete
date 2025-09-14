@@ -123,8 +123,6 @@ import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import axios from 'axios';
 
-// Logic for user authentication and data fetching
-//-------------------------------------------------------------
 const user = ref<any>(null);
 const token = ref<string | null>(null);
 const holidays = ref<any[]>([]);
@@ -141,14 +139,13 @@ onMounted(async () => {
   axios.defaults.headers.common['Authorization'] = `Token ${tokenStored}`;
 
   try {
-    // โหลด user
+    
     const responseUser = await axios.get("http://localhost:8000/api/users/me/");
     user.value = responseUser.data;
     if (user.value.role !== "employee") {
       router.push("/login");
     }
 
-    // โหลด holidays จาก API
     const responseHoliday = await axios.get("http://localhost:8000/api/holiday/list/");
     holidays.value = responseHoliday.data;
   } catch (err) {
@@ -156,7 +153,6 @@ onMounted(async () => {
     router.push("/login");
   }
 });
-//-------------------------------------------------------------
 
 const showProfileMenu = ref(false);
 function toggleProfileMenu() {
@@ -222,7 +218,7 @@ const breadcrumbs = computed(() => {
 
 * {
   box-sizing: border-box;
-  font-family: 'Noto Sans Thai', sans-serif;
+  font-family: 'Inter', 'Prompt', sans-serif;
 }
 
 .full-page-container {

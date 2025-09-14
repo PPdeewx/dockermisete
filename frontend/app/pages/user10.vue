@@ -244,7 +244,7 @@ const breadcrumbs = computed(() => {
 
 * {
   box-sizing: border-box;
-  font-family: 'Noto Sans Thai', sans-serif;
+  font-family: 'Inter', 'Prompt', sans-serif;
 }
 
 .full-page-container {

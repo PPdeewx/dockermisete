@@ -189,7 +189,7 @@ const form = ref({
   leaveType: '',
   startDate: '',
   endDate: '',
-  period: 'full',   // ช่วงเวลาเดียว
+  period: 'full',   
   reason: '',
   approver: '',
   substitute: ''
@@ -200,12 +200,12 @@ const route = useRoute();
 
 const user = ref<any>(null);
 
-// dropdown data
+
 const leaveTypes = ref<any[]>([]);
 const approvers = ref<any[]>([]);
 const substitutes = ref<any[]>([]);
 
-// โหลดผู้ใช้งาน (approvers/substitutes)
+
 const loadUsers = async () => {
   try {
     const response = await axios.get("http://localhost:8000/api/users/", {
@@ -232,7 +232,6 @@ const loadUsers = async () => {
   }
 };
 
-// โหลดประเภทการลา
 const loadLeaveTypes = async () => {
   try {
     const response = await axios.get("http://localhost:8000/api/leave/leave-types/", {
@@ -259,7 +258,7 @@ onMounted(async () => {
     if (user.value.role !== "employee") {
       router.push("/login");
     } else {
-      // โหลด dropdown ทั้งหมด
+     
       await Promise.all([loadUsers(), loadLeaveTypes()]);
     }
   } catch (err) {
@@ -280,7 +279,7 @@ const submitForm = async () => {
       substitute_id: substitutes.value.find(s => s.name === form.value.substitute)?.id || null
     };
 
-    // ตรวจสอบ field required
+   
     if (!payload.leave_type_id || !payload.start_date || !payload.end_date || !payload.period || !payload.reason || !payload.approver_id) {
       alert("กรุณากรอกข้อมูลให้ครบทุกช่องที่จำเป็น");
       return;
@@ -353,7 +352,7 @@ const breadcrumbs = computed(() => {
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;700&display=swap');
 * {
   box-sizing: border-box;
-  font-family: 'Noto Sans Thai', sans-serif;
+  font-family: 'Inter', 'Prompt', sans-serif;
 }
 .full-page-container {
   display: flex;

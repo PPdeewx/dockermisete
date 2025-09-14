@@ -96,7 +96,7 @@
             <div class="profile-header">
               <i class="fas fa-edit icon-red"></i>
               <h3>แก้ไขข้อมูลส่วนตัว</h3>
-              <p class="note">กรุณากรอกข้อมูลทุกช่องที่่มีเครื่องหมาย *</p>
+              <p class="note">กรุณากรอกข้อมูลทุกช่องที่มีเครื่องหมาย *</p>
             </div>
             <div class="profile-body" v-if="user">
               <div class="profile-image-section">
@@ -144,12 +144,6 @@
                     <textarea v-model="user.address" class="textarea-input"></textarea>
                   </div>
                 </div>
-                <div class="form-row">
-                  <div class="form-group full-width">
-                    <label>รหัสผ่านใหม่:</label>
-                    <input type="password" v-model="user.password" class="text-input" placeholder="ไม่กรอกจะไม่เปลี่ยนรหัสผ่าน"/>
-                  </div>
-                </div>
                 <div class="form-buttons-bottom">
                   <button type="submit" class="btn-submit">บันทึกข้อมูล</button>
                   <button type="button" class="btn-cancel" @click="cancelForm">ยกเลิก</button>
@@ -187,8 +181,7 @@ const fetchUserProfile = async () => {
       router.push("/login");
       return;
     }
-    
-    // ตั้งค่า URL รูปภาพเริ่มต้น
+
     if (user.value.profile_image) {
       profileImageUrl.value = user.value.profile_image;
     } else {
@@ -235,7 +228,6 @@ const handleFileUpload = (event: Event) => {
   if (input.files && input.files.length > 0) {
     const file = input.files[0];
     user.value.profile_image_file = file;
-    // สร้าง URL ชั่วคราวจากไฟล์ที่เลือกเพื่อให้แสดงภาพพรีวิวได้ทันที
     profileImageUrl.value = URL.createObjectURL(file);
   }
 };
@@ -269,7 +261,6 @@ const submitForm = async () => {
     );
 
     user.value = response.data;
-    // อัปเดต URL รูปภาพหลังจากบันทึกสำเร็จ
     if (response.data.profile_image) {
       profileImageUrl.value = response.data.profile_image;
     }
@@ -288,7 +279,7 @@ const submitForm = async () => {
 };
 
 const cancelForm = async () => {
-  await fetchUserProfile(); // ดึงข้อมูลล่าสุดมาแสดงผล
+  await fetchUserProfile(); 
   alert('ยกเลิกการแก้ไขแล้ว');
   router.push('/user10');
 };
@@ -331,7 +322,7 @@ const breadcrumbs = computed(() => {
 
 * {
   box-sizing: border-box;
-  font-family: 'Noto Sans Thai', sans-serif;
+  font-family: 'Inter', 'Prompt', sans-serif;
 }
 
 .full-page-container {

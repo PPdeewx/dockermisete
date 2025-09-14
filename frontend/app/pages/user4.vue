@@ -1,6 +1,5 @@
 <template>
   <div class="full-page-container">
-    <!-- Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-header">
         <span class="logo-text">MIS ETE</span>
@@ -49,9 +48,7 @@
       </ul>
     </aside>
 
-    <!-- Main Content -->
     <main class="main-content">
-      <!-- Top Bar -->
       <div class="top-bar">
         <div class="breadcrumbs">
           <span><i class="fas fa-home"></i> {{ breadcrumbs }}</span>
@@ -84,9 +81,7 @@
         </div>
       </div>
 
-      <!-- Content Container -->
       <div class="content-container">
-        <!-- Header -->
         <div class="content-header">
           <div class="header-left">
             <i class="fas fa-calendar-alt title-icon"></i>
@@ -98,7 +93,6 @@
           </div>
         </div>
 
-        <!-- Profile & Summary -->
         <div class="profile-and-summary">
           <div class="profile-card">
             <div class="profile-icon">
@@ -118,7 +112,6 @@
           </div>
         </div>
 
-        <!-- Leave Table -->
         <div class="responsive-table-wrapper">
           <table>
             <thead>
@@ -149,7 +142,7 @@
         </div>
       </div>
     </main>
-    <!-- Modal -->
+
     <div v-if="showModal" class="modal-backdrop">
       <div class="modal-content">
         <div class="modal-header">
@@ -387,7 +380,7 @@ const breadcrumbs = computed(() => {
 
 * {
   box-sizing: border-box;
-  font-family: 'Noto Sans Thai', sans-serif;
+  font-family: 'Inter', 'Prompt', sans-serif;
 }
 
 .full-page-container {
