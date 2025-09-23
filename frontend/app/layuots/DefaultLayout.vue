@@ -15,8 +15,8 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 
-import Sidebar from './Sidebar.vue'
-import TopBar from './Topbar.vue'
+import Sidebar from '@/components/Sidebar.vue'
+import Topbar from '@/components/Topbar.vue'
 
 const router = useRouter()
 const currentUser = ref<any>(null)
