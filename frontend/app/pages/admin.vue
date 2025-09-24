@@ -35,10 +35,6 @@ import { ref } from 'vue'
 import Sidebar from '~/components/Sidebar.vue'
 import TopBar from '~/components/Topbar.vue'
 
-import Card from 'primevue/card'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
-
 const announcements = ref([
   { title: 'การใช้งานระบบเบื้องต้น', date: '26 Mar 2025', time: '08:30 AM' },
   { title: 'การใช้งานตัวอื่นๆ', date: '26 Mar 2025', time: '16:30 PM' },
@@ -51,6 +47,7 @@ const activities = ref([
   { date: '2025-12-15', employee: 'Username', type: 'ทำงานนอกสถานที่', period: 'ทั้งวัน', status: 'อนุมัติ', reason: 'ประชุมลูกค้า' }
 ])
 </script>
+
 
 <style scoped>
 .full-page-container {
