@@ -6,7 +6,8 @@
 
       <div class="dashboard-container">
         <!-- ประกาศล่าสุด -->
-        <Card class="mb-3" title="ประกาศ">
+        <Card class="mb-3">
+          <template #title>ประกาศ</template>
           <ul>
             <li v-for="(item, i) in announcements" :key="i">
               <strong>{{ item.title }}</strong> - {{ item.date }} {{ item.time }}
@@ -14,17 +15,14 @@
           </ul>
         </Card>
 
-        <!-- กิจกรรมที่กำลังจะมาถึง -->
-        <Card class="mb-3" title="กิจกรรมที่กำลังจะมาถึง">
-          <DataTable :value="activities" responsiveLayout="scroll">
-            <Column field="date" header="วันที่"></Column>
-            <Column field="employee" header="พนักงาน"></Column>
-            <Column field="type" header="ประเภท"></Column>
-            <Column field="period" header="ช่วงเวลา"></Column>
-            <Column field="status" header="สถานะ"></Column>
-            <Column field="reason" header="เหตุผล"></Column>
-          </DataTable>
-        </Card>
+        <DataTable :value="activities" tableStyle="min-width: 50rem" showGridlines stripedRows>
+          <Column field="date" header="วันที่"></Column>
+          <Column field="employee" header="พนักงาน"></Column>
+          <Column field="type" header="ประเภท"></Column>
+          <Column field="period" header="ช่วงเวลา"></Column>
+          <Column field="status" header="สถานะ"></Column>
+          <Column field="reason" header="เหตุผล"></Column>
+        </DataTable>
       </div>
     </div>
   </div>
@@ -46,6 +44,9 @@ const activities = ref([
   { date: '2025-12-14', employee: 'Username', type: 'ลากิจ', period: 'ครึ่งวันเช้า', status: 'อนุมัติ', reason: 'ธุระส่วนตัว' },
   { date: '2025-12-15', employee: 'Username', type: 'ทำงานนอกสถานที่', period: 'ทั้งวัน', status: 'อนุมัติ', reason: 'ประชุมลูกค้า' }
 ])
+
+console.log("announcements:", announcements.value)
+console.log("activities:", activities.value)
 </script>
 
 

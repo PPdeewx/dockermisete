@@ -30,28 +30,64 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 
 const router = useRouter()
-const currentUser = ref<any>(null)
+const route = useRoute()
 
+const currentUser = ref<{ username: string; role: string } | null>(null)
 const showProfileMenu = ref(false)
+
 const toggleProfileMenu = () => {
   showProfileMenu.value = !showProfileMenu.value
 }
 
 const goTo = (path: string) => router.push(path)
+const goToProfile = () => currentUser.value?.role === 'admin' ? goTo('/admin28') : goTo('/user10')
+const goToEditProfile = () => currentUser.value?.role === 'admin' ? goTo('/admin29') : goTo('/user11')
+const goToChangePassword = () => currentUser.value?.role === 'admin' ? goTo('/admin30') : goTo('/user12')
 
 function logout() {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("token")
-  }
+  if (typeof window !== "undefined") localStorage.removeItem("token")
   delete axios.defaults.headers.common['Authorization']
   router.push("/login")
 }
+
+function handleBodyClick(event: MouseEvent) {
+  if (showProfileMenu.value && !(event.target as HTMLElement).closest('.user-profile')) {
+    showProfileMenu.value = false
+  }
+}
+
+onMounted(async () => {
+  document.addEventListener('click', handleBodyClick)
+
+  if (typeof window === "undefined") return
+  const token = localStorage.getItem("token")
+  if (!token) {
+    router.push('/login')
+    return
+  }
+
+  axios.defaults.headers.common['Authorization'] = `Token ${token}`
+
+  try {
+    const response = await axios.get('http://localhost:8000/api/users/me/')
+    currentUser.value = response.data
+  } catch (error) {
+    console.error("Failed to load current user:", error)
+    router.push('/login')
+  }
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleBodyClick)
+})
+
 </script>
+
 
 <style scoped>
 
