@@ -5,7 +5,7 @@
       <TopBar />
 
       <div class="dashboard-container">
-        <!-- ประกาศล่าสุด -->
+
         <Card class="mb-3">
           <template #title>ประกาศ</template>
           <ul>

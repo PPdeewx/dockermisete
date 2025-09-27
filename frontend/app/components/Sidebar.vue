@@ -4,14 +4,24 @@
       <span>MIS ETE</span>
     </div>
     <ul class="nav-menu">
-      <li v-for="item in menuItems" :key="item.label" class="nav-item" :class="{ 'has-submenu': item.submenu }">
-        <a @click.prevent="goTo(item.path)" class="nav-link">
+      <li
+        v-for="item in menuItems"
+        :key="item.label"
+        class="nav-item"
+        :class="{ 'has-submenu': item.submenu, open: openMenu === item.label }"
+      >
+        <!-- ถ้ามี submenu จะ toggle ได้ -->
+        <a
+          @click.prevent="item.submenu ? toggleSubmenu(item.label) : goTo(item.path)"
+          class="nav-link"
+        >
           <i :class="item.icon"></i> {{ item.label }}
+          <span v-if="item.submenu" class="arrow" :class="{ rotated: openMenu === item.label }">▶</span>
         </a>
-        <!-- ถ้ามี submenu -->
-        <ul v-if="item.submenu" class="submenu">
+
+        <ul v-if="item.submenu" class="submenu" v-show="openMenu === item.label">
           <li v-for="sub in item.submenu" :key="sub.label">
-            <a @click.prevent="goTo(sub.path)" class="nav-link">{{ sub.label }}</a>
+            <a @click.prevent="goTo(sub.path)" class="submenu-link">{{ sub.label }}</a>
           </li>
         </ul>
       </li>
@@ -27,9 +37,14 @@ import axios from 'axios'
 const router = useRouter()
 const currentUser = ref<{ username: string; role: string } | null>(null)
 const menuItems = ref<any[]>([])
+const openMenu = ref<string | null>(null)
 
 const goTo = (path: string) => {
   router.push(path)
+}
+
+const toggleSubmenu = (label: string) => {
+  openMenu.value = openMenu.value === label ? null : label
 }
 
 onMounted(async () => {
@@ -45,11 +60,23 @@ onMounted(async () => {
     const response = await axios.get('http://localhost:8000/api/users/me/')
     currentUser.value = response.data
 
-    // สร้างเมนูตาม role
     if (currentUser.value.role === 'admin') {
       menuItems.value = [
         { label: 'หน้าหลัก', path: '/admin', icon: 'fas fa-home' },
-        { label: 'บุคลากร', path: '/admin2', icon: 'fas fa-users' },
+        {
+          label: 'บุคลากร',
+          icon: 'fas fa-users',
+          submenu: [
+            { label: 'พนักงานปัจจุบัน', path: '/admin2' },
+            { label: 'พนักงานที่ลาออก', path: '/admin3' },
+            { label: 'บุคลากรภายนอก', path: '/admin4' },
+            { label: 'พนักงาน EDDP', path: '/admin5' },
+            { label: 'เพิ่ม/แก้ไข/ลบ พนักงาน', path: '/admin6' },
+            { label: 'เพิ่มบุคลากรภายนอก', path: '/admin7' },
+            { label: 'เปลี่ยนสถานะพนักงาน', path: '/admin8' },
+            { label: 'กำหนดโควต้าลา(ทั้งหมด)', path: '/admin9' }
+          ]
+        },
         { label: 'ห้องวิจัย', path: '/admin10', icon: 'fas fa-flask' },
         { label: 'วันหยุด', path: '/admin11', icon: 'fas fa-calendar-alt' },
         { label: 'ระบบการปฏิบัติงาน', path: '/admin12', icon: 'fas fa-cog' },
@@ -72,7 +99,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-
 .sidebar {
   width: 250px;
   background-color: #ffffff;
@@ -106,6 +132,7 @@ onMounted(async () => {
 .nav-link {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 10px 15px;
   text-decoration: none;
   color: #555;
@@ -124,5 +151,37 @@ onMounted(async () => {
 .nav-item.active .nav-link {
   background-color: #e6f7ff;
   color: #1890ff;
+}
+
+.submenu {
+  list-style: none;
+  margin: 5px 0 5px 15px;
+  padding: 0;
+}
+
+.submenu-link {
+  display: block;
+  padding: 8px 15px;
+  font-size: 14px;
+  color: #555;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+
+.submenu-link:hover {
+  background-color: #f0f8ff;
+  color: #1890ff;
+}
+
+.arrow {
+  font-size: 12px;
+  transition: transform 0.3s;
+  margin-left: auto;
+}
+
+.arrow.rotated {
+  transform: rotate(90deg);
 }
 </style>
