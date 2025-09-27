@@ -67,7 +67,10 @@ import type { MenuItem } from 'primevue/menuitem';
 
 const items : MenuItem[] = [
   {
-    label : 'วันหยุด',url : '/admin'
+    label : 'วันหยุด',url : '/day-off'
+  },
+  {
+    label : 'ตาราง',url : '/admin'
   }
 ]
 
