@@ -1,7 +1,9 @@
 <template>
   <div class="top-bar">
     <div class="breadcrumbs">
-      <span><i class="fas fa-home"></i> หน้าหลัก</span>
+      <slot name='breadcrumbs'>
+        <Breadcrumb  :model="items"/>
+      </slot>
     </div>
     <div class="user-profile-container">
       <div class="user-profile" @click="toggleProfileMenu">
@@ -30,10 +32,21 @@
 </template>
 
 <script setup lang="ts">
+import { PrimeIcons } from '@primevue/core/api';
+
+
 import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
+import Breadcrumb from 'primevue/breadcrumb';
 
+import type { MenuItem } from 'primevue/menuitem';
+
+const items : MenuItem[] = [
+  {
+    label : 'Home',url : '/admin'
+  }
+]
 const router = useRouter()
 const route = useRoute()
 

@@ -1,10 +1,7 @@
 <template>
-  <div class="full-page-container">
-    <Sidebar />
-    <div class="main-content">
-      <TopBar />
-
       <div class="dashboard-container">
+        <TopBar > <template #breadcrumbs>หน้าหลัก</template></TopBar>
+
 
         <Card class="mb-3">
           <template #title>ประกาศ</template>
@@ -24,8 +21,7 @@
           <Column field="reason" header="เหตุผล"></Column>
         </DataTable>
       </div>
-    </div>
-  </div>
+
 </template>
 
 <script setup lang="ts">
@@ -50,25 +46,3 @@ console.log("activities:", activities.value)
 </script>
 
 
-<style scoped>
-.full-page-container {
-  display: flex;
-  height: 100vh;
-}
-
-.main-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  padding: 1rem;
-}
-
-.dashboard-container {
-  padding: 1rem 0;
-}
-
-.mb-3 {
-  margin-bottom: 1rem;
-}
-</style>

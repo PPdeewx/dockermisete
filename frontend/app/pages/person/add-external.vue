@@ -1,71 +1,15 @@
 <template>
-  <div class="full-page-container">
-    <div class="sidebar">
-      <div class="sidebar-header">
-        <span>MIS ETE</span>
-      </div>
-        <ul class="nav-menu">
-         <li class="nav-item">
-       <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
-     <i class="fas fa-home"></i> หน้าหลัก
-   </a>
-</li>
-        <li class="nav-item has-submenu active">
-          <a href="#" class="nav-link"><i class="fas fa-users"></i> บุคลากร</a>
-          <ul class="submenu active">
-            <li><a href="/admin2" class="submenu-link">พนักงานปัจจุบัน</a></li>
-            <li><a href="/admin3" class="submenu-link">พนักงานที่ลาออก</a></li>
-            <li><a href="/admin4" class="submenu-link">บุคลากรภายนอก</a></li>
-            <li><a href="/admin5" class="submenu-link">พนักงาน EDDP</a></li>
-            <li><a href="/admin6" class="submenu-link">เพิ่ม/แก้ไข/ลบ พนักงาน</a></li>
-            <li><a href="#" class="submenu-link active">เพิ่มบุคลากรภายนอก</a></li>
-            <li><a href="/admin8" class="submenu-link">เปลี่ยนสถานะพนักงาน</a></li>
-            <li><a href="/admin9" class="submenu-link">กำหนดโควต้าลา(ทั้งหมด)</a></li>
-          </ul>
-        </li>
-        <li class="nav-item"><a href="/admin10" class="nav-link" @click.prevent="goToAdmin10Page"><i class="fas fa-flask"></i> ห้องวิจัย</a></li>
-        <li class="nav-item"><a href="/admin11" class="nav-link" @click.prevent="goToAdmin11Page"><i class="fas fa-calendar-alt"></i> วันหยุด</a></li>
-        <li class="nav-item"><a href="/admin12" class="nav-link" @click.prevent="goToAdmin12Page"><i class="fas fa-cog"></i> ระบบการปฏิบัติงาน</a></li>
-      </ul>
-    </div>
+    <TopBar > <template #breadcrumbs>
+              <Breadcrumb  :model="items"/>
 
-    <div class="main-content">
-      <div class="top-bar">
-        <div class="breadcrumbs">
-          <span><i class="fas fa-home"></i> หน้าหลัก > บุคลากร > เพิ่มบุคลากรภายนอก</span>
-        </div>
-        <div class="user-profile-container">
-          <div class="user-profile" @click="toggleProfileMenu">
-            <i class="fas fa-bell"></i>
-            <i class="fas fa-user-circle"></i>
-            <span class="username">{{ currentUser?.username }} ตำแหน่ง: {{ currentUser?.role }}</span>
-            <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
+    </template></TopBar>
 
-            <div class="user-profile-menu" v-if="showProfileMenu">
-              <button class="menu-item" @click.stop="goTo('/admin28')">
-                <i class="fas fa-user"></i>
-                <span>ดูข้อมูลส่วนตัว</span>
-              </button>
-              <button class="menu-item" @click.stop="goTo('/admin29')">
-                <i class="fas fa-edit"></i>
-                <span>แก้ไขข้อมูลส่วนตัว</span>
-              </button>
-              <button class="menu-item" @click.stop="goTo('/admin30')">
-                <i class="fas fa-lock"></i>
-                <span>เปลี่ยนรหัสผ่าน</span>
-              </button>
-              <button class="menu-item" @click.stop="logout">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>ออกจากระบบ</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+  <div class="dashboard-container">
+
 
       <div class="content-container">
         <div class="form-header">
-          <h2>เพิ่มบุคลากรภายนอก</h2>
+          <h2></h2>
           <button class="btn-cancel" @click.prevent="cancelForm">
             <i class="fas fa-times"></i> ยกเลิก
           </button>
@@ -149,13 +93,34 @@
         </form>
       </div>
     </div>
-  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue';
-import axios from 'axios';
-import { useRouter } from 'vue-router';
+import TopBar from '~/components/Topbar.vue'
+
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+
+import Card from 'primevue/card'
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+import Button from 'primevue/button'
+import InputText from 'primevue/inputtext'
+
+import Breadcrumb from 'primevue/breadcrumb';
+
+import type { MenuItem } from 'primevue/menuitem';
+
+const items : MenuItem[] = [
+  {
+    label : 'บุคลากร',url : '/admin'
+  },
+  {
+    label : 'เพิ่มบุคลากรภายนอก',url : '/admin'
+  }
+]
+
 
 const router = useRouter();
 const token = ref<string | null>(null);

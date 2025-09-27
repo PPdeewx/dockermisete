@@ -10,7 +10,7 @@
         class="nav-item"
         :class="{ 'has-submenu': item.submenu, open: openMenu === item.label }"
       >
-        <!-- ถ้ามี submenu จะ toggle ได้ -->
+       
         <a
           @click.prevent="item.submenu ? toggleSubmenu(item.label) : goTo(item.path)"
           class="nav-link"
@@ -67,14 +67,14 @@ onMounted(async () => {
           label: 'บุคลากร',
           icon: 'fas fa-users',
           submenu: [
-            { label: 'พนักงานปัจจุบัน', path: '/admin2' },
-            { label: 'พนักงานที่ลาออก', path: '/admin3' },
-            { label: 'บุคลากรภายนอก', path: '/admin4' },
-            { label: 'พนักงาน EDDP', path: '/admin5' },
-            { label: 'เพิ่ม/แก้ไข/ลบ พนักงาน', path: '/admin6' },
-            { label: 'เพิ่มบุคลากรภายนอก', path: '/admin7' },
-            { label: 'เปลี่ยนสถานะพนักงาน', path: '/admin8' },
-            { label: 'กำหนดโควต้าลา(ทั้งหมด)', path: '/admin9' }
+            { label: 'พนักงานปัจจุบัน', path: '/person' },
+            { label: 'พนักงานที่ลาออก', path: '/person/resign' },
+            { label: 'บุคลากรภายนอก', path: '/person/external' },
+            { label: 'พนักงาน EDDP', path: '/person/eddp' },
+            { label: 'เพิ่ม/แก้ไข/ลบ พนักงาน', path: '/person/edit-employees' },
+            { label: 'เพิ่มบุคลากรภายนอก', path: '/person/add-external' },
+            { label: 'เปลี่ยนสถานะพนักงาน', path: '/person/change-status' },
+            { label: 'กำหนดโควต้าลา(ทั้งหมด)', path: '/person/quota' }
           ]
         },
         { label: 'ห้องวิจัย', path: '/admin10', icon: 'fas fa-flask' },
