@@ -77,10 +77,28 @@ onMounted(async () => {
             { label: 'กำหนดโควต้าลา(ทั้งหมด)', path: '/person/quota' }
           ]
         },
-        { label: 'ห้องวิจัย', path: '/admin10', icon: 'fas fa-flask' },
-        { label: 'วันหยุด', path: '/admin11', icon: 'fas fa-calendar-alt' },
-        { label: 'ระบบการปฏิบัติงาน', path: '/admin12', icon: 'fas fa-cog' },
+        { label: 'ห้องวิจัย', path: '/research', icon: 'fas fa-flask' },
+        { label: 'วันหยุด', path: '/day-off', icon: 'fas fa-calendar-alt' },
+        { 
+          label: 'ระบบการปฏิบัติงาน',
+          icon: 'fas fa-cog',
+          submenu: [
+            { label: 'ตรวจสอบเวลาทำงาน', path: '/system/check-work-hours' },
+            { label: 'เวลางานคนลาออก', path: '/system/resignation-period' },
+            { label: 'รายการลาตัวเอง', path: '/system' },
+            { label: 'รายการลา ETE', path: '/system' },
+            { label: 'ปฏิบัติงานนอกสถานที่', path: '/system' },
+            { label: 'รายการอนุมัติการลาปฏิบัติงานนอกสถานที่', path: '/system' },
+            { label: 'รายการอนุมัติการลา', path: '/system' },
+            { label: 'ขออนุมัติลา', path: '/system' },
+            { label: 'ขอลาให้คนอื่น', path: '/system' },
+            { label: 'ขอปฏิบัติงานนอกสถานที่', path: '/system' },
+            { label: 'ขอปฏิบัติงานนอกสถานที่ให้คนอื่น', path: '/system' },
+            { label: 'Upload เวลางาน', path: '/system' },
+          ]
+        }
       ]
+      
     } else if (currentUser.value.role === 'employee') {
       menuItems.value = [
         { label: 'หน้าหลัก', path: '/user', icon: 'fas fa-home' },

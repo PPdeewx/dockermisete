@@ -1,79 +1,14 @@
 <template>
-  <div class="full-page-container">
-    <div class="sidebar">
-      <div class="sidebar-header">
-        <span>MIS ETE</span>
-      </div>
-        <ul class="nav-menu">
-         <li class="nav-item">
-       <a href="/admin" class="nav-link" @click.prevent="goToAdminPage">
-     <i class="fas fa-home"></i> หน้าหลัก
-   </a>
-</li>
-        <li class="nav-item has-submenu">
-          <a href="/admin2" class="nav-link"@click.prevent="goToAdmin2Page">
-            <i class="fas fa-users"></i> บุคลากร
-          </a>
-        </li>
-        <li class="nav-item"><a href="/admin10" class="nav-link" @click.prevent="goToAdmin10Page"><i class="fas fa-flask"></i> ห้องวิจัย</a></li>
-        <li class="nav-item"><a href="/admin11" class="nav-link" @click.prevent="goToAdmin11Page"><i class="fas fa-calendar-alt"></i> วันหยุด</a></li>
-        <li class="nav-item active has-submenu">
-          <a href="#" class="nav-link"><i class="fas fa-cog"></i> ระบบการปฏิบัติงาน</a>
-          <ul class="submenu">
-            <li><a href="/admin12" class="submenu-link">ตรวจสอบเวลาทำงาน</a></li>
-            <li><a href="/admin13" class="submenu-link">เวลางานคนลาออก</a></li>
-            <li><a href="" class="submenu-link active">รายการลาตัวเอง</a></li>
-            <li><a href="/admin15" class="submenu-link">รายการลา ETE</a></li>
-            <li><a href="/admin16" class="submenu-link">ปฏิบัติงานนอกสถานที่</a></li>
-            <li><a href="/admin17" class="submenu-link">รายการอนุมัติการลาปฏิบัติงานนอกสถานที่</a></li>
-            <li><a href="/admin18" class="submenu-link">รายการอนุมัติการลา</a></li>
-            <li><a href="/admin19" class="submenu-link">ขออนุมัติลา</a></li>
-            <li><a href="/admin20" class="submenu-link">ขอลาให้คนอื่น</a></li>
-            <li><a href="/admin21" class="submenu-link">ขอปฏิบัติงานนอกสถานที่</a></li>
-            <li><a href="/admin22" class="submenu-link">ขอปฏิบัติงานนอกสถานที่ให้คนอื่น</a></li>
-            <li><a href="/admin23" class="submenu-link">Upload เวลางาน</a></li>
-          </ul>
-        </li>
-      </ul>
-    </div>
+    <TopBar > <template #breadcrumbs>
+              <Breadcrumb  :model="items"/>
 
-    <div class="main-content">
-      <div class="top-bar">
-        <div class="breadcrumbs">
-          <span><i class="fas fa-home"></i> หน้าหลัก > รายการลาตัวเอง</span>
-        </div>
-        <div class="user-profile-container">
-          <div class="user-profile" @click="toggleProfileMenu">
-            <i class="fas fa-bell"></i>
-            <i class="fas fa-user-circle"></i>
-            <span class="username">{{ currentUser?.username }} ตำแหน่ง: {{ currentUser?.role }}</span>
-            <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
+    </template></TopBar>
 
-            <div class="user-profile-menu" v-if="showProfileMenu">
-              <button class="menu-item" @click.stop="goTo('/admin28')">
-                <i class="fas fa-user"></i>
-                <span>ดูข้อมูลส่วนตัว</span>
-              </button>
-              <button class="menu-item" @click.stop="goTo('/admin29')">
-                <i class="fas fa-edit"></i>
-                <span>แก้ไขข้อมูลส่วนตัว</span>
-              </button>
-              <button class="menu-item" @click.stop="goTo('/admin30')">
-                <i class="fas fa-lock"></i>
-                <span>เปลี่ยนรหัสผ่าน</span>
-              </button>
-              <button class="menu-item" @click.stop="logout">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>ออกจากระบบ</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
+  <div class="dashboard-container">
+        
       <div class="content-container">
         <div class="header-with-buttons">
-          <h2><i class="fas fa-calendar-alt"></i> ระบบการลางาน</h2>
+          <h2><i class="fas fa-calendar-alt"></i> </h2>
           <div class="header-buttons">
             <button class="btn-action btn-green" @click="goToAdmin20Page">
               <i class="fas fa-plus"></i> ขอลาให้คนอื่น
@@ -153,14 +88,33 @@
         </div>
       </div>
     </div>
-  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, computed } from 'vue';
-import axios from 'axios';
-import { useRouter } from 'vue-router';
+import TopBar from '~/components/Topbar.vue'
 
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+
+import Card from 'primevue/card'
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+import Button from 'primevue/button'
+import InputText from 'primevue/inputtext'
+
+import Breadcrumb from 'primevue/breadcrumb';
+
+import type { MenuItem } from 'primevue/menuitem';
+
+const items : MenuItem[] = [
+  {
+    label : 'ระบบการปฏิบัติงาน',url : '/admin'
+  },
+  {
+    label : 'รายการลาตัวเอง',url : '/admin'
+  }
+]
 const router = useRouter();
 const token = ref<string | null>(null);
 
