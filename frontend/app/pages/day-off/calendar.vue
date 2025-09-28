@@ -63,10 +63,10 @@ import type { MenuItem } from 'primevue/menuitem';
 
 const items : MenuItem[] = [
   {
-    label : 'วันหยุด',url : '/day-off'
+    label : 'วันหยุด',url : '/sehedule'
   },
   {
-    label : 'ปฏิทิน',url : '/admin'
+    label : 'ปฏิทิน',url : '/calendar'
   }
 ]
 const router = useRouter();

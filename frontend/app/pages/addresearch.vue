@@ -114,7 +114,7 @@ const items : MenuItem[] = [
     label : 'ห้องวิจัย',url : '/research'
   },
   {
-    label : 'เพิ่มวิจัย',url : '/admin'
+    label : 'เพิ่มวิจัย',url : '/addresearch'
   }
 ]
 const router = useRouter();
