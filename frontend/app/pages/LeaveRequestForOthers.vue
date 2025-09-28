@@ -24,9 +24,9 @@
         <div class="form-row">
           <div class="form-group full-width">
             <label>พนักงานผู้ลา *:</label>
-            <select v-model="form.employee" class="select-input">
+            <select v-model="form.employeeId" class="select-input">
               <option disabled value="">เลือกพนักงานลา</option>
-              <option v-for="emp in employees" :key="emp.id" :value="emp.name">
+              <option v-for="emp in employees" :key="emp.id" :value="emp.id">
                 {{ emp.name }}
               </option>
             </select>
@@ -39,7 +39,7 @@
               <label>ประเภทการลา *</label>
               <div class="radio-group">
                 <label v-for="type in leaveTypes" :key="type.id">
-                  <input type="radio" :value="type.name" v-model="form.leaveType" /> {{ type.name }}
+                  <input type="radio" :value="type.id" v-model="form.leaveTypeId" /> {{ type.name }}
                 </label>
               </div>
             </div>
@@ -77,9 +77,9 @@
           <div class="form-row">
             <div class="form-group full-width">
               <label>ผู้อนุมัติการลา *:</label>
-              <select v-model="form.approver" class="select-input">
+              <select v-model="form.approverId" class="select-input">
                 <option disabled value="">เลือกผู้อนุมัติการลา</option>
-                <option v-for="person in approvers" :key="person.id" :value="person.name">
+                <option v-for="person in approvers" :key="person.id" :value="person.id">
                   {{ person.name }}
                 </option>
               </select>
@@ -89,9 +89,9 @@
           <div class="form-row">
             <div class="form-group full-width">
               <label>ผู้ปฏิบัติงานแทน :</label>
-              <select v-model="form.substitute" class="select-input">
+              <select v-model="form.substituteId" class="select-input">
                 <option disabled value="">เลือกผู้ปฏิบัติงานแทน</option>
-                <option v-for="person in substitutes" :key="person.id" :value="person.name">
+                <option v-for="person in substitutes" :key="person.id" :value="person.id">
                   {{ person.name }}
                 </option>
               </select>
@@ -147,6 +147,8 @@ const loadUsers = async () => {
     });
 
     const allUsers = response.data;
+
+    console.log("allUsers:", allUsers);
 
     employees.value = allUsers
       .filter((u: any) => u.role === "employee")

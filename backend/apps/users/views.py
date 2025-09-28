@@ -21,7 +21,7 @@ from django.utils import timezone
 User = get_user_model()
 
 class UserListView(generics.ListAPIView):
-    queryset = CustomUser.objects.all().exclude(role='developer')
+    queryset = CustomUser.objects.all().exclude(role='developer').exclude(groups__name='บุคลากรภายนอก')
     serializer_class = CustomUserSerializer
     permission_classes = [IsAuthenticated]
 
