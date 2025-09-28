@@ -8,7 +8,7 @@
         
       <div class="content-container">
         <div class="header-with-buttons">
-          <h2><i class="fas fa-calendar-alt"></i> </h2>
+          <h2><i class=""></i></h2>
           <div class="header-buttons">
             <button class="btn-action btn-green" @click="goToAdmin20Page">
               <i class="fas fa-plus"></i> ขอลาให้คนอื่น
