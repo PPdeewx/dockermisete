@@ -13,13 +13,13 @@
         <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
 
         <div class="user-profile-menu" v-if="showProfileMenu">
-          <button class="menu-item" @click.stop="goTo('/admin28')">
+          <button class="menu-item" @click.stop="goToProfile">
             <i class="fas fa-user"></i><span>ดูข้อมูลส่วนตัว</span>
           </button>
-          <button class="menu-item" @click.stop="goTo('/admin29')">
+          <button class="menu-item" @click.stop="goToEditProfile">
             <i class="fas fa-edit"></i><span>แก้ไขข้อมูลส่วนตัว</span>
           </button>
-          <button class="menu-item" @click.stop="goTo('/admin30')">
+          <button class="menu-item" @click.stop="goToChangePassword">
             <i class="fas fa-lock"></i><span>เปลี่ยนรหัสผ่าน</span>
           </button>
           <button class="menu-item" @click.stop="logout">
@@ -58,9 +58,9 @@ const toggleProfileMenu = () => {
 }
 
 const goTo = (path: string) => router.push(path)
-const goToProfile = () => currentUser.value?.role === 'admin' ? goTo('/admin28') : goTo('/user10')
-const goToEditProfile = () => currentUser.value?.role === 'admin' ? goTo('/admin29') : goTo('/user11')
-const goToChangePassword = () => currentUser.value?.role === 'admin' ? goTo('/admin30') : goTo('/user12')
+const goToProfile = () => currentUser.value?.role === 'admin' ? goTo('/admin28') : goTo('/Profile')
+const goToEditProfile = () => currentUser.value?.role === 'admin' ? goTo('/admin29') : goTo('/EditProfile')
+const goToChangePassword = () => currentUser.value?.role === 'admin' ? goTo('/admin30') : goTo('/ChangePassword')
 
 function logout() {
   if (typeof window !== "undefined") localStorage.removeItem("token")

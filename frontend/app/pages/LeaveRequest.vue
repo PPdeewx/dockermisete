@@ -1,87 +1,9 @@
 <template>
   <div class="full-page-container">
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <span>MIS ETE</span>
-      </div>
-      <ul class="nav-menu">
-        <li class="nav-item" :class="{ 'active': $route.path === '/user' }">
-          <router-link to="/user" class="nav-link">
-            <i class="fas fa-home"></i> หน้าหลัก
-          </router-link>
-        </li>
-        <li class="nav-item" :class="{ 'active': $route.path === '/user2' }">
-          <router-link to="/user2" class="nav-link">
-            <i class="fas fa-file-alt"></i> ยื่นใบลา
-          </router-link>
-        </li>
-        <li class="nav-item" :class="{ 'active': $route.path === '/user3' }">
-          <router-link to="/user3" class="nav-link">
-            <i class="fas fa-file-alt"></i> ยื่นใบลาแทน
-          </router-link>
-        </li>
-        <li class="nav-item" :class="{ 'active': $route.path === '/user4' }">
-          <router-link to="/user4" class="nav-link">
-            <i class="fas fa-history"></i> ประวัติการลา
-          </router-link>
-        </li>
-        <li class="nav-item" :class="{ 'active': $route.path === '/user5' }">
-          <router-link to="/user5" class="nav-link">
-            <i class="fas fa-user-edit"></i> ขออนุญาตปฏิบัติงานนอกสถานที่
-          </router-link>
-        </li>
-        <li class="nav-item" :class="{ 'active': $route.path === '/user6' }">
-          <router-link to="/user6" class="nav-link">
-            <i class="fas fa-user-edit"></i> ขออนุญาตปฏิบัติงานนอกสถานที่ให้คนอื่น
-          </router-link>
-        </li>
-        <li class="nav-item" :class="{ 'active': $route.path === '/user7' }">
-          <router-link to="/user7" class="nav-link">
-            <i class="fas fa-calendar-times"></i> ดูรายการปฏิบัติงานนอกสถานที่
-          </router-link>
-        </li>
-        <li class="nav-item" :class="{ 'active': $route.path === '/user8' }">
-          <router-link to="/user8" class="nav-link">
-            <i class="fas fa-calendar-plus"></i> วันหยุด
-          </router-link>
-        </li>
-      </ul>
-    </aside>
+    
 
     <main class="main-content">
-      <div class="top-bar">
-        <div class="breadcrumbs">
-          <span><i class="fas fa-home"></i> {{ breadcrumbs }}</span>
-        </div>
-         
-         <div class="user-profile" @click.stop="toggleProfileMenu">
-          <i class="fas fa-bell"></i>
-          <i class="fas fa-user-circle"></i>
-          <span class="username">{{ user?.username }}</span>
-          <span v-if="user">ตำแหน่ง: {{ user.role }}</span>
-          <i class="fas fa-chevron-down"></i>
-
-
-          <div class="user-profile-menu" v-if="showProfileMenu">
-            <button class="menu-item" @click.stop="goTo('/user10')">
-              <i class="fas fa-user"></i>
-              <span>ดูข้อมูลส่วนตัว</span>
-            </button>
-            <button class="menu-item" @click.stop="goTo('/user11')">
-              <i class="fas fa-edit"></i>
-              <span>แก้ไขข้อมูลส่วนตัว</span>
-            </button>
-            <button class="menu-item" @click.stop="goTo('/user12')">
-              <i class="fas fa-lock"></i>
-              <span>เปลี่ยนรหัสผ่าน</span>
-            </button>
-            <button class="menu-item" @click.stop="logout">
-              <i class="fas fa-sign-out-alt"></i>
-              <span>ออกจากระบบ</span>
-            </button>
-          </div>
-        </div>
-      </div>
+      <TopBar></TopBar>
       
       <div class="leave-form-container">
         <div class="form-header">
@@ -178,6 +100,8 @@
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import axios from 'axios';
+
+import TopBar from '~/components/Topbar.vue'
 
 const HALF_CHOICES: Record<string, string> = {
   full: 'ทั้งวัน',
@@ -329,22 +253,7 @@ function logout() {
   router.push("/login")
 }
 
-const breadcrumbs = computed(() => {
-  switch (route.path) {
-    case '/user': return 'หน้าหลัก';
-    case '/user2': return 'หน้าหลัก > ยื่นใบลา';
-    case '/user3': return 'หน้าหลัก > ยื่นใบลาแทน';
-    case '/user4': return 'หน้าหลัก > ประวัติการลา';
-    case '/user5': return 'หน้าหลัก > ขออนุญาตปฏิบัติงานนอกสถานที่';
-    case '/user6': return 'หน้าหลัก > ขออนุญาตปฏิบัติงานนอกสถานที่ให้คนอื่น';
-    case '/user7': return 'หน้าหลัก > ดูรายการปฏิบัติงาน...';
-    case '/user8': return 'หน้าหลัก > วันหยุด';
-    case '/user10': return 'หน้าหลัก > ข้อมูลส่วนตัว';
-    case '/user11': return 'หน้าหลัก > ข้อมูลส่วนตัว > แก้ไข';
-    case '/user12': return 'หน้าหลัก > เปลี่ยนรหัสผ่าน';
-    default: return 'หน้าหลัก';
-  }
-});
+
 </script>
 
 <style scoped>

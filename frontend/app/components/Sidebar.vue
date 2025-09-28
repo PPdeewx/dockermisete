@@ -102,11 +102,11 @@ onMounted(async () => {
     } else if (currentUser.value.role === 'employee') {
       menuItems.value = [
         { label: 'หน้าหลัก', path: '/user', icon: 'fas fa-home' },
-        { label: 'ยื่นใบลา', path: '/user2', icon: 'fas fa-file-alt' },
-        { label: 'ยื่นใบลาแทน', path: '/user3', icon: 'fas fa-file' },
-        { label: 'ประวัติการลา', path: '/user4', icon: 'fas fa-history' },
-        { label: 'ขออนุญาตปฏิบัติงานนอกสถานที่', path: '/user5', icon: 'fas fa-briefcase' },
-        { label: 'วันหยุด', path: '/user8', icon: 'fas fa-calendar' },
+        { label: 'ยื่นใบลา', path: '/LeaveRequest', icon: 'fas fa-file-alt' },
+        { label: 'ยื่นใบลาแทน', path: '/LeaveRequestForOthers', icon: 'fas fa-file' },
+        { label: 'ประวัติการลา', path: '/LeaveHistory', icon: 'fas fa-history' },
+        { label: 'ขออนุญาตปฏิบัติงานนอกสถานที่', path: '/WorkOutsideRequest', icon: 'fas fa-briefcase' },
+        { label: 'วันหยุด', path: '/Holidays', icon: 'fas fa-calendar' },
       ]
     }
   } catch (err) {
