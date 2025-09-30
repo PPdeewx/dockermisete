@@ -65,10 +65,10 @@ import type { MenuItem } from 'primevue/menuitem';
 
 const items : MenuItem[] = [
   {
-    label : 'บุคลากร',url : '/admin'
+    label : 'บุคลากร',url : '/admin/person'
   },
   {
-    label : 'พนักงานที่ลาออก',url : '/admin'
+    label : 'พนักงานที่ลาออก',url : '/admin/person/resign'
   }
 ]
 

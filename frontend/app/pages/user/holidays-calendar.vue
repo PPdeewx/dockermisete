@@ -13,7 +13,7 @@
               <h3>วันหยุด/ปฏิทิน</h3>
             </div>
           </div>
-          <button type="button" class="btn-table" @click="goTo('/Holidays')">
+          <button type="button" class="btn-table" @click="goTo('/user/holidays')">
             <i class="fas fa-table"></i> สลับเป็นรูปแบบตาราง
           </button>
         </div>

@@ -133,26 +133,6 @@ const goTo = (path: string) => {
   router.push(path);
 };
 
-const goToAdminPage = () => {
-  router.push('/admin');
-};
-
-const goToAdmin2Page = () => {
-  router.push('/admin2');
-};
-
-const goToAdmin10Page = () => {
-  router.push('/admin10');
-};
-
-const goToAdmin11Page = () => {
-  router.push('/admin11');
-};
-
-const goToAdmin14Page = () => {
-  router.push('/admin14');
-};
-
 const leaveForm = reactive({
   employee: '',
   leaveType: '',

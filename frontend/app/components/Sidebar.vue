@@ -67,34 +67,34 @@ onMounted(async () => {
           label: 'บุคลากร',
           icon: 'fas fa-users',
           submenu: [
-            { label: 'พนักงานปัจจุบัน', path: '/person' },
-            { label: 'พนักงานที่ลาออก', path: '/person/resign' },
-            { label: 'บุคลากรภายนอก', path: '/person/external' },
-            { label: 'พนักงาน EDDP', path: '/person/eddp' },
-            { label: 'เพิ่ม/แก้ไข/ลบ พนักงาน', path: '/person/edit-employees' },
-            { label: 'เพิ่มบุคลากรภายนอก', path: '/person/add-external' },
-            { label: 'เปลี่ยนสถานะพนักงาน', path: '/person/change-status' },
-            { label: 'กำหนดโควต้าลา(ทั้งหมด)', path: '/person/quota' }
+            { label: 'พนักงานปัจจุบัน', path: '/admin/person' },
+            { label: 'พนักงานที่ลาออก', path: '/admin/person/resign' },
+            { label: 'บุคลากรภายนอก', path: '/admin/person/external' },
+            { label: 'พนักงาน EDDP', path: '/admin/person/eddp' },
+            { label: 'เพิ่ม/แก้ไข/ลบ พนักงาน', path: '/admin/person/edit-employees' },
+            { label: 'เพิ่มบุคลากรภายนอก', path: '/admin/person/add-external' },
+            { label: 'เปลี่ยนสถานะพนักงาน', path: '/admin/person/change-status' },
+            { label: 'กำหนดโควต้าลา(ทั้งหมด)', path: '/admin/person/quota' }
           ]
         },
-        { label: 'ห้องวิจัย', path: '/research', icon: 'fas fa-flask' },
-        { label: 'วันหยุด', path: '/day-off', icon: 'fas fa-calendar-alt' },
+        { label: 'ห้องวิจัย', path: '/admin/research', icon: 'fas fa-flask' },
+        { label: 'วันหยุด', path: '/admin/sehedule', icon: 'fas fa-calendar-alt' },
         { 
           label: 'ระบบการปฏิบัติงาน',
           icon: 'fas fa-cog',
           submenu: [
-            { label: 'ตรวจสอบเวลาทำงาน', path: '/system/check-work-hours' },
-            { label: 'เวลางานคนลาออก', path: '/system/resignation-period' },
-            { label: 'รายการลาตัวเอง', path: '/system' },
-            { label: 'รายการลา ETE', path: '/system' },
-            { label: 'ปฏิบัติงานนอกสถานที่', path: '/system' },
-            { label: 'รายการอนุมัติการลาปฏิบัติงานนอกสถานที่', path: '/system' },
-            { label: 'รายการอนุมัติการลา', path: '/system' },
-            { label: 'ขออนุมัติลา', path: '/system' },
-            { label: 'ขอลาให้คนอื่น', path: '/system' },
-            { label: 'ขอปฏิบัติงานนอกสถานที่', path: '/system' },
-            { label: 'ขอปฏิบัติงานนอกสถานที่ให้คนอื่น', path: '/system' },
-            { label: 'Upload เวลางาน', path: '/system' },
+            { label: 'ตรวจสอบเวลาทำงาน', path: '/admin/system/work-hours' },
+            { label: 'เวลางานคนลาออก', path: '/admin/system/resign-period' },
+            { label: 'รายการลาตัวเอง', path: '/admin/system/leave-list' },
+            { label: 'รายการลา ETE', path: '/admin/system/leave-list-ete' },
+            { label: 'ปฏิบัติงานนอกสถานที่', path: '/admin/system/outside-work.' },
+            { label: 'รายการอนุมัติการลาปฏิบัติงานนอกสถานที่', path: '/admin/system/osl-approval' },
+            { label: 'รายการอนุมัติการลา', path: '/admin/system/approve-leave' },
+            { label: 'ขออนุมัติลา', path: '/admin/system/leave-approval' },
+            { label: 'ขอลาให้คนอื่น', path: '/admin/system/substitute-leave' },
+            { label: 'ขอปฏิบัติงานนอกสถานที่', path: '/admin/system/off-site-request' },
+            { label: 'ขอปฏิบัติงานนอกสถานที่ให้คนอื่น', path: '/admin/system/outside-work-request' },
+            { label: 'Upload เวลางาน', path: '/admin/system/upload' },
           ]
         }
       ]
@@ -102,11 +102,25 @@ onMounted(async () => {
     } else if (currentUser.value.role === 'employee') {
       menuItems.value = [
         { label: 'หน้าหลัก', path: '/user', icon: 'fas fa-home' },
-        { label: 'ยื่นใบลา', path: '/LeaveRequest', icon: 'fas fa-file-alt' },
-        { label: 'ยื่นใบลาแทน', path: '/LeaveRequestForOthers', icon: 'fas fa-file' },
-        { label: 'ประวัติการลา', path: '/LeaveHistory', icon: 'fas fa-history' },
-        { label: 'ขออนุญาตปฏิบัติงานนอกสถานที่', path: '/WorkOutsideRequest', icon: 'fas fa-briefcase' },
-        { label: 'วันหยุด', path: '/Holidays', icon: 'fas fa-calendar' },
+        {
+          label: 'ลา',
+          icon: 'fas fa-file-alt',
+          submenu: [
+            { label: 'ยื่นใบลา', path: '/user/leave-request', icon: 'fas fa-file-alt' },
+            { label: 'ยื่นใบลาแทน', path: '/user/leave-request-for-others', icon: 'fas fa-file' },
+            { label: 'ประวัติการลา', path: '/user/leave-history', icon: 'fas fa-history' },
+          ]
+        },
+        {
+          label: 'ปฏิบัติงานนอกสถานที่',
+          icon: 'fas fa-briefcase',
+          submenu: [
+            { label: 'ขออนุญาตปฏิบัติงานนอกสถานที่', path: '/user/work-outside-request', icon: 'fas fa-briefcase' },
+            { label: 'ขออนุญาตปฏิบัติงานนอกสถานที่ให้คนอื่น', path: '/user/work-outside-request-for-others', icon: 'fas fa-briefcase' },
+            { label: 'ประวัติปฏิบัติงานนอกสถานที่', path: '/user/work-outside-history', icon: 'fas fa-briefcase' },
+          ]
+        },
+        { label: 'วันหยุด', path: '/user/holidays', icon: 'fas fa-calendar' },
       ]
     }
   } catch (err) {

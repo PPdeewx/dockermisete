@@ -115,26 +115,10 @@ const goTo = (path: string) => {
   router.push(path);
 };
 
-const goToAdminPage = () => {
-  router.push('/admin');
-};
-
-const goToAdmin2Page = () => {
-  router.push('/admin2');
-};
-
-const goToAdmin10Page = () => {
-  router.push('/admin10');
-};
-
-const goToAdmin12Page = () => {
-  router.push('/admin12');
-};
-
 const cancelForm = () => {
   if (confirm('คุณต้องการยกเลิกหรือไม่?')) {
     resetForm();
-    router.push('/admin11');
+    router.push('/admin/sehedule');
   }
 };
 
@@ -182,7 +166,7 @@ const submitForm = async () => {
 
     successMessage.value = isEditing.value ? 'แก้ไขวันหยุดเรียบร้อยแล้ว' : 'เพิ่มวันหยุดเรียบร้อยแล้ว';
     setTimeout(() => {
-      router.push('/admin11');
+      router.push('/admin/sehedule');
     }, 1000);
   } catch (error: any) {
     console.error('Full error response:', JSON.stringify(error.response?.data, null, 2));
@@ -231,7 +215,7 @@ const deleteHoliday = async () => {
 
     successMessage.value = 'ลบวันหยุดเรียบร้อยแล้ว';
     setTimeout(() => {
-      router.push('/admin11');
+      router.push('/admin/sehedule');
     }, 1000);
   } catch (error: any) {
     console.error('Error deleting holiday:', JSON.stringify(error.response?.data, null, 2));

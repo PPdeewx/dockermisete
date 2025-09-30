@@ -67,7 +67,7 @@ import type { MenuItem } from 'primevue/menuitem';
 
 const items : MenuItem[] = [
   {
-    label : 'บุคลากร',url : '/admin'
+    label : 'บุคลากร',url : '/person'
   },
   {
     label : 'พนักงาน EDDP',url : '/admin'

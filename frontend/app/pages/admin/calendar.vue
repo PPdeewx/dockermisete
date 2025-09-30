@@ -82,36 +82,16 @@ const goTo = (path: string) => {
   router.push(path);
 };
 
-const goToAdminPage = () => {
-  router.push('/admin');
-};
-
-const goToAdmin2Page = () => {
-  router.push('/admin2');
-};
-
-const goToAdmin10Page = () => {
-  router.push('/admin10');
-};
-
-const goToAdmin11Page = () => {
-  router.push('/admin11');
-};
-
-const goToAdmin12Page = () => {
-  router.push('/admin12');
-};
-
 const goToAddHoliday = () => {
-  router.push('/admin25');
+  router.push('/admin/add-day-off');
 };
 
 const goToEditHoliday = (id: number) => {
-  router.push(`/admin25?id=${id}`);
+  router.push(`/admin/add-day-off?id=${id}`);
 };
 
 const switchToTableView = () => {
-  router.push('/admin11');
+  router.push('/admin/sehedule');
 };
 
 const currentUser = ref<any>(null);

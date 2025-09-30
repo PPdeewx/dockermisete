@@ -127,30 +127,6 @@ const goTo = (path: string) => {
   router.push(path);
 };
 
-const goToAdminPage = () => {
-  router.push('/admin');
-};
-
-const goToAdmin2Page = () => {
-  window.location.href = '/admin2';
-};
-
-const goToAdmin10Page = () => {
-  window.location.href = '/admin10';
-};
-
-const goToAdmin11Page = () => {
-  window.location.href = '/admin11';
-};
-
-const goToAdmin20Page = () => {
-  router.push('/admin20');
-};
-
-const goToAdmin19Page = () => {
-  router.push('/admin19');
-};
-
 const leaveHistory = ref<any[]>([]);
 
 const fetchLeaveHistory = async () => {

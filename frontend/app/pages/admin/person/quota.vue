@@ -87,7 +87,7 @@ import type { MenuItem } from 'primevue/menuitem';
 
 const items : MenuItem[] = [
   {
-    label : 'บุคลากร',url : '/admin'
+    label : 'บุคลากร',url : '/person'
   },
   {
     label : 'กำหนดโควต้าลา(ทั้งหมด)',url : '/admin'
@@ -103,22 +103,6 @@ const toggleProfileMenu = () => { showProfileMenu.value = !showProfileMenu.value
 
 const goTo = (path: string) => {
   router.push(path);
-};
-
-const goToAdminPage = () => {
-  router.push('/admin');
-};
-
-const goToAdmin10Page = () => {
-  window.location.href = '/admin10';
-};
-
-const goToAdmin11Page = () => {
-  window.location.href = '/admin11';
-};
-
-const goToAdmin12Page = () => {
-  window.location.href = '/admin12';
 };
 
 const filter = reactive({

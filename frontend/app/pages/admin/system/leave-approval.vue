@@ -105,26 +105,6 @@ const goTo = (path: string) => {
   router.push(path);
 };
 
-const goToAdminPage = () => {
-  router.push('/admin');
-};
-
-const goToAdmin2Page = () => {
-  window.location.href = '/admin2';
-};
-
-const goToAdmin10Page = () => {
-  window.location.href = '/admin10';
-};
-
-const goToAdmin11Page = () => {
-  window.location.href = '/admin11';
-};
-
-const goToAdmin14Page = () => {
-  router.push('/admin14');
-};
-
 const leaveForm = reactive({
   employeeName: 'นาย พ่อ admin usermesss',
   leaveType: '',

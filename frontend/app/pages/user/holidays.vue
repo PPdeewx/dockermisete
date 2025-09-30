@@ -13,7 +13,7 @@
               <h3>วันหยุด/ตาราง</h3>
             </div>
           </div>
-          <button type="button" class="btn-calendar" @click="goTo('/HolidaysCalendar')">
+          <button type="button" class="btn-calendar" @click="goTo('/user/holidays-calendar')">
             <i class="fas fa-calendar-alt"></i> สลับเป็นรูปแบบปฏิทิน
           </button>
         </div>

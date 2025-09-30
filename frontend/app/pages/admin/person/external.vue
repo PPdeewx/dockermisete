@@ -82,7 +82,7 @@ import type { MenuItem } from 'primevue/menuitem';
 
 const items : MenuItem[] = [
   { 
-    label : 'บุคลากร',url : '/admin'
+    label : 'บุคลากร',url : '/person'
   },
   {
     label : 'บุคลากรภายนอก',url : '/admin'
@@ -102,26 +102,6 @@ const toggleProfileMenu = () => {
 
 const goTo = (path: string) => {
   router.push(path);
-};
-
-const goToAdminPage = () => {
-  router.push('/admin');
-};
-
-const goToAdmin10Page = () => {
-  router.push('/admin10');
-};
-
-const goToAdmin11Page = () => {
-  router.push('/admin11');
-};
-
-const goToAdmin12Page = () => {
-  router.push('/admin12');
-};
-
-const addExternalStaff = () => {
-  router.push('/admin7');
 };
 
 const viewUser = (userId: number) => {

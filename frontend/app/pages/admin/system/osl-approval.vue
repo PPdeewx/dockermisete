@@ -98,26 +98,6 @@ const toggleProfileMenu = () => {
   showProfileMenu.value = !showProfileMenu.value
 }
 
-const goTo = (path: string) => {
-  router.push(path);
-};
-
-const goToAdminPage = () => {
-  router.push('/admin');
-};
-
-const goToAdmin2Page = () => {
-  window.location.href = '/admin2';
-};
-
-const goToAdmin10Page = () => {
-  window.location.href = '/admin10';
-};
-
-const goToAdmin11Page = () => {
-  window.location.href = '/admin11';
-};
-
 const departments = ref([])
 const approvalList = ref<any[]>([]);
 

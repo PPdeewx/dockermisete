@@ -78,26 +78,6 @@ const goTo = (path: string) => {
   router.push(path);
 };
 
-const goToAdminPage = () => {
-  router.push('/admin');
-};
-
-const goToAdmin2Page = () => {
-  window.location.href = '/admin2';
-};
-
-const goToAdmin11Page = () => {
-  window.location.href = '/admin11';
-};
-
-const goToAdmin12Page = () => {
-  window.location.href = '/admin12';
-};
-
-const goToAdmin26Page = () => {
-  router.push('/admin26');
-};
-
 const editDepartment = (dept: any) => {
   router.push(`/admin26?deptId=${dept.id}`);
 };
