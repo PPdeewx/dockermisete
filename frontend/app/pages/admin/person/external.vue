@@ -114,7 +114,7 @@ const editUser = (userId: number) => {
 
 const fetchExternalUsers = async () => {
   try {
-    const response = await axios.get('http://localhost:8000/api/users/filter/?group=external', {
+    const response = await axios.get('http://localhost:8000/api/users/filter/?group=บุคลากรภายนอก', {
       headers: {
         Authorization: `Token ${token.value}`,
       },

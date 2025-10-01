@@ -148,7 +148,7 @@ const saveChanges = async () => {
     }
     alert('บันทึกการเปลี่ยนแปลงเรียบร้อยแล้ว');
     
-    router.push('/admin3');
+    router.push('/admin/person');
 
   } catch (err) {
     console.error('Error saving changes:', err);
