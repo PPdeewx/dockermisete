@@ -4,36 +4,6 @@
 
     </template></TopBar>
 
-  <div class="dashboard-container">
-        <div class="user-profile-container">
-          <div class="user-profile" @click="toggleProfileMenu">
-            <i class="fas fa-bell"></i>
-            <i class="fas fa-user-circle"></i>
-            <span class="username">{{ currentUser?.username }} ตำแหน่ง: {{ currentUser?.role }}</span>
-            <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
-
-            <div class="user-profile-menu" v-if="showProfileMenu">
-              <button class="menu-item" @click.stop="goTo('/admin')">
-                <i class="fas fa-user"></i>
-                <span>ดูข้อมูลส่วนตัว</span>
-              </button>
-              <button class="menu-item" @click.stop="goTo('/admin')">
-                <i class="fas fa-edit"></i>
-                <span>แก้ไขข้อมูลส่วนตัว</span>
-              </button>
-              <button class="menu-item" @click.stop="goTo('/admin')">
-                <i class="fas fa-lock"></i>
-                <span>เปลี่ยนรหัสผ่าน</span>
-              </button>
-              <button class="menu-item" @click.stop="logout">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>ออกจากระบบ</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div class="dashboard-container">
         <div class="card-left">
           <div class="card">
