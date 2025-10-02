@@ -58,9 +58,9 @@ const toggleProfileMenu = () => {
 }
 
 const goTo = (path: string) => router.push(path)
-const goToProfile = () => currentUser.value?.role === 'admin' ? goTo('/admin/view-personal') : goTo('/Profile')
-const goToEditProfile = () => currentUser.value?.role === 'admin' ? goTo('/admin/edit-personal') : goTo('/EditProfile')
-const goToChangePassword = () => currentUser.value?.role === 'admin' ? goTo('/admin/changepass') : goTo('/ChangePassword')
+const goToProfile = () => currentUser.value?.role === 'admin' ? goTo('/admin/view-personal') : goTo('/user/profile')
+const goToEditProfile = () => currentUser.value?.role === 'admin' ? goTo('/admin/edit-personal') : goTo('/user/edit-profile')
+const goToChangePassword = () => currentUser.value?.role === 'admin' ? goTo('/admin/changepass') : goTo('/user/change-password')
 
 function logout() {
   if (typeof window !== "undefined") localStorage.removeItem("token")
