@@ -374,7 +374,6 @@ const cancelForm = () => {
 
 * {
   box-sizing: border-box;
-  font-family: 'Noto Sans Thai', sans-serif;
 }
 
 .full-page-container {

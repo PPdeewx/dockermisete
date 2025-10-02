@@ -89,15 +89,13 @@ const toggleProfileMenu = () => {
   showProfileMenu.value = !showProfileMenu.value
 }
 
-// พนักงานทั้งหมด
 const employees = ref([])
 
-// โหลดพนักงานจาก backend
 const loadEmployees = async () => {
   try {
     const res = await axios.get('http://localhost:8000/api/users/filter/', {
       headers: { Authorization: `Token ${localStorage.getItem('token')}` },
-      params: { status: '' } // โหลดทุกสถานะ
+      params: { status: '' } 
     })
     employees.value = res.data.map(emp => ({
       ...emp,
@@ -108,12 +106,10 @@ const loadEmployees = async () => {
   }
 }
 
-// พนักงานที่ลาออก
 const resignedEmployees = computed(() =>
   employees.value.filter(emp => emp.status === 'resigned')
 )
 
-// เปลี่ยนสถานะพนักงานเป็น "พนักงานปัจจุบัน"
 const reinstateEmployee = async (emp: any) => {
   try {
     await axios.patch(
@@ -121,7 +117,7 @@ const reinstateEmployee = async (emp: any) => {
       { status: 'active', exit_date: null },
       { headers: { Authorization: `Token ${token.value}` } }
     )
-    emp.status = 'active'  // อัปเดต local state
+    emp.status = 'active' 
     alert(`เปลี่ยนสถานะพนักงาน ${emp.firstname_th} ${emp.lastname_th} กลับเป็นพนักงานปัจจุบันเรียบร้อย`)
   } catch (err) {
     console.error(err)
@@ -161,7 +157,6 @@ function logout() {
 
 * {
   box-sizing: border-box;
-  font-family: 'Noto Sans Thai', sans-serif;
 }
 
 .full-page-container {

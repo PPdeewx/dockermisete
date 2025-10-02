@@ -118,7 +118,6 @@ const logout = () => {
   router.push("/login");
 };
 
-// ฟังก์ชันสำหรับดึงข้อมูลผู้ใช้
 const fetchUserProfile = async () => {
   try {
     const response = await axios.get('http://localhost:8000/api/users/me/');
@@ -126,7 +125,7 @@ const fetchUserProfile = async () => {
     
     const imageUrl = response.data.profile_image;
     if (imageUrl) {
-      // ใช้ Cache-Buster เพื่อให้แน่ใจว่าเบราว์เซอร์จะโหลดรูปภาพใหม่ทุกครั้ง
+ 
       profileImageUrl.value = `${imageUrl}?t=${new Date().getTime()}`;
     } else {
       profileImageUrl.value = null;
@@ -137,7 +136,7 @@ const fetchUserProfile = async () => {
       return;
     }
 
-    // อัปเดตข้อมูลใน reactive object
+
     profile.nameTh = `${response.data.prefix_th || ''} ${response.data.firstname_th || ''} ${response.data.lastname_th || ''}`.trim();
     profile.nameEn = `${response.data.firstname_en || ''} ${response.data.lastname_en || ''}`.trim();
     profile.position = response.data.position || response.data.role || '';
@@ -176,7 +175,6 @@ onMounted(async () => {
 
 * {
   box-sizing: border-box;
-  font-family: 'Noto Sans Thai', sans-serif;
 }
 
 .full-page-container {

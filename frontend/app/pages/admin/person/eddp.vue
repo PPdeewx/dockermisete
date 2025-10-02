@@ -109,7 +109,6 @@ onMounted(async () => {
       return
     }
 
-    // โหลดพนักงาน EDDP
     const res = await axios.get('http://localhost:8000/api/users/eddp/')
     employees.value = res.data
   } catch (err) {
@@ -126,7 +125,6 @@ function logout() {
   router.push("/login")
 }
 
-// ฟิลเตอร์ค้นหา
 const filteredEmployees = computed(() => {
   if (!searchQuery.value) return employees.value
   return employees.value.filter(emp =>
@@ -143,7 +141,6 @@ const filteredEmployees = computed(() => {
 
 * {
   box-sizing: border-box;
-  font-family: 'Noto Sans Thai', sans-serif;
 }
 
 .full-page-container {
