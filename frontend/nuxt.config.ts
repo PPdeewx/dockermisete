@@ -1,4 +1,4 @@
-import { Lara } from '@primeuix/themes'
+import Aura from '@primeuix/themes/aura';
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -10,7 +10,7 @@ export default defineNuxtConfig({
     options: {
       ripple: true,
       theme: {
-        preset: Lara,
+        preset: Aura,
         options: {
           darkModeSelector: false,
           cssLayer: true
