@@ -10,7 +10,7 @@
             <i class="fas fa-flask"></i>
             <h2>{{ isEditMode ? 'แก้ไข' : 'เพิ่ม' }} ห้องวิจัย</h2>
           </div>
-          <button class="btn-cancel" @click="goToAdmin10Page"><i class="fas fa-times"></i> ยกเลิก</button>
+          <button class="btn-cancel" @click="cancelDepartment(dept)"><i class="fas fa-times"></i> ยกเลิก</button>
         </div>
 
         <div v-if="loading" class="loading">กำลังโหลด...</div>
@@ -108,6 +108,7 @@ import InputText from 'primevue/inputtext'
 import Breadcrumb from 'primevue/breadcrumb';
 
 import type { MenuItem } from 'primevue/menuitem';
+import Research from './research.vue'
 
 const items : MenuItem[] = [
   {
@@ -144,6 +145,10 @@ const isEditMode = computed(() => !!deptId.value);
 const toggleProfileMenu = () => {
   showProfileMenu.value = !showProfileMenu.value;
 };
+
+const cancelDepartment = () => {
+  router.push('/admin/research');
+}
 
 const goTo = (path: string) => {
   router.push(path);
@@ -200,7 +205,7 @@ const saveData = async () => {
         headers: { Authorization: `Token ${token.value}` }
       });
     }
-    router.push('/admin10');
+    router.push('/admin/research');
   } catch (err: any) {
     errorMessage.value = err.response?.data?.detail || 'ไม่สามารถบันทึกข้อมูลได้';
     console.error('Error saving department:', err);

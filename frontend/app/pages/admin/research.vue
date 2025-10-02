@@ -9,7 +9,7 @@
       <div class="content-container">
         <div class="header-with-button">
           <h2><i class="fas fa-flask"></i> ห้องวิจัย</h2>
-          <button class="btn-add-room" @click="goToAdmin26Page">
+          <button class="btn-add-room" @click="addDepartment(dept)">
             <i class="fas fa-plus"></i> เพิ่มห้องวิจัย
           </button>
         </div>
@@ -79,7 +79,7 @@ const goTo = (path: string) => {
 };
 
 const editDepartment = (dept: any) => {
-  router.push(`/admin26?deptId=${dept.id}`);
+  router.push(`/admin/addresearch?deptId=${dept.id}`);
 };
 
 const departments = ref<any[]>([])
@@ -120,7 +120,7 @@ onMounted(async () => {
 })
 
 const addDepartment = () => {
-  alert('ฟังก์ชันสำหรับเพิ่ม Department')
+  router.push('/admin/addresearch');
 }
 
 

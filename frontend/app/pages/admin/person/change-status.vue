@@ -1,195 +1,211 @@
 <template>
-    <TopBar > <template #breadcrumbs>
-              <Breadcrumb  :model="items"/>
+    <TopBar>
+        <template #breadcrumbs>
+            <Breadcrumb :model="items"/>
+        </template>
+    </TopBar>
 
-    </template></TopBar>
-
-  <div class="dashboard-container">
-
-
-      <div class="content-container">
-        <div class="table-header">
-          <h2></h2>
-          <div class="header-actions">
-            <div class="search-container">
-              <span>ค้นหาพนักงาน :</span>
-              <input type="text" v-model="searchQuery" placeholder="ค้นหา..." />
+    <div class="dashboard-container">
+        <div class="content-container">
+            <div class="table-header">
+                <h2>เปลี่ยนสถานะพนักงาน</h2>
+                <div class="header-actions">
+                    <div class="search-container">
+                        <span>ค้นหาพนักงาน :</span>
+                        <input type="text" v-model="searchQuery" placeholder="ค้นหา..." @input="debounceSearch" />
+                    </div>
+                </div>
             </div>
-            <button class="btn-save" @click="saveChanges">
-              <i class="fas fa-plus"></i> บันทึกข้อมูล
-            </button>
-          </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ลำดับที่</th>
+                            <th>รหัสพนักงาน</th>
+                            <th>ชื่อ - นามสกุล</th>
+                            <th>Email</th>
+                            <th>ตำแหน่ง</th>
+                            <th>เบอร์โทรศัพท์</th>
+                            <th>สถานะปัจจุบัน</th>
+                            <th>เปลี่ยนสถานะ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(employee, index) in filteredEmployees" :key="employee.id">
+                            <td>{{ index + 1 }}</td>
+                            <td>{{ employee.employee_code }}</td>
+                            <td>{{ employee.firstname_th }} {{ employee.lastname_th }}</td>
+                            <td>{{ employee.email }}</td>
+                            <td>{{ employee.groupName || '-' }}</td>
+                            <td>{{ employee.phone_number }}</td>
+                            <td>{{ employee.status === 'active' ? 'พนักงานปัจจุบัน' : 'ลาออก' }}</td>
+                            <td>
+                                <select v-model="employee.newStatus" @change="openConfirmDialog(employee)">
+                                    <option value="active">พนักงานปัจจุบัน</option>
+                                    <option value="resigned">ลาออก</option>
+                                </select>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <div class="table-responsive">
-          <table>
-            <thead>
-              <tr>
-                <th>ลำดับที่</th>
-                <th>รหัสพนักงาน</th>
-                <th>ชื่อ - นามสกุล</th>
-                <th>Email</th>
-                <th>ตำแหน่ง</th>
-                <th>เบอร์โทรศัพท์</th>
-                <th>สถานะปัจจุบัน</th>
-                <th>เปลี่ยนสถานะ</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(employee, index) in filteredEmployees" :key="employee.id">
-                <td>{{ index + 1 }}</td>
-                <td>{{ employee.employee_code }}</td>
-                <td>{{ employee.firstname_th }} {{ employee.lastname_th }}</td>
-                <td>{{ employee.email }}</td>
-                <td>{{ employee.groupName || '-' }}</td>
-                <td>{{ employee.phone_number }}</td>
-                <td>{{ employee.status === 'active' ? 'พนักงานปัจจุบัน' : 'ลาออก' }}</td>
-                <td>
-                  <select v-model="employee.newStatus">
-                    <option value="active">พนักงานปัจจุบัน</option>
-                    <option value="resigned">ลาออก</option>
-                  </select>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+    </div>
+
+    <div v-if="showModal" class="modal-overlay" @click="closeModal">
+        <div class="modal-dialog" @click.stop>
+            <div class="modal-header">
+                <h3>ยืนยันการเปลี่ยนสถานะ</h3>
+                <button class="btn-close" @click="closeModal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p v-if="currentEmployee">ยืนยันการเปลี่ยนสถานะของ <strong>{{ currentEmployee.firstname_th }} {{ currentEmployee.lastname_th }}</strong> เป็น "<strong>{{ currentEmployee.newStatus === 'active' ? 'พนักงานปัจจุบัน' : 'ลาออก' }}</strong>"?</p>
+                <p v-else>เกิดข้อผิดพลาด กรุณาลองอีกครั้ง</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" @click="closeModal">ยกเลิก</button>
+                <button class="btn-confirm" @click="confirmStatusChange" :disabled="isSaving">ยืนยัน{{ isSaving ? '...' : '' }}</button>
+            </div>
         </div>
-      </div>
     </div>
 </template>
 
 <script setup lang="ts">
 import TopBar from '~/components/Topbar.vue'
-
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import Breadcrumb from 'primevue/breadcrumb'
+import type { MenuItem } from 'primevue/menuitem'
 
-import Card from 'primevue/card'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
-import Button from 'primevue/button'
-import InputText from 'primevue/inputtext'
-
-import Breadcrumb from 'primevue/breadcrumb';
-
-import type { MenuItem } from 'primevue/menuitem';
-
-const items : MenuItem[] = [
-  {
-    label : 'บุคลากร',url : '/person'
-  },
-  {
-    label : 'เปลี่ยนสถานะพนักงาน',url : '/admin'
-  }
+const items: MenuItem[] = [
+    { label: 'บุคลากร', url: '/person' },
+    { label: 'เปลี่ยนสถานะพนักงาน', url: '/admin' }
 ]
-const searchQuery = ref('');
-const employees = ref([]);
 
+const searchQuery = ref('')
+const employees = ref([])
 const router = useRouter()
 const token = ref<string | null>(null)
 const currentUser = ref<any>(null)
-
-const showProfileMenu = ref(false)
-const toggleProfileMenu = () => {
-  showProfileMenu.value = !showProfileMenu.value
-}
-
-const goTo = (path: string) => {
-  router.push(path);
-};
+const showModal = ref(false)
+const currentEmployee = ref<any>(null)
+const isSaving = ref(false)
 
 const loadEmployees = async () => {
-  try {
-    const res = await axios.get('http://localhost:8000/api/users/filter/', {
-      headers: {
-        Authorization: `Token ${localStorage.getItem('token')}`,
-      },
-      params: { status: '' },
-    });
-    employees.value = res.data.map(emp => ({
-      ...emp,
-      newStatus: emp.status,
-      groupName: emp.groups?.[0] || '-',
-    }));
-  } catch (err) {
-    console.error('Error loading employees:', err);
-  }
-};
+    try {
+        const res = await axios.get('http://localhost:8000/api/users/filter/', {
+            headers: {
+                Authorization: `Token ${localStorage.getItem('token')}`,
+            },
+            params: { status: '' },
+        })
+        employees.value = res.data.map(emp => ({
+            ...emp,
+            newStatus: emp.status,
+            groupName: emp.groups?.[0] || '-'
+        }))
+    } catch (err) {
+        console.error('Error loading employees:', err)
+        alert('ไม่สามารถโหลดข้อมูลพนักงานได้ กรุณาลองใหม่')
+    }
+}
 
 const filteredEmployees = computed(() => {
-  if (!searchQuery.value) return employees.value;
-  const query = searchQuery.value.toLowerCase();
-  return employees.value.filter(emp =>
-    emp.firstname_th.toLowerCase().includes(query) ||
-    emp.lastname_th.toLowerCase().includes(query) ||
-    emp.employee_code.toLowerCase().includes(query) ||
-    emp.email.toLowerCase().includes(query) ||
-    emp.groupName.toLowerCase().includes(query) ||
-    emp.phone_number.toLowerCase().includes(query)
-  );
-});
+    if (!searchQuery.value) return employees.value
+    const query = searchQuery.value.trim().toLowerCase()
+    return employees.value.filter(emp =>
+        [
+            emp.firstname_th?.toLowerCase(),
+            emp.lastname_th?.toLowerCase(),
+            emp.employee_code?.toLowerCase(),
+            emp.email?.toLowerCase(),
+            emp.groupName?.toLowerCase(),
+            emp.phone_number?.toLowerCase()
+        ].some(field => field && field.includes(query))
+    )
+})
 
-const saveChanges = async () => {
-  const changes = employees.value.filter(emp => emp.status !== emp.newStatus);
-  if (changes.length === 0) {
-    alert('ไม่มีการเปลี่ยนแปลงสถานะพนักงาน');
-    return;
-  }
-  try {
-    for (const emp of changes) {
-      const payload: any = { status: emp.newStatus };
-      if (emp.newStatus === 'resigned') {
-        payload.exit_date = new Date().toISOString().split('T')[0];
-      }
-      await axios.patch(`http://localhost:8000/api/users/${emp.id}/`, payload, {
-        headers: { Authorization: `Token ${localStorage.getItem('token')}` },
-      });
-      emp.status = emp.newStatus;
+const debounce = (fn: Function, delay: number) => {
+    let timeoutId: NodeJS.Timeout | null = null
+    return (...args: any[]) => {
+        if (timeoutId) clearTimeout(timeoutId)
+        timeoutId = setTimeout(() => fn(...args), delay)
     }
-    alert('บันทึกการเปลี่ยนแปลงเรียบร้อยแล้ว');
-    
-    router.push('/admin/person');
+}
 
-  } catch (err) {
-    console.error('Error saving changes:', err);
-    alert('เกิดข้อผิดพลาดในการบันทึก');
-  }
-};
+const debounceSearch = debounce(() => {
+}, 300)
 
-onMounted(async() => {
-  loadEmployees();
+const openConfirmDialog = (employee: any) => {
+    currentEmployee.value = employee
+    showModal.value = true
+}
 
-  if (typeof window !== "undefined") {
-    token.value = localStorage.getItem("token")
-  }
-
-  if (!token.value) {
-    router.push('/login')
-    return
-  }
-
-  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`
-
-  try {
-    const me = await axios.get('http://localhost:8000/api/users/me/')
-    currentUser.value = me.data
-
-    if (currentUser.value.role !== 'admin') {
-      router.push('/login')
-      return
+const closeModal = () => {
+    if (currentEmployee.value) {
+        currentEmployee.value.newStatus = currentEmployee.value.status
     }
-  } catch (err) {
-    console.error(err)
-    router.push('/login')
-  }
-});
+    showModal.value = false
+    currentEmployee.value = null
+}
+
+const confirmStatusChange = async () => {
+    if (!currentEmployee.value) {
+        alert('ไม่พบข้อมูลพนักงาน กรุณาลองใหม่')
+        closeModal()
+        return
+    }
+
+    isSaving.value = true
+    try {
+        const payload: any = { status: currentEmployee.value.newStatus }
+        if (currentEmployee.value.newStatus === 'resigned') {
+            payload.exit_date = new Date().toISOString().split('T')[0]
+        }
+        await axios.patch(`http://localhost:8000/api/users/${currentEmployee.value.id}/`, payload, {
+            headers: { Authorization: `Token ${localStorage.getItem('token')}` },
+        })
+        currentEmployee.value.status = currentEmployee.value.newStatus
+        alert('เปลี่ยนสถานะเรียบร้อยแล้ว')
+        closeModal()
+    } catch (err: any) {
+        console.error('Error saving status:', err)
+        alert(err.response?.data?.detail || 'เกิดข้อผิดพลาดในการเปลี่ยนสถานะ กรุณาลองใหม่')
+    } finally {
+        isSaving.value = false
+    }
+}
+
+onMounted(async () => {
+    loadEmployees()
+    if (typeof window !== "undefined") {
+        token.value = localStorage.getItem("token")
+    }
+    if (!token.value) {
+        router.push('/login')
+        return
+    }
+    axios.defaults.headers.common['Authorization'] = `Token ${token.value}`
+    try {
+        const me = await axios.get('http://localhost:8000/api/users/me/')
+        currentUser.value = me.data
+        if (currentUser.value.role !== 'admin') {
+            router.push('/login')
+            return
+        }
+    } catch (err) {
+        console.error('Error fetching user:', err)
+        router.push('/login')
+    }
+})
 
 function logout() {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("token")
-  }
-  delete axios.defaults.headers.common['Authorization']
-  router.push("/login")
+    if (typeof window !== "undefined") {
+        localStorage.removeItem("token")
+    }
+    delete axios.defaults.headers.common['Authorization']
+    router.push("/login")
 }
 </script>
 
@@ -198,307 +214,208 @@ function logout() {
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;700&display=swap');
 
 * {
-  box-sizing: border-box;
-  font-family: 'Noto Sans Thai', sans-serif;
+    box-sizing: border-box;
+    font-family: 'Noto Sans Thai', sans-serif;
 }
 
-.full-page-container {
-  display: flex;
-  min-height: 100vh;
-  background-color: #f0f2f5;
-  color: #333;
-}
-
-.sidebar {
-  width: 270px;
-  background-color: #ffffff;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-  padding: 10px;
-}
-
-.sidebar-header {
-  display: flex;
-  align-items: center;
-  padding: 10px;
-  border-bottom: 1px solid #eee;
-  margin-bottom: 10px;
-}
-
-.sidebar-header span {
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.nav-menu {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.nav-item {
-  margin-bottom: 5px;
-}
-
-.nav-link {
-  display: flex;
-  align-items: center;
-  padding: 10px 15px;
-  text-decoration: none;
-  color: #555;
-  border-radius: 5px;
-  transition: background-color 0.2s, color 0.2s;
-}
-
-.nav-link i {
-  margin-right: 10px;
-  width: 20px;
-  text-align: center;
-}
-
-.nav-link:hover,
-.nav-item.active .nav-link {
-  background-color: #e6f7ff;
-  color: #1890ff;
-}
-
-.submenu {
-  list-style: none;
-  padding: 0;
-  margin-left: 15px;
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.3s ease-in-out;
-}
-
-.nav-item.has-submenu.active .submenu {
-  max-height: 500px;
-}
-
-.submenu-link {
-  display: block;
-  padding: 8px 15px 8px 45px;
-  text-decoration: none;
-  color: #555;
-  border-left: 3px solid transparent;
-  transition: all 0.2s;
-}
-
-.submenu-link:hover,
-.submenu-link.active {
-  background-color: #f5f5f5;
-  border-left: 3px solid #1890ff;
-  color: #1890ff;
-}
-
-.main-content {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
-}
-
-.top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 20px;
-  background-color: #ffffff;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  margin-bottom: 20px;
-}
-
-.breadcrumbs span {
-  color: #888;
-}
-
-.user-profile-container {
-  position: relative;
-}
-
-.user-profile {
-  position: relative;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-}
-
-.user-profile i {
-  margin-left: 15px;
-  color: #555;
-  cursor: pointer;
-}
-
-.user-profile .username {
-  margin-left: 15px;
-  font-weight: bold;
-}
-
-.user-profile .fa-chevron-down {
-  transition: transform 0.3s ease-in-out;
-}
-
-.user-profile .fa-chevron-down.rotate {
-  transform: rotate(180deg);
-}
-
-.dropdown-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  margin-top: 10px;
-  z-index: 100;
-  min-width: 220px;
-  padding: 10px 0;
-}
-
-.dropdown-item {
-  display: flex;
-  align-items: center;
-  padding: 10px 20px;
-  text-decoration: none;
-  color: #333;
-}
-
-.dropdown-item i {
-  margin-right: 12px;
-  font-size: 16px;
-}
-
-.dropdown-item:hover {
-  background-color: #f5f5f5;
+.dashboard-container {
+    padding: 20px;
 }
 
 .content-container {
-  background-color: #ffffff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .table-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 15px;
-  margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
 }
 
 .table-header h2 {
-  font-weight: bold;
-  font-size: 24px;
-  margin: 0;
+    font-weight: bold;
+    font-size: 24px;
+    margin: 0;
 }
 
 .header-actions {
-  display: flex;
-  align-items: center;
-  gap: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 
 .search-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .search-container input {
-  padding: 8px 12px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    transition: border-color 0.3s;
 }
 
-.btn-save {
-  display: flex;
-  align-items: center;
-  padding: 10px 15px;
-  border: none;
-  border-radius: 5px;
-  background-color: #4CAF50;
-  color: white;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.btn-save:hover {
-  background-color: #45a049;
-}
-
-.btn-save i {
-  margin-right: 5px;
+.search-container input:focus {
+    border-color: #4CAF50;
+    outline: none;
 }
 
 .table-responsive {
-  overflow-x: auto;
+    overflow-x: auto;
 }
 
 table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
 }
 
 thead th {
-  background-color: #f5f5f5;
-  padding: 12px;
-  text-align: left;
-  border-bottom: 2px solid #ddd;
+    background-color: #f5f5f5;
+    padding: 12px;
+    text-align: left;
+    border-bottom: 2px solid #ddd;
+    font-weight: 600;
 }
 
 tbody td {
-  padding: 12px;
-  border-bottom: 1px solid #eee;
+    padding: 12px;
+    border-bottom: 1px solid #eee;
 }
 
 tbody tr:hover {
-  background-color: #fafafa;
+    background-color: #fafafa;
 }
 
 select {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+    cursor: pointer;
 }
 
-.user-profile-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background-color: #fff;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  width: 220px;
-  z-index: 1000;
-  padding: 6px;
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-in-out;
 }
 
-.menu-item {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px;
-  border: 0;
-  background: transparent;
-  text-align: left;
-  cursor: pointer;
-  border-radius: 6px;
+.modal-dialog {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: slideIn 0.3s ease-in-out;
 }
 
-.menu-item:hover {
-  background-color: #f0f2f5;
+.modal-header {
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.menu-item i {
-  width: 20px;
-  text-align: center;
+.modal-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 20px;
+}
+
+.btn-close {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: #888;
+    transition: color 0.3s;
+}
+
+.btn-close:hover {
+    color: #333;
+}
+
+.modal-body {
+    padding: 20px;
+    text-align: center;
+}
+
+.modal-body p {
+    margin: 0 0 20px 0;
+    line-height: 1.5;
+    color: #555;
+}
+
+.modal-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.btn-confirm, .btn-cancel {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-confirm {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.btn-confirm:hover {
+    background-color: #45a049;
+}
+
+.btn-confirm:disabled {
+    background-color: #a5d6a7;
+    cursor: not-allowed;
+}
+
+.btn-cancel {
+    background-color: #f44336;
+    color: white;
+}
+
+.btn-cancel:hover {
+    background-color: #da190b;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
 </style>

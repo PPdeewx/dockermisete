@@ -1,80 +1,12 @@
 <template>
   <div class="full-page-container">
-    <div class="sidebar">
-      <div class="sidebar-header">
-        <span>MIS ETE</span>
-      </div>
-      <ul class="nav-menu">
-        <li class="nav-item">
-          <NuxtLink to="/admin" class="nav-link" @click.prevent="goToAdminPage">
-            <i class="fas fa-home"></i> หน้าหลัก
-          </NuxtLink>
-        </li>
-        <li class="nav-item has-submenu">
-          <NuxtLink to="/admin2" class="nav-link" @click.prevent="goToAdmin2Page">
-            <i class="fas fa-users"></i> บุคลากร
-          </NuxtLink>
-          <ul class="submenu">
-            <li><a href="#" class="submenu-link">พนักงานปัจจุบัน</a></li>
-            <li><a href="#" class="submenu-link">พนักงานที่ลาออก</a></li>
-            <li><a href="#" class="submenu-link">บุคลากรภายนอก</a></li>
-            <li><a href="#" class="submenu-link">พนักงาน EDDP</a></li>
-            <li><a href="#" class="submenu-link">เพิ่ม/แก้ไข/ลบ พนักงาน</a></li>
-            <li><a href="#" class="submenu-link">เพิ่มบุคลากรภายนอก</a></li>
-            <li><a href="#" class="submenu-link">เปลี่ยนสถานะพนักงาน</a></li>
-            <li><a href="#" class="submenu-link">กำหนดโควต้าลา(ทั้งหมด)</a></li>
-          </ul>
-        </li>
-        <li class="nav-item">
-          <NuxtLink to="/admin10" class="nav-link" @click.prevent="goToAdmin10Page">
-            <i class="fas fa-flask"></i> ห้องวิจัย
-          </NuxtLink>
-        </li>
-        <li class="nav-item">
-          <NuxtLink to="/admin11" class="nav-link" @click.prevent="goToAdmin11Page">
-            <i class="fas fa-calendar-alt"></i> วันหยุด
-          </NuxtLink>
-        </li>
-        <li class="nav-item">
-          <NuxtLink to="/admin12" class="nav-link" @click.prevent="goToAdmin12Page">
-            <i class="fas fa-cog"></i> ระบบการปฏิบัติงาน
-          </NuxtLink>
-        </li>
-      </ul>
-    </div>
+    
 
     <div class="main-content">
-      <div class="top-bar">
-        <div class="breadcrumbs">
-          <span><i class="fas fa-home"></i> หน้าหลัก > ข้อมูลพนักงานอย่างละเอียด</span>
-        </div>
-        <div class="user-profile-container">
-          <div class="user-profile" @click="toggleProfileMenu">
-            <i class="fas fa-bell"></i>
-            <i class="fas fa-user-circle"></i>
-            <span class="username">{{ currentUser?.username }} ตำแหน่ง: {{ currentUser?.role }}</span>
-            <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
-            <div class="user-profile-menu" v-if="showProfileMenu">
-              <button class="menu-item" @click.stop="goTo('/admin28')">
-                <i class="fas fa-user"></i>
-                <span>ดูข้อมูลส่วนตัว</span>
-              </button>
-              <button class="menu-item" @click.stop="goTo('/admin29')">
-                <i class="fas fa-edit"></i>
-                <span>แก้ไขข้อมูลส่วนตัว</span>
-              </button>
-              <button class="menu-item" @click.stop="goTo('/admin30')">
-                <i class="fas fa-lock"></i>
-                <span>เปลี่ยนรหัสผ่าน</span>
-              </button>
-              <button class="menu-item" @click.stop="logout">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>ออกจากระบบ</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <TopBar > <template #breadcrumbs>
+              <Breadcrumb  :model="items"/>
+
+      </template></TopBar>
 
       <div class="content-container">
         <div class="header-with-buttons">
@@ -170,6 +102,8 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import axios from 'axios';
 import { useRouter, useRoute } from 'vue-router';
+
+import TopBar from '~/components/Topbar.vue'
 
 const router = useRouter();
 const route = useRoute();

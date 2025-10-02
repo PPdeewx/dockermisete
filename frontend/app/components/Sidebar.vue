@@ -67,7 +67,7 @@ onMounted(async () => {
           label: 'บุคลากร',
           icon: 'fas fa-users',
           submenu: [
-            { label: 'พนักงานปัจจุบัน', path: '/admin/person' },
+            { label: 'พนักงานปัจจุบัน', path: '/admin/person/current' },
             { label: 'พนักงานที่ลาออก', path: '/admin/person/resign' },
             { label: 'บุคลากรภายนอก', path: '/admin/person/external' },
             { label: 'พนักงาน EDDP', path: '/admin/person/eddp' },

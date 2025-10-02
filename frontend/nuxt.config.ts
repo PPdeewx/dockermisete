@@ -18,7 +18,7 @@ export default defineNuxtConfig({
       }
     },
     components: {
-      include: ['Card','DataTable','Column','Button']
+      include: ['Card','DataTable','Column','Button','AutoComplete','Dialog','InputText','Dropdown','Toast','Toolbar','Sidebar','InputNumber','Calendar','FileUpload','Password','TabView','TabPanel','TextArea','ToggleButton','MultiSelect','RadioButton','Checkbox'],
     },
   },
   css: [
