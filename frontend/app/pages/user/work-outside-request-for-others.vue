@@ -19,25 +19,68 @@
         <form @submit.prevent="submitForm" class="leave-form">
           <div class="form-row">
             <div class="form-group full-width">
-              <label>ผู้ปฏิบัติงาน *:</label>
-              <select v-model="form.employee" class="select-input" required>
-                <option disabled value="">เลือกผู้ปฏิบัติงาน</option>
-                <option v-for="employee in employees" :key="employee.id" :value="employee.id">
-                  {{ employee.name }}
-                </option>
-              </select>
-              <span v-if="errors.employee" class="error">{{ errors.employee }}</span>
-            </div>
+                <label for="requester">ผู้ปฏิบัติงาน *: <span class="required">*</span></label>
+                <AutoComplete
+                  id="requester"
+                  v-model="form.requester"
+                  :suggestions="filteredEmployees"
+                  @complete="searchEmployees"
+                  optionLabel="name"
+                  optionValue="id"
+                  placeholder="ค้นหาพนักงาน..."
+                  :dropdown="true"
+                  required
+                />
+              </div>
           </div>
 
           <div class="form-row">
             <div class="form-group full-width">
-              <label>ผู้ร่วมปฏิบัติงาน (เลือกได้หลายคน):</label>
-              <select v-model="form.collaborators" class="select-input" multiple>
-                <option v-for="person in collaboratorsList" :key="person.id" :value="person.id">
-                  {{ person.name }}
-                </option>
-              </select>
+              <div class="member-selection-section" v-if="!loading">
+                <div class="section-header">
+                  <h3>ผู้ร่วมปฏิบัติงาน (Optional)</h3>
+                </div>
+                <div class="member-selection-container">
+                  <div class="member-list">
+                    <div class="list-title">
+                      พนักงานทั้งหมด ({{ unassignedEmployees.length }} คน)
+                    </div>
+                    <AutoComplete
+                      v-model="selectedEmployeeToAssign"
+                      :suggestions="filteredUnassigned"
+                      @complete="searchUnassigned"
+                      optionLabel="name"
+                      placeholder="ค้นหาพนักงาน..."
+                      :dropdown="true"
+                      class="form-input"
+                    />
+                  </div>
+
+                  <div class="action-buttons">
+                    <button class="btn-action-move" type="button" @click="assignSelected">
+                      <i class="fas fa-angle-right"></i>
+                    </button>
+                    <button class="btn-action-move" type="button" @click="unassignSelected">
+                      <i class="fas fa-angle-left"></i>
+                    </button>
+                  </div>
+
+                  <div class="member-list">
+                    <div class="list-title">
+                      ผู้ร่วมปฏิบัติงาน ({{ assignedEmployees.length }} คน)
+                    </div>
+                    <AutoComplete
+                      v-model="selectedEmployeeToUnassign"
+                      :suggestions="filteredAssigned"
+                      @complete="searchAssigned"
+                      optionLabel="name"
+                      placeholder="ค้นหาพนักงาน..."
+                      :dropdown="true"
+                      class="form-input"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -84,14 +127,16 @@
 
           <div class="form-row">
             <div class="form-group full-width">
-              <label>หัวหน้างาน *:</label>
-              <select v-model="form.approver" class="select-input" required>
-                <option disabled value="">เลือกหัวหน้างาน</option>
-                <option v-for="person in approvers" :key="person.id" :value="person.id">
-                  {{ person.name }}
-                </option>
-              </select>
-              <span v-if="errors.approver" class="error">{{ errors.approver }}</span>
+              <label>หัวหน้างาน <span class="required">*</span></label>
+              <AutoComplete
+                v-model="selectedSupervisor"
+                :suggestions="filteredSupervisors"
+                @complete="searchSupervisor"
+                optionLabel="name"
+                placeholder="เลือกหัวหน้างาน..."
+                :dropdown="true"
+                class="form-input"
+              />
             </div>
           </div>
 
@@ -105,23 +150,34 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { useRouter } from 'vue-router';
 import axios from 'axios';
 
-import TopBar from '~/components/Topbar.vue'
+import TopBar from '~/components/Topbar.vue';
 
 const router = useRouter();
-const route = useRoute();
 const user = ref<any>(null);
+
 const employees = ref<any[]>([]);
 const approvers = ref<any[]>([]);
-const collaboratorsList = ref<any[]>([]);
-const showProfileMenu = ref(false);
+const supervisorList = ref<any[]>([]);
+const filteredSupervisors = ref<any[]>([]);
+const filteredEmployees = ref<any[]>([]);
+
+const unassignedEmployees = ref<any[]>([]);
+const assignedEmployees = ref<any[]>([]);
+const selectedEmployeeToAssign = ref<any>(null);
+const selectedEmployeeToUnassign = ref<any>(null);
+const filteredUnassigned = ref<any[]>([]);
+const filteredAssigned = ref<any[]>([]);
+
+const selectedSupervisor = ref<any>(null);
+
 const errors = ref<any>({});
 
 const form = ref({
-  employee: '',
+  requester: '',
   collaborators: [] as number[],
   startDate: '',
   endDate: '',
@@ -130,6 +186,49 @@ const form = ref({
   location: '',
   approver: ''
 });
+
+const searchEmployees = (event: { query: string }) => {
+  const query = event.query.toLowerCase();
+  filteredEmployees.value = employees.value.filter(emp =>
+    emp.name.toLowerCase().includes(query)
+  );
+};
+
+const searchSupervisor = (event: { query: string }) => {
+  const query = event.query.toLowerCase();
+  filteredSupervisors.value = supervisorList.value.filter(s =>
+    s.name.toLowerCase().includes(query)
+  );
+};
+const searchUnassigned = (event: { query: string }) => {
+  const query = event.query.toLowerCase();
+  filteredUnassigned.value = unassignedEmployees.value.filter(emp =>
+    emp.name.toLowerCase().includes(query)
+  );
+};
+const searchAssigned = (event: { query: string }) => {
+  const query = event.query.toLowerCase();
+  filteredAssigned.value = assignedEmployees.value.filter(emp =>
+    emp.name.toLowerCase().includes(query)
+  );
+};
+
+const assignSelected = () => {
+  if (selectedEmployeeToAssign.value) {
+    const emp = selectedEmployeeToAssign.value;
+    assignedEmployees.value.push(emp);
+    unassignedEmployees.value = unassignedEmployees.value.filter(e => e.id !== emp.id);
+    selectedEmployeeToAssign.value = null;
+  }
+};
+const unassignSelected = () => {
+  if (selectedEmployeeToUnassign.value) {
+    const emp = selectedEmployeeToUnassign.value;
+    unassignedEmployees.value.push(emp);
+    assignedEmployees.value = assignedEmployees.value.filter(e => e.id !== emp.id);
+    selectedEmployeeToUnassign.value = null;
+  }
+};
 
 onMounted(async () => {
   const tokenStored = localStorage.getItem("token");
@@ -143,48 +242,29 @@ onMounted(async () => {
   try {
     const userResponse = await axios.get("http://localhost:8000/api/users/me/");
     user.value = userResponse.data;
-    if (user.value.role !== "employee") {
-      alert('เฉพาะพนักงานเท่านั้นที่สามารถใช้งานหน้านี้ได้');
-      router.push("/login");
-      return;
-    }
 
     const employeesResponse = await axios.get("http://localhost:8000/api/users/for-list/");
-    employees.value = employeesResponse.data;
-    console.log('Employees:', employees.value);
+    employees.value = employeesResponse.data.filter((u: any) => !u.groups.includes("บุคลากรภายนอก"));
 
-    const approversResponse = await axios.get("http://localhost:8000/api/users/departments/");
-    console.log('Departments:', approversResponse.data);
-    approvers.value = approversResponse.data.flatMap((dept: any) =>
-      dept.approvers.map((approver: any) => ({
-        id: approver.id,
-        name: `${approver.firstname_th} ${approver.lastname_th}`.trim()
+    const resEmployees = await axios.get("http://localhost:8000/api/users/?role=employee");
+    unassignedEmployees.value = resEmployees.data
+      .filter((u: any) => !u.groups.includes("บุคลากรภายนอก"))
+      .map((u: any) => ({
+        id: u.id,
+        name: `${u.firstname_th} ${u.lastname_th}`.trim()
+      }));
+
+    const resDept = await axios.get("http://localhost:8000/api/users/departments/");
+    supervisorList.value = resDept.data.flatMap((dept: any) =>
+      dept.approvers.map((a: any) => ({
+        id: a.id,
+        name: `${a.firstname_th} ${a.lastname_th}`.trim()
       }))
     );
 
-    const resEmployees = await axios.get("http://localhost:8000/api/users/?role=employee");
-    collaboratorsList.value = resEmployees.data
-    .filter((u: any) => u.role === "employee")
-    .map((u: any) => ({
-      id: u.id,
-      name: `${u.firstname_th} ${u.lastname_th}`
-    }));
-    
-    console.log('Approvers:', approvers.value);
-
-    if (employees.value.length === 0) {
-      alert('ไม่พบรายชื่อผู้ปฏิบัติงาน กรุณาติดต่อผู้ดูแลระบบ');
-    }
-    if (approvers.value.length === 0) {
-      alert('ไม่พบรายชื่อหัวหน้างาน กรุณาติดต่อผู้ดูแลระบบ');
-    }
   } catch (err) {
     console.error('Error fetching data:', err);
-    if (err.response?.status === 403) {
-      alert('คุณไม่มีสิทธิ์เข้าถึงข้อมูลนี้ กรุณาติดต่อผู้ดูแลระบบ');
-    } else {
-      alert('เกิดข้อผิดพลาดในการโหลดข้อมูล');
-    }
+    alert('เกิดข้อผิดพลาดในการโหลดข้อมูล');
     router.push("/login");
   }
 
@@ -195,42 +275,19 @@ onBeforeUnmount(() => {
   document.removeEventListener('click', handleBodyClick);
 });
 
-function toggleProfileMenu() {
-  showProfileMenu.value = !showProfileMenu.value;
-}
-
 function handleBodyClick(event: MouseEvent) {
-  if (showProfileMenu.value && !(event.target as HTMLElement).closest('.user-profile')) {
-    showProfileMenu.value = false;
-  }
-}
-
-function goTo(path: string) {
-  router.push(path);
-}
-
-function logout() {
-  localStorage.removeItem("token");
-  delete axios.defaults.headers.common['Authorization'];
-  router.push("/login");
 }
 
 const submitForm = async () => {
   errors.value = {};
 
-  if (!form.value.employee) errors.value.employee = 'กรุณาเลือกผู้ปฏิบัติงาน';
+  if (!form.value.requester) errors.value.requester = 'กรุณาเลือกผู้ปฏิบัติงาน';
   if (!form.value.startDate) errors.value.startDate = 'กรุณาเลือกวันที่เริ่มต้น';
   if (!form.value.endDate) errors.value.endDate = 'กรุณาเลือกวันที่สิ้นสุด';
   if (!form.value.period) errors.value.period = 'กรุณาเลือกช่วงเวลา';
   if (!form.value.reason) errors.value.reason = 'กรุณาระบุเหตุผล';
   if (!form.value.location) errors.value.location = 'กรุณาระบุสถานที่';
   if (!form.value.approver) errors.value.approver = 'กรุณาเลือกหัวหน้างาน';
-  if (form.value.startDate && form.value.endDate && form.value.startDate > form.value.endDate) {
-    errors.value.endDate = 'วันที่สิ้นสุดต้องไม่มาก่อนวันที่เริ่มต้น';
-  }
-  if (form.value.employee && form.value.approver && form.value.employee === form.value.approver) {
-    errors.value.approver = 'ผู้ปฏิบัติงานและผู้อนุมัติต้องไม่เป็นคนเดียวกัน';
-  }
 
   if (Object.keys(errors.value).length > 0) {
     return;
@@ -238,8 +295,8 @@ const submitForm = async () => {
 
   try {
     const response = await axios.post("http://localhost:8000/api/work-from-outside/requests/proxy/", {
-      user: form.value.employee,
-      collaborators: form.value.collaborators,
+      user: form.value.requester?.id,
+      collaborators: assignedEmployees.value.map(e => e.id),
       start_date: form.value.startDate,
       end_date: form.value.endDate,
       time_period: form.value.period === 'ทั้งวัน' ? 'full' : form.value.period === 'ครึ่งวันเช้า' ? 'morning' : 'afternoon',
@@ -250,23 +307,16 @@ const submitForm = async () => {
     });
     console.log('ส่งฟอร์มสำเร็จ:', response.data);
     alert('ส่งคำขอสำเร็จ!');
-    router.push('/user7');
+    router.push('/user');
   } catch (err) {
     console.error('เกิดข้อผิดพลาด:', err);
-    if (err.response?.data?.detail) {
-      alert(`เกิดข้อผิดพลาด: ${err.response.data.detail}`);
-    } else {
-      alert('เกิดข้อผิดพลาดในการส่งคำขอ');
-    }
+    alert('เกิดข้อผิดพลาดในการส่งคำขอ');
   }
 };
 
 const cancelForm = () => {
-  console.log('ยกเลิกฟอร์ม');
   router.push('/user');
 };
-
-
 </script>
 
 <style scoped>
@@ -559,4 +609,81 @@ const cancelForm = () => {
   cursor: pointer;
   font-weight: bold;
 }
+
+.member-selection-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.section-header h3 {
+  margin: 0;
+}
+
+.section-header span {
+  color: #888;
+  font-size: 0.9em;
+}
+
+.member-selection-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.member-list {
+  width: 40%;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.list-title {
+  padding: 10px;
+  font-weight: bold;
+  background-color: #eee;
+  border-bottom: 1px solid #ddd;
+}
+
+.employee-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  min-height: 200px;
+  overflow-y: auto;
+}
+
+.employee-list li {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+.employee-list li:hover {
+  background-color: #e6f7ff;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-action-move {
+  background-color: #1890ff;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn-action-move:hover {
+  background-color: #096dd9;
+}
+
+.read-only-text { background: #f4f4f4; padding: 6px; border-radius: 4px; }
+.selected-list { margin-top: 5px; padding-left: 20px; }
+.form-actions { margin-top: 20px; }
 </style>

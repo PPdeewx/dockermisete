@@ -297,13 +297,17 @@ onMounted(async () => {
     const usersResponse = await axios.get('http://localhost:8000/api/users/for-list/');
     console.log('Users:', usersResponse.data);
     employeeList.value = usersResponse.data.filter(
-      (user: any) => user.id !== currentUser.value.id
+      (user: any) =>
+        user.id !== currentUser.value.id &&
+        !user.groups.includes('บุคลากรภายนอก')
     );
     approverList.value = usersResponse.data.filter(
-      (user: any) => user.role === 'admin' || user.role === 'manager'
+      (user: any) => user.role === 'admin' || user.groups.includes('ผู้บริหาร')
     );
     substituteList.value = usersResponse.data.filter(
-      (user: any) => user.id !== currentUser.value.id
+      (user: any) =>
+        user.id !== currentUser.value.id &&
+        !user.groups.includes('บุคลากรภายนอก')
     );
 
     const leaveTypesResponse = await axios.get('http://localhost:8000/api/leave/leave-types/');

@@ -65,25 +65,31 @@
 
           <div class="form-row">
             <div class="form-group full-width">
-              <label>ผู้อนุมัติการลา *</label>
-              <select v-model="form.approver" class="select-input">
-                <option disabled value="">เลือกผู้อนุมัติการลา</option>
-                <option v-for="person in approvers" :key="person.id" :value="person.name">
-                  {{ person.name }}
-                </option>
-              </select>
+              <label for="approver">ผู้อนุมัติการลา *</label>
+              <AutoComplete
+                id="approver"
+                v-model="form.approver"
+                :suggestions="filteredApprovers"
+                @complete="searchApprovers"
+                optionLabel="name"
+                placeholder="ค้นหาหัวหน้างาน..."
+                :dropdown="true"
+              />
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group full-width">
-              <label>ผู้ปฏิบัติงานแทน</label>
-              <select v-model="form.substitute" class="select-input">
-                <option disabled value="">เลือกผู้ปฏิบัติงานแทน</option>
-                <option v-for="person in substitutes" :key="person.id" :value="person.name">
-                  {{ person.name }}
-                </option>
-              </select>
+              <label for="substitute">ผู้ปฏิบัติงานแทน *</label>
+              <AutoComplete
+                id="substitute"
+                v-model="form.substitute"
+                :suggestions="filteredSubstitutes"
+                @complete="searchSubstitutes"
+                optionLabel="name"
+                placeholder="ค้นหาผู้ปฏิบัติงานแทน..."
+                :dropdown="true"
+              />
             </div>
           </div>
 
@@ -124,33 +130,40 @@ const route = useRoute();
 
 const user = ref<any>(null);
 
-
 const leaveTypes = ref<any[]>([]);
 const approvers = ref<any[]>([]);
 const substitutes = ref<any[]>([]);
 
+const approverList = ref<any[]>([])
+const substituteList = ref<any[]>([])
+const filteredApprovers = ref<any[]>([])
+const filteredSubstitutes = ref<any[]>([])
+
+const searchApprovers = (event: any) => {
+  const query = event.query.toLowerCase()
+  filteredApprovers.value = approverList.value.filter((u) =>
+    u.name.toLowerCase().includes(query)
+  )
+}
+const searchSubstitutes = (event: any) => {
+  const query = event.query.toLowerCase()
+  filteredSubstitutes.value = substituteList.value.filter((u) =>
+    u.name.toLowerCase().includes(query)
+  )
+}
 
 const loadUsers = async () => {
   try {
-    const response = await axios.get("http://localhost:8000/api/users/", {
-      headers: { Authorization: `Token ${localStorage.getItem("token")}` }
-    });
+    const usersResponse = await axios.get('http://localhost:8000/api/users/for-list/')
+    const users = usersResponse.data
 
-    const allUsers = response.data;
+    const internalUsers = users.filter((u: any) => !u.is_external)
 
-    approvers.value = allUsers
-      .filter((u: any) => u.role === "manager" || u.role === "admin")
-      .map((u: any) => ({
-        id: u.id,
-        name: `${u.prefix_th || ""} ${u.firstname_th} ${u.lastname_th}`.trim(),
-      }));
+    approverList.value = internalUsers.filter(
+      (u: any) => u.role === 'admin' || u.groups.includes('ผู้บริหาร')
+    )
 
-    substitutes.value = allUsers
-      .filter((u: any) => u.role === "employee")
-      .map((u: any) => ({
-        id: u.id,
-        name: `${u.prefix_th || ""} ${u.firstname_th} ${u.lastname_th}`.trim(),
-      }));
+    substituteList.value = internalUsers.filter((u: any) => u.id !== user.value?.id );
   } catch (error: any) {
     console.error("โหลด users ไม่ได้:", error.response?.data || error);
   }

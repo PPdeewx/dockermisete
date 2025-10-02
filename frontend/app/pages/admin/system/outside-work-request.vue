@@ -16,12 +16,17 @@
             <div class="form-grid">
               <div class="form-group full-width">
                 <label for="requester">ผู้ขออนุมัติ <span class="required">*</span></label>
-                <select id="requester" v-model="form.requester" class="form-select" required>
-                  <option value="">เลือกพนักงาน</option>
-                  <option v-for="employee in employeeList" :key="employee.id" :value="employee.id">
-                    {{ employee.name }}
-                  </option>
-                </select>
+                <AutoComplete
+                  id="requester"
+                  v-model="form.requester"
+                  :suggestions="filteredEmployees"
+                  @complete="searchEmployees"
+                  optionLabel="name"
+                  optionValue="id"
+                  placeholder="ค้นหาพนักงาน..."
+                  :dropdown="true"
+                  required
+                />
               </div>
 
               <div class="form-group full-width">
@@ -164,6 +169,8 @@ const userList = ref<any[]>([])
 const selectedSupervisor = ref<any>(null);
 const filteredSupervisors = ref<any[]>([]);
 
+const filteredEmployees = ref<any[]>([])
+
 const unassignedEmployees = ref<any[]>([])
 const assignedEmployees = ref<any[]>([])
 const selectedEmployeeToAssign = ref<any>(null)
@@ -171,6 +178,13 @@ const selectedEmployeeToUnassign = ref<any>(null)
 const filteredUnassigned = ref<any[]>([])
 const filteredAssigned = ref<any[]>([])
 const loading = ref(false)
+
+const searchEmployees = (event: { query: string }) => {
+  const query = event.query.toLowerCase()
+  filteredEmployees.value = userList.value.filter(
+    (u: any) => u.name.toLowerCase().includes(query)
+  )
+}
 
 const searchSupervisor = (event: { query: string }) => {
   const query = event.query.toLowerCase()
@@ -270,10 +284,10 @@ const submitForm = async () => {
   if (!validateForm()) return;
 
   try {
-    const response = await axios.post(
+    await axios.post(
       'http://localhost:8000/api/work-from-outside/requests/',
       {
-        user: currentUser.value.id,
+        user: form.requester?.id,
         start_date: form.date,
         end_date: form.endDate,
         time_period: form.timePeriod,
@@ -326,10 +340,12 @@ onMounted(async () => {
     const usersResponse = await axios.get('http://localhost:8000/api/users/for-list/');
     const users = usersResponse.data;
     userList.value = usersResponse.data.filter(
-      (user: any) => user.id !== currentUser.value.id
+      (user: any) =>
+        user.id !== currentUser.value.id &&
+        !user.groups.includes('บุคลากรภายนอก')
     );
     supervisorList.value = usersResponse.data.filter(
-      (user: any) => user.role === 'admin' || user.groups === 'ผู้บริหาร'
+      (user: any) => user.role === 'admin' || user.groups.includes('ผู้บริหาร')
     );
 
     unassignedEmployees.value = users

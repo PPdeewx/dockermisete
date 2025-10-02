@@ -256,7 +256,7 @@ onMounted(async () => {
     const users = usersResponse.data
 
     supervisorList.value = usersResponse.data.filter(
-      (user: any) => user.role === 'admin' || user.groups === 'ผู้บริหาร'
+      (user: any) => user.role === 'admin' || user.groups.includes('ผู้บริหาร')
     );
 
     userList.value = usersResponse.data.filter(

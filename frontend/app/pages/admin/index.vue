@@ -1,209 +1,171 @@
 <template>
-    <TopBar > <template #breadcrumbs>
-              <Breadcrumb  :model="items"/>
+  <TopBar>
+    <template #breadcrumbs>
+      <Breadcrumb :model="items"/>
+    </template>
+  </TopBar>
 
-    </template></TopBar>
-      
-      <div class="dashboard-container">
-        <div class="card-left">
-          <div class="card">
-            <div class="card-header">
-              <i class="fas fa-list-alt icon-blue"></i>
-              <h4>ประกาศล่าสุด</h4>
-            </div>
-            <div class="card-body-list">
-              <div class="timeline-item" v-for="(announcement, index) in announcements" :key="index">
-                <div class="timeline-left">
-                  <span class="timeline-time">{{ announcement.time }}</span>
-                </div>
-                <div class="timeline-right">
-                  <p class="timeline-title">{{ announcement.title }}</p>
-                  <p class="timeline-subtitle">{{ announcement.subtitle }}</p>
-                  <span class="timeline-date">{{ announcement.date }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card-right">
-          <div class="card">
-            <div class="card-header">
-              <i class="fas fa-user-clock icon-blue"></i>
-              <h4>พนักงานปฏิบัติงานวันนี้</h4>
-            </div>
-            <div class="card-body-center">
-              <div class="donut-chart-container">
-                <div class="donut-chart" style="--p: 40; --c: #a54687; --b: 10px;">
-                    <span class="donut-label">40</span>
-                </div>
-              </div>
-              <p class="donut-sublabel">พธ. 13 ธ.ค. 2568</p>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-header">
-              <i class="fas fa-exclamation-triangle icon-yellow"></i>
-              <h4>สถิติการมาสายของท่านในปีนี้</h4>
-            </div>
-            <div class="card-body-center">
-              <div class="alert-box">
-                <i class="fas fa-exclamation-triangle"></i>
-                <p>0 นาที / 0 บาท</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="table-card">
+  <div class="dashboard-container">
+    <div class="card-left">
+      <div class="card">
         <div class="card-header">
-          <i class="fas fa-calendar-times icon-red"></i>
-          <h4>คำนวณการลาและทำงานนอกสถานที่ของพนักงาน 15 วันต่อจากนี้</h4>
+          <i class="fas fa-list-alt icon-blue"></i>
+          <h4>ประกาศล่าสุด</h4>
         </div>
-        <div class="card-body">
-          <div class="responsive-table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>วันที่</th>
-                  <th>พนักงาน</th>
-                  <th>ประเภท</th>
-                  <th>ช่วงเวลา</th>
-                  <th>สถานะ</th>
-                  <th>เหตุผล</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(item, index) in upcomingActivities" :key="index">
-                  <td>{{ item.date }}</td>
-                  <td>{{ item.employee }}</td>
-                  <td>{{ item.type }}</td>
-                  <td>{{ item.period }}</td>
-                  <td>{{ item.status }}</td>
-                  <td>{{ item.reason }}</td>
-                </tr>
-              </tbody>
-            </table>
+        <div class="card-body-list">
+          <div class="timeline-item" v-for="(announcement, index) in announcements" :key="index">
+            <div class="timeline-left">
+              <span class="timeline-time">{{ announcement.time }}</span>
+            </div>
+            <div class="timeline-right">
+              <p class="timeline-title">{{ announcement.title }}</p>
+              <p class="timeline-subtitle">{{ announcement.subtitle }}</p>
+              <span class="timeline-date">{{ announcement.date }}</span>
+            </div>
           </div>
         </div>
       </div>
+    </div>
+
+    <div class="card-right">
+      <div class="card">
+        <div class="card-header">
+          <i class="fas fa-user-clock icon-blue"></i>
+          <h4>พนักงานปฏิบัติงานวันนี้</h4>
+        </div>
+        <div class="card-body-center">
+          <div class="donut-chart-container">
+            <div class="donut-chart" :style="`--p:${todayWorkingCount}; --c:#a54687; --b:10px;`">
+              <span class="donut-label">{{ todayWorkingCount }}</span>
+            </div>
+          </div>
+          <p class="donut-sublabel">
+            {{ new Date().toLocaleDateString('th-TH',{weekday:'short', day:'numeric', month:'short', year:'numeric'}) }}
+          </p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <i class="fas fa-exclamation-triangle icon-yellow"></i>
+          <h4>สถิติการมาสายของท่านในปีนี้</h4>
+        </div>
+        <div class="card-body-center">
+          <div class="alert-box">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>{{ lateStats.minutes }} นาที / {{ lateStats.fines }} บาท</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="card-header">
+      <i class="fas fa-calendar-times icon-red"></i>
+      <h4>คำนวณการลาและทำงานนอกสถานที่ของพนักงาน 15 วันต่อจากนี้</h4>
+    </div>
+    <div class="card-body">
+      <div class="responsive-table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>วันที่</th>
+              <th>พนักงาน</th>
+              <th>ประเภท</th>
+              <th>ช่วงเวลา</th>
+              <th>สถานะ</th>
+              <th>เหตุผล</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(item, index) in upcomingActivities" :key="index">
+              <td>{{ item.date }}</td>
+              <td>{{ item.employee }}</td>
+              <td>{{ item.type }}</td>
+              <td>{{ item.period }}</td>
+              <td>{{ item.status }}</td>
+              <td>{{ item.reason }}</td>
+            </tr>
+            <tr v-if="upcomingActivities.length === 0">
+              <td colspan="6">ไม่มีข้อมูล</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import TopBar from '~/components/Topbar.vue'
-
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
-
-import Card from 'primevue/card'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
-import Button from 'primevue/button'
-import InputText from 'primevue/inputtext'
-
 import Breadcrumb from 'primevue/breadcrumb';
-
 import type { MenuItem } from 'primevue/menuitem';
 
-const items : MenuItem[] = [
-  {
-    label : 'หน้าหลัก',url : '/admin'
-  },
+const items: MenuItem[] = [
+  { label: 'หน้าหลัก', url: '/admin' }
 ]
 
 const router = useRouter()
 const token = ref<string | null>(null)
 const currentUser = ref<any>(null)
 
-const showProfileMenu = ref(false)
-const toggleProfileMenu = () => {
-  showProfileMenu.value = !showProfileMenu.value
-}
+const todayWorkingCount = ref<number>(0)
+const lateStats = ref<{minutes:number, fines:number}>({minutes:0, fines:0})
+const upcomingActivities = ref<any[]>([])
+
+const announcements = ref([
+  { title: 'การใช้งานระบบเบื้องต้น', subtitle: 'การลา/ยื่นปฏิบัติงานนอกสถานที่ และตรวจสอบเวลาเข้าออกในแต่ละวัน', date: '26 Mar 2025', time: '08:30 AM' },
+  { title: 'การใช้งานตัวอื่นๆ', subtitle: 'สามารถเข้าใช้งานได้ดังนี้: แจ้งย้ายที่อยู่, แจ้งการออกจากระบบ', date: '26 Mar 2025', time: '16:30 PM' },
+  { title: 'รายงานปัญหาการใช้งานระบบ', subtitle: 'หากพบปัญหาการใช้งาน กรุณา Capture หน้าจอ พร้อมทั้ง URL แจ้งให้ทีมงานทราบ', date: '26 Mar 2025', time: '17:00 PM' },
+])
 
 onMounted(async () => {
-  if (typeof window !== "undefined") {
-    token.value = localStorage.getItem("token")
-  }
-
-  if (!token.value) {
-    router.push('/login')
-    return
-  }
-
+  token.value = localStorage.getItem("token")
+  if (!token.value) { router.push('/login'); return }
   axios.defaults.headers.common['Authorization'] = `Token ${token.value}`
 
   try {
     const me = await axios.get('http://localhost:8000/api/users/me/')
     currentUser.value = me.data
+    if (currentUser.value.role !== 'admin') { router.push('/login'); return }
 
-    if (currentUser.value.role !== 'admin') {
-      router.push('/login')
-      return
-    }
+    const todayStr = new Date().toISOString().split('T')[0]
+    const resWork = await axios.get(`http://localhost:8000/api/attendance/records/?start_date=${todayStr}&end_date=${todayStr}`)
+    todayWorkingCount.value = resWork.data.length
+
+    const year = new Date().getFullYear().toString()
+    const resLate = await axios.get(`http://localhost:8000/api/attendance/user-attendance/${currentUser.value.id}/`)
+    const thisYearRecords = resLate.data.filter((r:any)=> r.date.startsWith(year))
+    const totalLate = thisYearRecords.reduce((sum:any,r:any)=> sum+(r.late_minutes||0), 0)
+    lateStats.value = { minutes: totalLate, fines: totalLate * 5 }
+
+    const today = new Date()
+    const future15 = new Date(); future15.setDate(today.getDate()+15)
+    const resLeave = await axios.get('http://localhost:8000/api/leave/leave-requests/')
+    upcomingActivities.value = resLeave.data
+      .filter((r:any)=> {
+        if (!r.start_date) return false
+        const start = new Date(r.start_date)
+        return start >= today && start <= future15
+      })
+      .map((r:any)=> ({
+        date: new Date(r.start_date).toLocaleDateString('th-TH'),
+        employee: r.user?.firstname_th + ' ' + r.user?.lastname_th,
+        type: r.leave_type?.name || (r.status==='remote' ? 'ทำงานนอกสถานที่' : 'ลา'),
+        period: r.period==='full'?'ทั้งวัน':(r.period==='morning'?'ครึ่งเช้า':'ครึ่งบ่าย'),
+        status: r.status,
+        reason: r.reason
+      }))
+
   } catch (err) {
     console.error(err)
     router.push('/login')
   }
 })
-
-function logout() {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("token")
-  }
-  delete axios.defaults.headers.common['Authorization']
-  router.push("/login")
-}
-
-const announcements = ref([
-  {
-    title: 'การใช้งานระบบเบื้องต้น',
-    subtitle: 'การลา/ยื่นปฏิบัติงานนอกสถานที่ และตรวจสอบเวลาเข้าออกในแต่ละวัน',
-    date: '26 Mar 2025',
-    time: '08:30 AM'
-  },
-  {
-    title: 'การใช้งานตัวอื่นๆ',
-    subtitle: 'สามารถเข้าใช้งานได้ดังนี้: แจ้งย้ายที่อยู่, แจ้งการออกจากระบบ',
-    date: '26 Mar 2025',
-    time: '16:30 PM'
-  },
-  {
-    title: 'รายงานปัญหาการใช้งานระบบ',
-    subtitle: 'หากพบปัญหาการใช้งาน กรุณา Capture หน้าจอ พร้อมทั้ง URL แจ้งให้ทีมงานทราบ',
-    date: '26 Mar 2025',
-    time: '17:00 PM'
-  },
-])
-
-const upcomingActivities = ref([
-  {
-    date: '2025-12-13',
-    employee: 'Username',
-    type: 'ลาป่วย',
-    period: 'ทั้งวัน',
-    status: 'รออนุมัติ',
-    reason: 'ไม่สบาย'
-  },
-  {
-    date: '2025-12-14',
-    employee: 'Username',
-    type: 'ลากิจ',
-    period: 'ครึ่งวันเช้า',
-    status: 'อนุมัติ',
-    reason: 'ธุระส่วนตัว'
-  },
-  {
-    date: '2025-12-15',
-    employee: 'Username',
-    type: 'ทำงานนอกสถานที่',
-    period: 'ทั้งวัน',
-    status: 'อนุมัติ',
-    reason: 'ประชุมลูกค้า'
-  }
-])
 </script>
 
 

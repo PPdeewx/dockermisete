@@ -1,19 +1,17 @@
 <template>
   <div class="full-page-container">
-    
-
     <main class="main-content">
-      <TopBar></TopBar>
+      <TopBar />
 
       <div class="leave-form-container">
         <div class="form-header">
           <div class="header-left">
             <i class="fas fa-file-alt icon-red"></i>
-            <div>
-              <h3>ระบบการยื่นใบลาแทนคนอื่น</h3>
-            </div>
+            <div><h3>ระบบการยื่นใบลาแทนคนอื่น</h3></div>
           </div>
-          <button type="button" class="btn-cancel" @click="cancelForm"><i class="fas fa-times-circle"></i> ยกเลิก</button>
+          <button type="button" class="btn-cancel" @click="cancelForm">
+            <i class="fas fa-times-circle"></i> ยกเลิก
+          </button>
         </div>
 
         <div class="user-info-section">
@@ -21,30 +19,29 @@
           <span class="user-name">{{ user?.prefix_th }} {{ user?.firstname_th }} {{ user?.lastname_th }}</span>
         </div>
 
-        <div class="form-row">
-          <div class="form-group full-width">
-              <label for="employee-name">พนักงานผู้ลา <span class="required">*</span></label>
+        <form @submit.prevent="submitForm" class="leave-form">
+          <div class="form-row">
+            <div class="form-group full-width">
+              <label for="employee-name">พนักงานผู้ลา *</label>
               <AutoComplete
                 id="employee-name"
-                v-model="form.employees"
+                v-model="form.employee"
                 :suggestions="filteredEmployees"
-                @complete="searchEmployees($event)"
+                @complete="searchEmployees"
                 optionLabel="name"
-                optionValue="id"
                 placeholder="ค้นหาพนักงานผู้ลา..."
                 :dropdown="true"
-                required
               />
             </div>
-        </div>
+          </div>
 
-          <form @submit.prevent="submitForm" class="leave-form">
           <div class="form-row">
             <div class="form-group full-width">
               <label>ประเภทการลา *</label>
               <div class="radio-group">
                 <label v-for="type in leaveTypes" :key="type.id">
-                  <input type="radio" :value="type.id" v-model="form.leaveTypeId" /> {{ type.name }}
+                  <input type="radio" :value="type.id" v-model="form.leaveTypeId" />
+                  {{ type.name }}
                 </label>
               </div>
             </div>
@@ -81,25 +78,31 @@
 
           <div class="form-row">
             <div class="form-group full-width">
-              <label>ผู้อนุมัติการลา *:</label>
-              <select v-model="form.approverId" class="select-input">
-                <option disabled value="">เลือกผู้อนุมัติการลา</option>
-                <option v-for="person in approvers" :key="person.id" :value="person.id">
-                  {{ person.name }}
-                </option>
-              </select>
+              <label for="approver">ผู้อนุมัติการลา *</label>
+              <AutoComplete
+                id="approver"
+                v-model="form.approver"
+                :suggestions="filteredApprovers"
+                @complete="searchApprovers"
+                optionLabel="name"
+                placeholder="ค้นหาหัวหน้างาน..."
+                :dropdown="true"
+              />
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group full-width">
-              <label>ผู้ปฏิบัติงานแทน :</label>
-              <select v-model="form.substituteId" class="select-input">
-                <option disabled value="">เลือกผู้ปฏิบัติงานแทน</option>
-                <option v-for="person in substitutes" :key="person.id" :value="person.id">
-                  {{ person.name }}
-                </option>
-              </select>
+              <label for="substitute">ผู้ปฏิบัติงานแทน *</label>
+              <AutoComplete
+                id="substitute"
+                v-model="form.substitute"
+                :suggestions="filteredSubstitutes"
+                @complete="searchSubstitutes"
+                optionLabel="name"
+                placeholder="ค้นหาผู้ปฏิบัติงานแทน..."
+                :dropdown="true"
+              />
             </div>
           </div>
 
@@ -113,182 +116,118 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import axios from 'axios';
-
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
 import TopBar from '~/components/Topbar.vue'
 
 const HALF_CHOICES: Record<string, string> = {
   full: 'ทั้งวัน',
   morning: 'ครึ่งเช้า',
   afternoon: 'ครึ่งบ่าย'
-};
+}
+
+const router = useRouter()
+const user = ref<any>(null)
 
 const form = ref({
-  employeeId: '',     
-  leaveTypeId: '',    
+  employee: null,
+  leaveTypeId: '',
   startDate: '',
   endDate: '',
   period: 'full',
   reason: '',
-  approverId: '',
-  substituteId: ''
-});
+  approver: null,
+  substitute: null
+})
 
-const cancelForm = () => {
-  router.push('/user');
-};
-
-const router = useRouter();
-const route = useRoute();
-
-const user = ref<any>(null);
-const employees = ref<any[]>([]);
-const approvers = ref<any[]>([]);
-const substitutes = ref<any[]>([]);
-const leaveTypes = ref<any[]>([]);
+const employeeList = ref<any[]>([])
+const approverList = ref<any[]>([])
+const substituteList = ref<any[]>([])
+const leaveTypes = ref<any[]>([])
 
 const filteredEmployees = ref<any[]>([])
-const filteredSubstitutes = ref<any[]>([])
 const filteredApprovers = ref<any[]>([])
+const filteredSubstitutes = ref<any[]>([])
 
 const searchEmployees = (event: any) => {
-    const query = event.query.trim().toLowerCase()
-    filteredEmployees.value = query
-        ? employeeList.value.filter(user =>
-              user.name.toLowerCase().includes(query)
-          )
-        : employeeList.value
+  const query = event.query.toLowerCase()
+  filteredEmployees.value = employeeList.value.filter((u) =>
+    u.name.toLowerCase().includes(query)
+  )
 }
-
-const searchSubstitutes = (event: any) => {
-    const query = event.query.trim().toLowerCase()
-    filteredSubstitutes.value = query
-        ? substituteList.value.filter(user =>
-              user.name.toLowerCase().includes(query)
-          )
-        : substituteList.value
-}
-
 const searchApprovers = (event: any) => {
-    const query = event.query.trim().toLowerCase()
-    filteredApprovers.value = query
-        ? approverList.value.filter(user =>
-              user.name.toLowerCase().includes(query)
-          )
-        : approverList.value
+  const query = event.query.toLowerCase()
+  filteredApprovers.value = approverList.value.filter((u) =>
+    u.name.toLowerCase().includes(query)
+  )
+}
+const searchSubstitutes = (event: any) => {
+  const query = event.query.toLowerCase()
+  filteredSubstitutes.value = substituteList.value.filter((u) =>
+    u.name.toLowerCase().includes(query)
+  )
 }
 
 const loadUsers = async () => {
-  try {
-    const response = await axios.get("http://localhost:8000/api/users/", {
-      headers: { Authorization: `Token ${localStorage.getItem("token")}` }
-    });
+  const usersResponse = await axios.get('http://localhost:8000/api/users/for-list/')
+  const users = usersResponse.data
 
-    const allUsers = response.data;
+  const internalUsers = users.filter((u: any) => !u.is_external)
 
-    console.log("allUsers:", allUsers);
+  employeeList.value = internalUsers.filter((u: any) => u.id !== user.value?.id)
 
-    employees.value = allUsers
-      .filter((u: any) => u.role === "employee")
-      .map((u: any) => ({
-        id: u.id,
-        name: `${u.prefix_th || ""} ${u.firstname_th} ${u.lastname_th}`.trim(),
-      }));
+  approverList.value = internalUsers.filter(
+    (u: any) => u.role === 'admin' || u.groups.includes('ผู้บริหาร')
+  )
 
-    approvers.value = allUsers
-      .filter((u: any) => u.role === "manager" || u.role === "admin")
-      .map((u: any) => ({
-        id: u.id,
-        name: `${u.prefix_th || ""} ${u.firstname_th} ${u.lastname_th}`.trim(),
-      }));
-
-    substitutes.value = allUsers
-      .filter((u: any) => u.role === "employee")
-      .map((u: any) => ({
-        id: u.id,
-        name: `${u.prefix_th || ""} ${u.firstname_th} ${u.lastname_th}`.trim(),
-      }));
-  } catch (error: any) {
-    console.error("โหลด users ไม่ได้:", error.response?.data || error);
-  }
-};
+  substituteList.value = internalUsers.filter((u: any) => u.id !== user.value?.id )
+}
 
 const loadLeaveTypes = async () => {
-  try {
-    const response = await axios.get("http://localhost:8000/api/leave/leave-types/", {
-      headers: { Authorization: `Token ${localStorage.getItem("token")}` }
-    });
-    leaveTypes.value = response.data;
-  } catch (error: any) {
-    console.error("โหลดประเภทการลาไม่สำเร็จ:", error.response?.data || error);
-  }
-};
+  const response = await axios.get('http://localhost:8000/api/leave/leave-types/')
+  leaveTypes.value = response.data
+}
 
 onMounted(async () => {
-  const tokenStored = localStorage.getItem("token");
-  if (!tokenStored) {
-    router.push("/login");
-    return;
+  const token = localStorage.getItem('token')
+  if (!token) {
+    router.push('/login')
+    return
   }
-  axios.defaults.headers.common['Authorization'] = `Token ${tokenStored}`;
+  axios.defaults.headers.common['Authorization'] = `Token ${token}`
 
-  try {
-    const response = await axios.get("http://localhost:8000/api/users/me/");
-    user.value = response.data;
+  const me = await axios.get('http://localhost:8000/api/users/me/')
+  user.value = me.data
 
-    if (user.value.role !== "employee") router.push("/login");
-    else await Promise.all([loadUsers(), loadLeaveTypes()]);
-  } catch (err) {
-    console.error(err);
-    router.push("/login");
-  }
-});
+  await Promise.all([loadUsers(), loadLeaveTypes()])
+})
 
 const submitForm = async () => {
-  try {
-    const payload = {
-      on_behalf_of_id: form.value.employeeId,
-      leave_type_id: form.value.leaveTypeId,
-      start_date: form.value.startDate,
-      end_date: form.value.endDate,
-      period: form.value.period,
-      reason: form.value.reason,
-      approver_id: form.value.approverId,
-      substitute_id: form.value.substituteId || null
-    };
-
-    if (!payload.on_behalf_of_id || !payload.leave_type_id || !payload.start_date ||
-        !payload.end_date || !payload.period || !payload.reason || !payload.approver_id) {
-      alert("กรุณากรอกข้อมูลให้ครบทุกช่องที่จำเป็น");
-      return;
-    }
-
-    await axios.post("http://localhost:8000/api/leave/leave-requests/", payload);
-    alert('ส่งคำขอลาสำเร็จ!');
-    router.push('/uuser/leave-history');
-  } catch (error: any) {
-    console.error(error);
-    alert(`เกิดข้อผิดพลาด: ${JSON.stringify(error.response?.data)}`);
+  const payload = {
+    on_behalf_of_id: form.value.employee?.id,
+    leave_type_id: form.value.leaveTypeId,
+    start_date: form.value.startDate,
+    end_date: form.value.endDate,
+    period: form.value.period,
+    reason: form.value.reason,
+    approver_id: form.value.approver?.id,
+    substitute_id: form.value.substitute?.id || null
   }
-};
 
-const cancelAndGoHome = () => router.push('/user');
+  if (!payload.on_behalf_of_id || !payload.leave_type_id || !payload.start_date || !payload.end_date || !payload.reason || !payload.approver_id) {
+    alert('กรุณากรอกข้อมูลให้ครบ')
+    return
+  }
 
-const showProfileMenu = ref(false);
-function toggleProfileMenu() { showProfileMenu.value = !showProfileMenu.value; }
-function handleBodyClick(event: MouseEvent) {
-  if (showProfileMenu.value && !(event.target as HTMLElement).closest('.user-profile')) showProfileMenu.value = false;
+  await axios.post('http://localhost:8000/api/leave/leave-requests/', payload)
+  alert('ส่งคำขอลาสำเร็จ!')
+  router.push('/user/leave-history')
 }
-onMounted(() => document.addEventListener('click', handleBodyClick));
-onBeforeUnmount(() => document.removeEventListener('click', handleBodyClick));
 
-function goTo(path: string) { router.push(path); }
-function logout() { localStorage.removeItem("token"); delete axios.defaults.headers.common['Authorization']; router.push("/login"); }
-
-
+const cancelForm = () => router.push('/user')
 </script>
+
 
 <style scoped>
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');

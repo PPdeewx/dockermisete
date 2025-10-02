@@ -1,8 +1,9 @@
 <template>
   <div class="full-page-container">
-
     <main class="main-content">
-      <TopBar > <template #breadcrumbs>หน้าหลัก</template></TopBar>
+      <TopBar>
+        <template #breadcrumbs>หน้าหลัก</template>
+      </TopBar>
 
       <div class="dashboard-container">
         <div class="card-left">
@@ -42,9 +43,9 @@
               <div class="donut-chart-container">
                 <div
                   class="donut-chart"
-                  :style="`--p: ${donutValue}; --c: #a54687; --b: 10px;`"
+                  :style="`--p: ${todayWorkingCount}; --c: #a54687; --b: 10px;`"
                 >
-                  <span class="donut-label">{{ donutValue }}</span>
+                  <span class="donut-label">{{ todayWorkingCount }}</span>
                 </div>
               </div>
               <p class="donut-sublabel">{{ todayLabel }}</p>
@@ -59,9 +60,43 @@
             <div class="card-body-center">
               <div class="alert-box">
                 <i class="fas fa-exclamation-triangle"></i>
-                <p>0 นาที / 0 บาท</p>
+                <p>{{ lateStats.minutes }} นาที / {{ lateStats.fines }} บาท</p>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="card-header">
+          <i class="fas fa-calendar-times icon-red"></i>
+          <h4>คำนวณการลาและทำงานนอกสถานที่ของท่าน 15 วันต่อจากนี้</h4>
+        </div>
+        <div class="card-body">
+          <div class="responsive-table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>วันที่</th>
+                  <th>ประเภท</th>
+                  <th>ช่วงเวลา</th>
+                  <th>สถานะ</th>
+                  <th>เหตุผล</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(item, index) in upcomingActivities" :key="index">
+                  <td>{{ item.date }}</td>
+                  <td>{{ item.type }}</td>
+                  <td>{{ item.period }}</td>
+                  <td>{{ item.status }}</td>
+                  <td>{{ item.reason }}</td>
+                </tr>
+                <tr v-if="upcomingActivities.length === 0">
+                  <td colspan="5">ไม่มีข้อมูล</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -70,87 +105,71 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import axios from 'axios';
-
 import TopBar from '~/components/Topbar.vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
 
 const router = useRouter()
-const route = useRoute()
-
-const user = ref<any>(null)
 const token = ref<string | null>(null)
+const user = ref<any>(null)
 
-onMounted(async () => {
-  const tokenStored = localStorage.getItem("token");
-  if (!tokenStored) {
-    router.push("/login");
-    return;
-  }
-  axios.defaults.headers.common['Authorization'] = `Token ${tokenStored}`;
-
-  try {
-    const response = await axios.get("http://localhost:8000/api/users/me/");
-    user.value = response.data;
-    if (user.value.role !== "employee") {
-      router.push("/login");
-    }
-  } catch (err) {
-    console.error(err);
-    router.push("/login");
-  }
-});
-
-function logout() {
-  localStorage.removeItem("token")
-  delete axios.defaults.headers.common['Authorization']
-  router.push("/login")
-}
+const todayWorkingCount = ref(0)
+const lateStats = ref({ minutes: 0, fines: 0 })
+const upcomingActivities = ref<any[]>([])
+const todayLabel = ref(new Date().toLocaleDateString('th-TH',{weekday:'short', day:'numeric', month:'short', year:'numeric'}))
 
 const announcements = ref([
-  {
-    title: 'การใช้งานระบบเบื้องต้น',
-    text: 'กรุณาตรวจสอบคู่มือการใช้งานแบบฟอร์มการลาต่างๆ',
-    date: '24 Mar 2025',
-    time: '08:30 AM'
-  },
-  {
-    title: 'การใช้งานตัวอื่นๆ',
-    text: 'กรุณาตรวจสอบคู่มือและแบบฟอร์มการลา',
-    date: '26 Mar 2025',
-    time: '16:30 PM'
-  },
-  {
-    title: 'รายงานปัญหาการใช้งานระบบ',
-    text: 'หากมีปัญหาการใช้งานระบบ กรุณา Capture หน้าจอ พร้อมทั้ง URL แจ้งทางทีมงาน',
-    date: '26 Mar 2025',
-    time: '17:00 PM'
-  }
+  { title: 'การใช้งานระบบเบื้องต้น', text: 'กรุณาตรวจสอบคู่มือการใช้งานแบบฟอร์มการลาต่างๆ', date: '24 Mar 2025', time: '08:30 AM' },
+  { title: 'การใช้งานตัวอื่นๆ', text: 'กรุณาตรวจสอบคู่มือและแบบฟอร์มการลา', date: '26 Mar 2025', time: '16:30 PM' },
+  { title: 'รายงานปัญหาการใช้งานระบบ', text: 'หากมีปัญหาการใช้งานระบบ กรุณา Capture หน้าจอ พร้อมทั้ง URL แจ้งทางทีมงาน', date: '26 Mar 2025', time: '17:00 PM' },
 ])
 
-const donutValue = ref(40)
-const todayLabel = ref('พธ. 13 ธ.ค. 2568')
+onMounted(async () => {
+  token.value = localStorage.getItem("token")
+  if (!token.value) { router.push("/login"); return }
+  axios.defaults.headers.common['Authorization'] = `Token ${token.value}`
 
-const showProfileMenu = ref(false)
-function toggleProfileMenu() {
-  showProfileMenu.value = !showProfileMenu.value
-}
+  try {
+    const resUser = await axios.get("http://localhost:8000/api/users/me/")
+    user.value = resUser.data
+    if (user.value.role !== 'employee') { router.push("/login"); return }
 
-function handleBodyClick(event: MouseEvent) {
-  if (showProfileMenu.value && !(event.target as HTMLElement).closest('.user-profile')) {
-    showProfileMenu.value = false
+    const todayStr = new Date().toISOString().split("T")[0]
+
+    const resWork = await axios.get(`http://localhost:8000/api/attendance/records/?start_date=${todayStr}&end_date=${todayStr}`)
+    todayWorkingCount.value = resWork.data.length
+
+    const year = new Date().getFullYear().toString()
+    const resLate = await axios.get(`http://localhost:8000/api/attendance/user-attendance/${user.value.id}/`)
+    const thisYearRecords = resLate.data.filter((r:any) => r.date.startsWith(year))
+    const totalLate = thisYearRecords.reduce((sum:any,r:any) => sum + (r.late_minutes||0), 0)
+    lateStats.value = { minutes: totalLate, fines: totalLate * 5 }
+
+    const today = new Date()
+    const future15 = new Date(); future15.setDate(today.getDate()+15)
+    const resLeave = await axios.get('http://localhost:8000/api/leave/leave-requests/')
+    upcomingActivities.value = resLeave.data
+      .filter((r:any) => r.user?.id === user.value.id && r.start_date)
+      .filter((r:any) => {
+        const start = new Date(r.start_date)
+        return start >= today && start <= future15
+      })
+      .map((r:any) => ({
+        date: new Date(r.start_date).toLocaleDateString('th-TH'),
+        type: r.leave_type?.name || (r.status==='remote' ? 'ทำงานนอกสถานที่' : 'ลา'),
+        period: r.period==='full'?'ทั้งวัน':(r.period==='morning'?'ครึ่งเช้า':'ครึ่งบ่าย'),
+        status: r.status,
+        reason: r.reason
+      }))
+
+  } catch (err) {
+    console.error(err)
+    router.push("/login")
   }
-}
-onMounted(() => document.addEventListener('click', handleBodyClick))
-onBeforeUnmount(() => document.removeEventListener('click', handleBodyClick))
-
-function goTo(path: string) {
-  router.push(path)
-}
-
-
+})
 </script>
+
 
 <style scoped>
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
@@ -474,5 +493,37 @@ function goTo(path: string) {
   .user-profile .username {
     display: none;
   }
+}
+
+.table-card {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.responsive-table-wrapper {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+tr:nth-child(even) {
+    background-color: #fafafa;
 }
 </style>

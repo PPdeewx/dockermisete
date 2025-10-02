@@ -1,9 +1,7 @@
 <template>
   <div class="full-page-container">
-    
-
     <main class="main-content">
-      <TopBar></TopBar>
+      <TopBar />
 
       <div class="leave-form-container">
         <div class="form-header">
@@ -13,7 +11,9 @@
               <h3>ระบบการขออนุญาตปฏิบัติงานนอกสถานที่</h3>
             </div>
           </div>
-          <button type="button" class="btn-cancel" @click="cancelForm"><i class="fas fa-times-circle"></i> ยกเลิก</button>
+          <button type="button" class="btn-cancel" @click="cancelForm">
+            <i class="fas fa-times-circle"></i> ยกเลิก
+          </button>
         </div>
 
         <div class="user-info-section">
@@ -24,12 +24,51 @@
         <form @submit.prevent="submitForm" class="leave-form">
           <div class="form-row">
             <div class="form-group full-width">
-              <label>ผู้ร่วมปฏิบัติงาน (Optional):</label>
-              <select v-model="form.collaborators" class="select-input" multiple>
-                <option v-for="person in collaboratorsList" :key="person.id" :value="person.id">
-                  {{ person.name }}
-                </option>
-              </select>
+              <div class="member-selection-section" v-if="!loading">
+                <div class="section-header">
+                  <h3>ผู้ร่วมปฏิบัติงาน (Optional)</h3>
+                </div>
+                <div class="member-selection-container">
+                  <div class="member-list">
+                    <div class="list-title">
+                      พนักงานทั้งหมด ({{ unassignedEmployees.length }} คน)
+                    </div>
+                    <AutoComplete
+                      v-model="selectedEmployeeToAssign"
+                      :suggestions="filteredUnassigned"
+                      @complete="searchUnassigned"
+                      optionLabel="name"
+                      placeholder="ค้นหาพนักงาน..."
+                      :dropdown="true"
+                      class="form-input"
+                    />
+                  </div>
+
+                  <div class="action-buttons">
+                    <button class="btn-action-move" type="button" @click="assignSelected">
+                      <i class="fas fa-angle-right"></i>
+                    </button>
+                    <button class="btn-action-move" type="button" @click="unassignSelected">
+                      <i class="fas fa-angle-left"></i>
+                    </button>
+                  </div>
+
+                  <div class="member-list">
+                    <div class="list-title">
+                      ผู้ร่วมปฏิบัติงาน ({{ assignedEmployees.length }} คน)
+                    </div>
+                    <AutoComplete
+                      v-model="selectedEmployeeToUnassign"
+                      :suggestions="filteredAssigned"
+                      @complete="searchAssigned"
+                      optionLabel="name"
+                      placeholder="ค้นหาพนักงาน..."
+                      :dropdown="true"
+                      class="form-input"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -71,18 +110,21 @@
 
           <div class="form-row">
             <div class="form-group full-width">
-              <label>หัวหน้างาน *:</label>
-              <select v-model="form.approver" class="select-input">
-                <option disabled value="">เลือกหัวหน้างาน</option>
-                <option v-for="person in approvers" :key="person.id" :value="person.id">
-                  {{ person.name }}
-                </option>
-              </select>
+              <label>หัวหน้างาน <span class="required">*</span></label>
+              <AutoComplete
+                v-model="selectedSupervisor"
+                :suggestions="filteredSupervisors"
+                @complete="searchSupervisor"
+                optionLabel="name"
+                placeholder="เลือกหัวหน้างาน..."
+                :dropdown="true"
+                class="form-input"
+              />
             </div>
           </div>
 
           <div class="form-buttons-bottom">
-            <button type="submit" class="btn-submit">ขออนุมัติลา</button>
+            <button type="submit" class="btn-submit">ขออนุมัติ</button>
           </div>
         </form>
       </div>
@@ -91,14 +133,62 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { useRouter } from 'vue-router';
 import axios from 'axios';
-
 import TopBar from '~/components/Topbar.vue'
 
+const router = useRouter();
+
 const user = ref<any>(null);
-const token = ref<string | null>(null);
+const loading = ref(false);
+
+const selectedSupervisor = ref<any>(null);
+const supervisorList = ref<any[]>([]);
+const filteredSupervisors = ref<any[]>([]);
+
+const unassignedEmployees = ref<any[]>([]);
+const assignedEmployees = ref<any[]>([]);
+const selectedEmployeeToAssign = ref<any>(null);
+const selectedEmployeeToUnassign = ref<any>(null);
+const filteredUnassigned = ref<any[]>([]);
+const filteredAssigned = ref<any[]>([]);
+
+const searchSupervisor = (event: { query: string }) => {
+  const query = event.query.toLowerCase();
+  filteredSupervisors.value = supervisorList.value.filter(s =>
+    s.name.toLowerCase().includes(query)
+  );
+};
+const searchUnassigned = (event: { query: string }) => {
+  const query = event.query.toLowerCase();
+  filteredUnassigned.value = unassignedEmployees.value.filter(emp =>
+    emp.name.toLowerCase().includes(query)
+  );
+};
+const searchAssigned = (event: { query: string }) => {
+  const query = event.query.toLowerCase();
+  filteredAssigned.value = assignedEmployees.value.filter(emp =>
+    emp.name.toLowerCase().includes(query)
+  );
+};
+
+const assignSelected = () => {
+  if (selectedEmployeeToAssign.value) {
+    const emp = selectedEmployeeToAssign.value;
+    assignedEmployees.value.push(emp);
+    unassignedEmployees.value = unassignedEmployees.value.filter(e => e.id !== emp.id);
+    selectedEmployeeToAssign.value = null;
+  }
+};
+const unassignSelected = () => {
+  if (selectedEmployeeToUnassign.value) {
+    const emp = selectedEmployeeToUnassign.value;
+    unassignedEmployees.value.push(emp);
+    assignedEmployees.value = assignedEmployees.value.filter(e => e.id !== emp.id);
+    selectedEmployeeToUnassign.value = null;
+  }
+};
 
 onMounted(async () => {
   const tokenStored = localStorage.getItem("token");
@@ -109,27 +199,21 @@ onMounted(async () => {
   axios.defaults.headers.common['Authorization'] = `Token ${tokenStored}`;
 
   try {
-    const response = await axios.get("http://localhost:8000/api/users/me/");
-    user.value = response.data;
-    if (user.value.role !== "employee") {
-      router.push("/login");
-    }
+    const resUser = await axios.get("http://localhost:8000/api/users/me/");
+    user.value = resUser.data;
 
-    const approversResponse = await axios.get("http://localhost:8000/api/users/departments/");
-    console.log('Departments:', approversResponse.data);
-    approvers.value = approversResponse.data.flatMap((dept: any) =>
-      dept.approvers.map((approver: any) => ({
-        id: approver.id,
-        name: `${approver.firstname_th} ${approver.lastname_th}`.trim()
+    const resDept = await axios.get("http://localhost:8000/api/users/departments/");
+    supervisorList.value = resDept.data.flatMap((dept: any) =>
+      dept.approvers.map((a: any) => ({
+        id: a.id,
+        name: `${a.firstname_th} ${a.lastname_th}`.trim()
       }))
     );
 
     const resEmployees = await axios.get("http://localhost:8000/api/users/?role=employee");
-    collaboratorsList.value = resEmployees.data
-    .filter((u: any) => u.role === "employee")
-    .map((u: any) => ({
+    unassignedEmployees.value = resEmployees.data.map((u: any) => ({
       id: u.id,
-      name: `${u.firstname_th} ${u.lastname_th}`
+      name: `${u.firstname_th} ${u.lastname_th}`.trim()
     }));
 
   } catch (err) {
@@ -138,48 +222,19 @@ onMounted(async () => {
   }
 });
 
-const showProfileMenu = ref(false);
-function toggleProfileMenu() {
-  showProfileMenu.value = !showProfileMenu.value;
-}
-function handleBodyClick(event: MouseEvent) {
-  if (showProfileMenu.value && !(event.target as HTMLElement).closest('.user-profile')) {
-    showProfileMenu.value = false;
-  }
-}
-onMounted(() => {
-  document.addEventListener('click', handleBodyClick);
-});
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleBodyClick);
-});
-
-const router = useRouter();
-const route = useRoute();
-
-function goTo(path: string) {
-  router.push(path);
-}
-function logout() {
-  localStorage.removeItem("token")
-  delete axios.defaults.headers.common['Authorization']
-  router.push("/login")
-}
-
 const form = ref({
-  collaborators: [] as number[],
   startDate: '',
   endDate: '',
   period: 'ทั้งวัน',
   reason: '',
   location: '',
-  approver: '' as number | '',
 });
 
-const approvers = ref<any[]>([]);
-const collaboratorsList = ref<any[]>([]);
-
 const submitForm = async () => {
+  if (!selectedSupervisor.value) {
+    alert("กรุณาเลือกหัวหน้างาน");
+    return;
+  }
   try {
     const payload = {
       start_date: form.value.startDate,
@@ -187,26 +242,23 @@ const submitForm = async () => {
       time_period: form.value.period,
       reason: form.value.reason,
       location: form.value.location,
-      approver: form.value.approver,
-      collaborators: form.value.collaborators
+      approver: selectedSupervisor.value.id,
+      collaborators: assignedEmployees.value.map(e => e.id),
     };
-
     await axios.post("http://localhost:8000/api/work-from-outside/requests/", payload);
-    alert('ส่งคำขอสำเร็จ!');
-    router.push('/user7');
+    alert("ส่งคำขอสำเร็จ!");
+    router.push("/user");
   } catch (err) {
     console.error(err);
-    alert('ไม่สามารถส่งคำขอได้');
+    alert("ไม่สามารถส่งคำขอได้");
   }
 };
 
 const cancelForm = () => {
-  console.log('ยกเลิกฟอร์ม');
   router.push('/user');
 };
-
-
 </script>
+
 
 <style scoped>
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
@@ -498,4 +550,81 @@ const cancelForm = () => {
   cursor: pointer;
   font-weight: bold;
 }
+
+.member-selection-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.section-header h3 {
+  margin: 0;
+}
+
+.section-header span {
+  color: #888;
+  font-size: 0.9em;
+}
+
+.member-selection-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.member-list {
+  width: 40%;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.list-title {
+  padding: 10px;
+  font-weight: bold;
+  background-color: #eee;
+  border-bottom: 1px solid #ddd;
+}
+
+.employee-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  min-height: 200px;
+  overflow-y: auto;
+}
+
+.employee-list li {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+.employee-list li:hover {
+  background-color: #e6f7ff;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-action-move {
+  background-color: #1890ff;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn-action-move:hover {
+  background-color: #096dd9;
+}
+
+.read-only-text { background: #f4f4f4; padding: 6px; border-radius: 4px; }
+.selected-list { margin-top: 5px; padding-left: 20px; }
+.form-actions { margin-top: 20px; }
 </style>

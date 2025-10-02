@@ -9,7 +9,7 @@
       <div class="user-profile" @click="toggleProfileMenu">
         <i class="fas fa-bell"></i>
         <i class="fas fa-user-circle"></i>
-        <span class="username">{{ currentUser?.username }} ตำแหน่ง: {{ currentUser?.role }}</span>
+        <span class="username">{{ currentUser?.username }} ตำแหน่ง: {{ currentUser?.groupName }}</span>
         <i :class="['fas', showProfileMenu ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
 
         <div class="user-profile-menu" v-if="showProfileMenu">
