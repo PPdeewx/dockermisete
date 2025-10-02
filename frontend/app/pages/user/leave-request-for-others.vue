@@ -131,6 +131,10 @@ const form = ref({
   substituteId: ''
 });
 
+const cancelForm = () => {
+  router.push('/user');
+};
+
 const router = useRouter();
 const route = useRoute();
 
@@ -227,7 +231,7 @@ const submitForm = async () => {
 
     await axios.post("http://localhost:8000/api/leave/leave-requests/", payload);
     alert('ส่งคำขอลาสำเร็จ!');
-    router.push('/user4');
+    router.push('/uuser/leave-history');
   } catch (error: any) {
     console.error(error);
     alert(`เกิดข้อผิดพลาด: ${JSON.stringify(error.response?.data)}`);
@@ -256,7 +260,6 @@ function logout() { localStorage.removeItem("token"); delete axios.defaults.head
 
 * {
   box-sizing: border-box;
-  font-family: 'Inter', 'Prompt', sans-serif;
 }
 
 .full-page-container {

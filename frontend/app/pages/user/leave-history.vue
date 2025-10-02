@@ -12,8 +12,8 @@
             <h2>ประวัติการลางาน</h2>
           </div>
           <div class="header-right">
-            <button class="action-button green" @click="goTo('/user3')"><i class="fas fa-plus"></i> ลาให้คนอื่น</button>
-            <button class="action-button green" @click="goTo('/user2')"><i class="fas fa-plus"></i> ขออนุมัติลา</button>
+            <button class="action-button green" @click="goTo('/user/leave-request-for-others')"><i class="fas fa-plus"></i> ลาให้คนอื่น</button>
+            <button class="action-button green" @click="goTo('/user/leave-request')"><i class="fas fa-plus"></i> ขออนุมัติลา</button>
           </div>
         </div>
 
@@ -291,7 +291,6 @@ async function saveEdit() {
 
 * {
   box-sizing: border-box;
-  font-family: 'Inter', 'Prompt', sans-serif;
 }
 
 .full-page-container {

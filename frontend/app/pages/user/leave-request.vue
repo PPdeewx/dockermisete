@@ -213,7 +213,7 @@ const submitForm = async () => {
 
     await axios.post("http://localhost:8000/api/leave/leave-requests/", payload);
     alert('ส่งคำขอลาสำเร็จ!');
-    router.push('/user4');
+    router.push('/user/leave-history');
   } catch (error: any) {
     console.error("Submit error:", error.response?.data || error);
     alert(`เกิดข้อผิดพลาด: ${error.response?.data?.detail || JSON.stringify(error.response?.data)}`);
@@ -247,6 +247,8 @@ function goTo(path: string) {
   router.push(path);
 }
 
+
+
 function logout() {
   localStorage.removeItem("token")
   delete axios.defaults.headers.common['Authorization']
@@ -261,7 +263,6 @@ function logout() {
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;700&display=swap');
 * {
   box-sizing: border-box;
-  font-family: 'Inter', 'Prompt', sans-serif;
 }
 .full-page-container {
   display: flex;

@@ -158,7 +158,6 @@ function goTo(path: string) {
 
 * {
   box-sizing: border-box;
-  font-family: 'Inter', 'Prompt', sans-serif;
 }
 
 .full-page-container {

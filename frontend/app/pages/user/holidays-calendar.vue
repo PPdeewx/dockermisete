@@ -215,7 +215,6 @@ function getMonthName(monthIndex: number) {
 
 * {
   box-sizing: border-box;
-  font-family: 'Inter', 'Prompt', sans-serif;
 }
 
 .full-page-container {

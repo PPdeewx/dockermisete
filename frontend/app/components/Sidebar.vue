@@ -87,7 +87,7 @@ onMounted(async () => {
             { label: 'เวลางานคนลาออก', path: '/admin/system/resign-period' },
             { label: 'รายการลาตัวเอง', path: '/admin/system/leave-list' },
             { label: 'รายการลา ETE', path: '/admin/system/leave-list-ete' },
-            { label: 'ปฏิบัติงานนอกสถานที่', path: '/admin/system/outside-work.' },
+            { label: 'ปฏิบัติงานนอกสถานที่', path: '/admin/system/outside-work' },
             { label: 'รายการอนุมัติการลาปฏิบัติงานนอกสถานที่', path: '/admin/system/osl-approval' },
             { label: 'รายการอนุมัติการลา', path: '/admin/system/approve-leave' },
             { label: 'ขออนุมัติลา', path: '/admin/system/leave-approval' },
