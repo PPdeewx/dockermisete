@@ -13,7 +13,7 @@
               <h3>ประวัติรายการปฏิบัติงานนอกสถานที่</h3>
             </div>
           </div>
-          <router-link to="/WorkOutsideRequest" class="btn-create-request">
+          <router-link to="/user/work-outside-request" class="btn-create-request">
             <i class="fas fa-plus-circle"></i> ขออนุมัติปฏิบัติงานนอกสถานที่
           </router-link>
         </div>
