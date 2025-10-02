@@ -359,17 +359,20 @@ function goTo(path: string) {
 .timeline-content {
   border-left: 2px solid #ccc;
   padding-left: 15px;
-  margin-left: 45px;
+  margin-left: 80px; 
+  position: relative;
+  z-index: 1; 
 }
 
 .timeline-indicator {
   position: absolute;
   top: 0;
   left: 0;
-  width: 60px;
+  width: 70px; 
   text-align: right;
   font-size: 12px;
   color: #888;
+  z-index: 2; 
 }
 
 .timeline-title {
