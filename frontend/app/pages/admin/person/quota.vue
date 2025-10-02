@@ -181,7 +181,7 @@ const saveQuotaChanges = async () => {
     await axios.post('http://localhost:8000/api/leave/leave-quotas/bulk_update/', payload)
     alert('บันทึกข้อมูลเรียบร้อย')
   
-    router.push('/admin12');
+    router.push('/admin/system/work-hours');
 
   } catch (err) {
     console.error(err)

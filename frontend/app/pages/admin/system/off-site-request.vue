@@ -117,6 +117,10 @@ const goTo = (path: string) => {
   router.push(path);
 };
 
+const goToAdminPage = () => {
+  router.push('/admin/system/outside-work');
+};
+
 const form = reactive({
   collaborators: [] as number[],
   date: '',
@@ -176,7 +180,7 @@ const submitForm = async () => {
       }
     );
     alert('ยื่นคำขอสำเร็จ');
-    router.push('/admin16');
+    router.push('/admin/system/osl-approval');
   } catch (error: any) {
     console.error('Error submitting form:', error);
     alert(error.response?.data?.detail || 'เกิดข้อผิดพลาดในการยื่นคำขอ');

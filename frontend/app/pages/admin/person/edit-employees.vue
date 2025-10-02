@@ -354,7 +354,7 @@ const submitForm = async () => {
   try {
     await axios.post('http://localhost:8000/api/users/create/', payload)
     alert("เพิ่มพนักงานสำเร็จ")
-    router.push('/admin4') 
+    router.push('/admin/person/current') 
   } catch (err: any) {
     console.error(err.response?.data || err)
     alert("เกิดข้อผิดพลาด")
@@ -362,7 +362,7 @@ const submitForm = async () => {
 }
 
 const cancelForm = () => {
-  router.push('/admin2')
+  router.push('/admin/person/current')
 }
 </script>
 

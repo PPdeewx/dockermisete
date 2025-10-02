@@ -187,7 +187,8 @@ const showProfileMenu = ref(false)
 const toggleProfileMenu = () => {
   showProfileMenu.value = !showProfileMenu.value
 }
-const goToAdd = () => router.push('/admin6')
+
+const goToAdd = () => router.push('/admin/person/edit-employees')
 
 const departments = ref<any[]>([])
 const groups = ref<any[]>([])
@@ -210,7 +211,6 @@ const loadDepartments = async () => {
   }
 }
 
-// โหลดข้อมูลพนักงาน
 const loadEmployees = async () => {
   try {
     const res = await axios.get('http://localhost:8000/api/users/filter/?status=active')
@@ -257,7 +257,7 @@ const saveEdit = async () => {
       quota_other: form.quota_other
     }
 
-    await axios.patch(`http://localhost:8000/api/users/${form.id}/`, payload) // ใช้ patch แทน put
+    await axios.patch(`http://localhost:8000/api/users/${form.id}/`, payload) 
     alert("แก้ไขข้อมูลสำเร็จ")
     showEditModal.value = false
     loadEmployees()

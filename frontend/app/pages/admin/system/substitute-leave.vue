@@ -152,8 +152,13 @@ const toggleProfileMenu = () => {
 }
 
 const goToAdminPage = () => {
-    router.push('/admin')
-}
+  router.push('/admin/system/leave-list');
+};
+
+const goToAdmin14Page = () => {
+  router.push('/admin/system/approve-leave'); 
+};
+
 
 const searchEmployees = (event: any) => {
     const query = event.query.trim().toLowerCase()

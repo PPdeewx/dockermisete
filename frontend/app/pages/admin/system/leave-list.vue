@@ -127,6 +127,14 @@ const goTo = (path: string) => {
   router.push(path);
 };
 
+const goToAdmin20Page = () => {
+  router.push('/admin/system/substitute-leave');
+};
+
+const goToAdmin19Page = () => {
+  router.push('/admin/system/leave-approval');
+};
+
 const leaveHistory = ref<any[]>([]);
 
 const fetchLeaveHistory = async () => {

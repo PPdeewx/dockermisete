@@ -233,7 +233,7 @@ const goToAdmin11Page = () => {
 };
 
 const goToAdmin9Page = () => {
-  router.push('/admin9');
+  router.push('/admin/person/quota');
 };
 
 const toggleProfileMenu = () => {

@@ -166,7 +166,7 @@ const submitForm = async () => {
 
     successMessage.value = isEditing.value ? 'แก้ไขวันหยุดเรียบร้อยแล้ว' : 'เพิ่มวันหยุดเรียบร้อยแล้ว';
     setTimeout(() => {
-      router.push('/admin/sehedule');
+      router.push('admin/sehedule');
     }, 1000);
   } catch (error: any) {
     console.error('Full error response:', JSON.stringify(error.response?.data, null, 2));
@@ -215,7 +215,7 @@ const deleteHoliday = async () => {
 
     successMessage.value = 'ลบวันหยุดเรียบร้อยแล้ว';
     setTimeout(() => {
-      router.push('/admin/sehedule');
+      router.push('admin/sehedule');
     }, 1000);
   } catch (error: any) {
     console.error('Error deleting holiday:', JSON.stringify(error.response?.data, null, 2));

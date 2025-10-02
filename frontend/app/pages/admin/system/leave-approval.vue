@@ -105,6 +105,14 @@ const goTo = (path: string) => {
   router.push(path);
 };
 
+const goToAdminPage = () => {
+  router.push('/admin/system/leave-list'); 
+};
+
+const goToAdmin14Page = () => {
+  router.push('/admin/system/approve-leave'); 
+};
+
 const leaveForm = reactive({
   employeeName: 'นาย พ่อ admin usermesss',
   leaveType: '',

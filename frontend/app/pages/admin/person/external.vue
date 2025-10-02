@@ -13,7 +13,7 @@
             <h2>บุคลากรภายนอก</h2>
           </div>
           <div class="right-section">
-            <button class="add-external-staff-button" @click.prevent="addExternalStaff">
+            <button class="add-external-staff-button" @click.prevent="goToAddExternal">
               <i class="fas fa-plus-circle"></i>
               เพิ่มบุคลากรภายนอก
             </button>
@@ -103,6 +103,10 @@ const toggleProfileMenu = () => {
 const goTo = (path: string) => {
   router.push(path);
 };
+
+const goToAddExternal = () => {
+  router.push('/admin/person/add-external')
+}
 
 const viewUser = (userId: number) => {
   

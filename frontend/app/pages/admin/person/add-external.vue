@@ -192,7 +192,7 @@ const submitForm = async () => {
     fieldErrors.value = {};
     resetForm();
     setTimeout(() => {
-      router.push('/admin4');
+      router.push('/admin/person/external');
     }, 2000);
   } catch (error: any) {
     console.error('Full error response:', JSON.stringify(error.response?.data, null, 2));
@@ -237,7 +237,7 @@ const errorTranslations: { [key: string]: string } = {
 const cancelForm = () => {
   if (confirm('คุณต้องการยกเลิกการกรอกข้อมูลหรือไม่?')) {
     resetForm();
-    router.push('/admin4');
+    router.push('/admin/person/external');
   }
 };
 
