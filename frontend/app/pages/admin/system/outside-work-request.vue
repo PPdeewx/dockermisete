@@ -25,12 +25,55 @@
               </div>
 
               <div class="form-group full-width">
-                <label for="collaborators">พนักงานร่วมปฏิบัติงาน (Optional)</label>
-                <select id="collaborators" v-model="form.collaborators" class="form-select" multiple>
-                  <option v-for="user in employeeList" :key="user.id" :value="user.id">
-                    {{ user.name }}
-                  </option>
-                </select>
+                <div class="member-selection-section" v-if="!loading">
+                  <div class="section-header">
+                    <h3>ผู้ร่วมปฏิบัติงาน (Optional)</h3>
+                  </div>
+                  <div class="member-selection-container">
+                    <div class="member-list">
+                      <div class="list-title">
+                        พนักงานทั้งหมด ({{ unassignedEmployees.length }} คน)
+                      </div>
+                      <AutoComplete
+                        id="unassigned-employee"
+                        v-model="selectedEmployeeToAssign"
+                        :suggestions="filteredUnassigned"
+                        @complete="searchUnassigned"
+                        optionLabel="name"
+                        optionValue="id"
+                        placeholder="ค้นหาพนักงาน..."
+                        :dropdown="true"
+                        class="form-input"
+                      />
+                    </div>
+
+                    <div class="action-buttons">
+                      <button class="btn-action-move" type="button" @click="assignSelected">
+                        <i class="fas fa-angle-right"></i>
+                      </button>
+                      <button class="btn-action-move" type="button" @click="unassignSelected">
+                        <i class="fas fa-angle-left"></i>
+                      </button>
+                    </div>
+
+                    <div class="member-list">
+                      <div class="list-title">
+                        ผู้ร่วมปฏิบัติงาน ({{ assignedEmployees.length }} คน)
+                      </div>
+                      <AutoComplete
+                        id="assigned-employee"
+                        v-model="selectedEmployeeToUnassign"
+                        :suggestions="filteredAssigned"
+                        @complete="searchAssigned"
+                        optionLabel="name"
+                        optionValue="id"
+                        placeholder="ค้นหาพนักงาน..."
+                        :dropdown="true"
+                        class="form-input"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div class="form-group">
@@ -63,13 +106,16 @@
               </div>
 
               <div class="form-group full-width">
-                <label for="supervisor">หัวหน้างาน <span class="required">*</span></label>
-                <select id="supervisor" v-model="form.supervisor" class="form-select" required>
-                  <option value="">เลือกหัวหน้างาน</option>
-                  <option v-for="supervisor in supervisorList" :key="supervisor.id" :value="supervisor.id">
-                    {{ supervisor.name }}
-                  </option>
-                </select>
+                <label>หัวหน้างาน <span class="required">*</span></label>
+                <AutoComplete
+                  v-model="selectedSupervisor"
+                  :suggestions="filteredSupervisors"
+                  @complete="searchSupervisor"
+                  optionLabel="name"
+                  placeholder="เลือกหัวหน้างาน..."
+                  :dropdown="true"
+                  class="form-input"
+                />
               </div>
             </div>
 
@@ -84,7 +130,7 @@
 <script setup lang="ts">
 import TopBar from '~/components/Topbar.vue'
 
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 
@@ -113,6 +159,57 @@ const showProfileMenu = ref(false);
 const currentUser = ref<any>(null);
 const employeeList = ref<any[]>([]);
 const supervisorList = ref<any[]>([]);
+
+const userList = ref<any[]>([])
+const selectedSupervisor = ref<any>(null);
+const filteredSupervisors = ref<any[]>([]);
+
+const unassignedEmployees = ref<any[]>([])
+const assignedEmployees = ref<any[]>([])
+const selectedEmployeeToAssign = ref<any>(null)
+const selectedEmployeeToUnassign = ref<any>(null)
+const filteredUnassigned = ref<any[]>([])
+const filteredAssigned = ref<any[]>([])
+const loading = ref(false)
+
+const searchSupervisor = (event: { query: string }) => {
+  const query = event.query.toLowerCase()
+  filteredSupervisors.value = supervisorList.value.filter(
+    sup => sup.name.toLowerCase().includes(query)
+  )
+}
+
+const searchUnassigned = (event: { query: string }) => {
+  const query = event.query.toLowerCase()
+  filteredUnassigned.value = unassignedEmployees.value.filter(emp =>
+    emp.name.toLowerCase().includes(query)
+  )
+}
+
+const searchAssigned = (event: { query: string }) => {
+  const query = event.query.toLowerCase()
+  filteredAssigned.value = assignedEmployees.value.filter(emp =>
+    emp.name.toLowerCase().includes(query)
+  )
+}
+
+const assignSelected = () => {
+  if (selectedEmployeeToAssign.value) {
+    const emp = selectedEmployeeToAssign.value
+    assignedEmployees.value.push(emp)
+    unassignedEmployees.value = unassignedEmployees.value.filter(e => e.id !== emp.id)
+    selectedEmployeeToAssign.value = null
+  }
+}
+
+const unassignSelected = () => {
+  if (selectedEmployeeToUnassign.value) {
+    const emp = selectedEmployeeToUnassign.value
+    unassignedEmployees.value.push(emp)
+    assignedEmployees.value = assignedEmployees.value.filter(e => e.id !== emp.id)
+    selectedEmployeeToUnassign.value = null
+  }
+}
 
 const toggleProfileMenu = () => {
   showProfileMenu.value = !showProfileMenu.value;
@@ -176,14 +273,14 @@ const submitForm = async () => {
     const response = await axios.post(
       'http://localhost:8000/api/work-from-outside/requests/',
       {
-        user: form.requester,
+        user: currentUser.value.id,
         start_date: form.date,
         end_date: form.endDate,
         time_period: form.timePeriod,
         reason: form.reason,
         location: form.location,
-        approver: form.supervisor,
-        collaborators: form.collaborators,
+        approver: selectedSupervisor.value?.id,
+        collaborators: assignedEmployees.value.map(u => u.id)
       },
       {
         headers: { Authorization: `Token ${token.value}` },
@@ -227,12 +324,17 @@ onMounted(async () => {
     }
 
     const usersResponse = await axios.get('http://localhost:8000/api/users/for-list/');
-    employeeList.value = usersResponse.data.filter(
+    const users = usersResponse.data;
+    userList.value = usersResponse.data.filter(
       (user: any) => user.id !== currentUser.value.id
     );
     supervisorList.value = usersResponse.data.filter(
-      (user: any) => user.role === 'admin' || user.role === 'manager'
+      (user: any) => user.role === 'admin' || user.groups === 'ผู้บริหาร'
     );
+
+    unassignedEmployees.value = users
+      .filter((u: any) => u.id !== currentUser.value.id)
+
   } catch (error) {
     console.error('Error during initialization:', error);
     router.push('/login');
@@ -246,7 +348,6 @@ onMounted(async () => {
 
 * {
   box-sizing: border-box;
-  font-family: 'Noto Sans Thai', sans-serif;
 }
 
 .full-page-container {
@@ -583,4 +684,81 @@ onMounted(async () => {
   width: 20px;
   text-align: center;
 }
+
+.member-selection-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.section-header h3 {
+  margin: 0;
+}
+
+.section-header span {
+  color: #888;
+  font-size: 0.9em;
+}
+
+.member-selection-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.member-list {
+  width: 40%;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.list-title {
+  padding: 10px;
+  font-weight: bold;
+  background-color: #eee;
+  border-bottom: 1px solid #ddd;
+}
+
+.employee-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  min-height: 200px;
+  overflow-y: auto;
+}
+
+.employee-list li {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+.employee-list li:hover {
+  background-color: #e6f7ff;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-action-move {
+  background-color: #1890ff;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn-action-move:hover {
+  background-color: #096dd9;
+}
+
+.read-only-text { background: #f4f4f4; padding: 6px; border-radius: 4px; }
+.selected-list { margin-top: 5px; padding-left: 20px; }
+.form-actions { margin-top: 20px; }
 </style>

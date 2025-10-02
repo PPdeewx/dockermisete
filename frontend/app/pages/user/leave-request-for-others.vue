@@ -23,14 +23,19 @@
 
         <div class="form-row">
           <div class="form-group full-width">
-            <label>พนักงานผู้ลา *:</label>
-            <select v-model="form.employeeId" class="select-input">
-              <option disabled value="">เลือกพนักงานลา</option>
-              <option v-for="emp in employees" :key="emp.id" :value="emp.id">
-                {{ emp.name }}
-              </option>
-            </select>
-          </div>
+              <label for="employee-name">พนักงานผู้ลา <span class="required">*</span></label>
+              <AutoComplete
+                id="employee-name"
+                v-model="form.employees"
+                :suggestions="filteredEmployees"
+                @complete="searchEmployees($event)"
+                optionLabel="name"
+                optionValue="id"
+                placeholder="ค้นหาพนักงานผู้ลา..."
+                :dropdown="true"
+                required
+              />
+            </div>
         </div>
 
           <form @submit.prevent="submitForm" class="leave-form">
@@ -143,6 +148,37 @@ const employees = ref<any[]>([]);
 const approvers = ref<any[]>([]);
 const substitutes = ref<any[]>([]);
 const leaveTypes = ref<any[]>([]);
+
+const filteredEmployees = ref<any[]>([])
+const filteredSubstitutes = ref<any[]>([])
+const filteredApprovers = ref<any[]>([])
+
+const searchEmployees = (event: any) => {
+    const query = event.query.trim().toLowerCase()
+    filteredEmployees.value = query
+        ? employeeList.value.filter(user =>
+              user.name.toLowerCase().includes(query)
+          )
+        : employeeList.value
+}
+
+const searchSubstitutes = (event: any) => {
+    const query = event.query.trim().toLowerCase()
+    filteredSubstitutes.value = query
+        ? substituteList.value.filter(user =>
+              user.name.toLowerCase().includes(query)
+          )
+        : substituteList.value
+}
+
+const searchApprovers = (event: any) => {
+    const query = event.query.trim().toLowerCase()
+    filteredApprovers.value = query
+        ? approverList.value.filter(user =>
+              user.name.toLowerCase().includes(query)
+          )
+        : approverList.value
+}
 
 const loadUsers = async () => {
   try {

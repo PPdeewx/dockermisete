@@ -267,7 +267,8 @@ class UserForListView(APIView):
             data.append({
                 "id": u.id,
                 "name": f"{u.prefix_th or ''} {u.firstname_th} {u.lastname_th}".strip(),
-                "role": u.role
+                "role": u.role,
+                "groups": [group.name for group in u.groups.all()],
             })
         return Response(data)
 

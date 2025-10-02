@@ -28,7 +28,7 @@
             </div>
             <div class="room-card-body">
               <p>
-                <strong>หัวหน้าห้องวิจัย : </strong>{{ dept.head || '-' }}
+                <strong>หัวหน้าห้องวิจัย : </strong>{{ dept.head ? dept.head.firstname_th + ' ' + dept.head.lastname_th : '-' }}
               </p>
               <div class="personnel-list">
                 <strong>บุคลากร :</strong>

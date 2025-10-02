@@ -1,95 +1,119 @@
 <template>
-    <TopBar > <template #breadcrumbs>
-              <Breadcrumb  :model="items"/>
+  <TopBar>
+    <template #breadcrumbs>
+      <Breadcrumb :model="items" />
+    </template>
+  </TopBar>
 
-    </template></TopBar>
+  <div class="content-container">
+    <div class="header-with-button">
+      <div class="header-with-icon">
+        <i class="fas fa-flask"></i>
+        <h2>{{ isEditMode ? 'แก้ไข' : 'เพิ่ม' }} ห้องวิจัย</h2>
+      </div>
+      <button class="btn-cancel" @click="cancelDepartment(dept)">
+        <i class="fas fa-times"></i> ยกเลิก
+      </button>
+    </div>
 
-      <div class="content-container">
-        <div class="header-with-button">
-          <div class="header-with-icon">
-            <i class="fas fa-flask"></i>
-            <h2>{{ isEditMode ? 'แก้ไข' : 'เพิ่ม' }} ห้องวิจัย</h2>
-          </div>
-          <button class="btn-cancel" @click="cancelDepartment(dept)"><i class="fas fa-times"></i> ยกเลิก</button>
-        </div>
+    <div v-if="loading" class="loading">กำลังโหลด...</div>
+    <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
 
-        <div v-if="loading" class="loading">กำลังโหลด...</div>
-        <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
-
-        <div class="form-section" v-if="!loading">
-          <div class="form-row">
-            <label for="labNameTh">ชื่อห้องปฏิบัติการภาษาไทย * :</label>
-            <div class="input-container">
-              <input type="text" id="labNameTh" v-model="form.labNameTh" class="form-input" required />
-              <span class="input-description">กรุณากรอกชื่อห้องปฏิบัติการภาษาไทย</span>
-            </div>
-          </div>
-          <div class="form-row">
-            <label for="labNameEn">ชื่อห้องปฏิบัติการอังกฤษ * :</label>
-            <div class="input-container">
-              <input type="text" id="labNameEn" v-model="form.labNameEn" class="form-input" required />
-              <span class="input-description">กรุณากรอกชื่อห้องปฏิบัติการภาษาอังกฤษ</span>
-            </div>
-          </div>
-          <div class="form-row">
-            <label for="labNameAbbr">ชื่อย่อห้องวิจัย :</label>
-            <div class="input-container">
-              <input type="text" id="labNameAbbr" v-model="form.labNameAbbr" class="form-input" />
-              <span class="input-description">มีหรือไม่มีก็ได้</span>
-            </div>
-          </div>
-          <div class="form-row">
-            <label for="labHead">หัวหน้าห้องวิจัย :</label>
-            <div class="input-container">
-              <select id="labHead" v-model="form.labHead" class="form-input">
-                <option value="">กรุณาเลือกหัวหน้าห้องวิจัย</option>
-                <option v-for="employee in allEmployees" :key="employee.id" :value="employee.id">
-                  {{ employee.firstname_th }} {{ employee.lastname_th }}
-                </option>
-              </select>
-            </div>
-          </div>
-          <div class="form-row">
-            <label for="labDesc">คำอธิบายห้องวิจัย * :</label>
-            <div class="input-container">
-              <textarea id="labDesc" v-model="form.labDesc" class="form-input textarea-input" required></textarea>
-            </div>
-          </div>
-        </div>
-
-        <div class="member-selection-section" v-if="!loading">
-          <div class="section-header">
-            <h3>พนักงานในห้องวิจัย:</h3>
-            <span>รายชื่อในช่องด้านขวามือ คือ พนักงานในห้องวิจัย</span>
-          </div>
-          <div class="member-selection-container">
-            <div class="member-list">
-              <div class="list-title">พนักงานที่ไม่ได้สังกัด</div>
-              <ul class="employee-list">
-                <li v-for="employee in unassignedEmployees" :key="employee.id" @click="selectEmployee(employee)">
-                  {{ employee.firstname_th }} {{ employee.lastname_th }}
-                </li>
-              </ul>
-            </div>
-            <div class="action-buttons">
-              <button class="btn-action-move" @click="assignSelected"><i class="fas fa-angle-right"></i></button>
-              <button class="btn-action-move" @click="unassignSelected"><i class="fas fa-angle-left"></i></button>
-            </div>
-            <div class="member-list">
-              <div class="list-title">พนักงานในห้องวิจัย</div>
-              <ul class="employee-list">
-                <li v-for="employee in assignedEmployees" :key="employee.id" @click="unselectEmployee(employee)">
-                  {{ employee.firstname_th }} {{ employee.lastname_th }}
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div class="button-footer">
-          <button class="btn-save-data" @click="saveData"><i class="fas fa-save"></i> บันทึกข้อมูล</button>
+    <div class="form-section" v-if="!loading">
+      <div class="form-row">
+        <label for="labNameTh">ชื่อห้องปฏิบัติการภาษาไทย * :</label>
+        <div class="input-container">
+          <input type="text" id="labNameTh" v-model="form.labNameTh" class="form-input" required />
+          <span class="input-description">กรุณากรอกชื่อห้องปฏิบัติการภาษาไทย</span>
         </div>
       </div>
+      <div class="form-row">
+        <label for="labNameEn">ชื่อห้องปฏิบัติการอังกฤษ * :</label>
+        <div class="input-container">
+          <input type="text" id="labNameEn" v-model="form.labNameEn" class="form-input" required />
+          <span class="input-description">กรุณากรอกชื่อห้องปฏิบัติการภาษาอังกฤษ</span>
+        </div>
+      </div>
+      <div class="form-row">
+        <label for="labNameAbbr">ชื่อย่อห้องวิจัย :</label>
+        <div class="input-container">
+          <input type="text" id="labNameAbbr" v-model="form.labNameAbbr" class="form-input" />
+          <span class="input-description">มีหรือไม่มีก็ได้</span>
+        </div>
+      </div>
+      <div class="form-row">
+        <label for="labHead">หัวหน้าห้องวิจัย :</label>
+        <div class="input-container">
+          <AutoComplete
+            id="lab-head"
+            v-model="form.labHead"
+            :suggestions="filteredLabHeads"
+            @complete="searchLabHeads"
+            optionLabel="fullname"
+            optionValue="id"
+            placeholder="ค้นหาหัวหน้าห้องวิจัย..."
+            :dropdown="true"
+            class="form-input"
+            required
+          />
+        </div>
+      </div>
+      <div class="form-row">
+        <label for="labDesc">คำอธิบายห้องวิจัย * :</label>
+        <div class="input-container">
+          <textarea id="labDesc" v-model="form.labDesc" class="form-input textarea-input" required></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="member-selection-section" v-if="!loading">
+      <div class="section-header">
+        <h3>พนักงานในห้องวิจัย:</h3>
+      </div>
+      <div class="member-selection-container">
+        <div class="member-list">
+          <div class="list-title">
+            พนักงานที่ไม่ได้สังกัด ({{ unassignedEmployees.length }} คน)
+          </div>
+          <AutoComplete
+            id="unassigned-employee"
+            v-model="selectedEmployeeToAssign"
+            :suggestions="filteredUnassigned"
+            @complete="searchUnassigned"
+            optionLabel="fullname"
+            optionValue="id"
+            placeholder="ค้นหาพนักงานที่ไม่ได้สังกัด..."
+            :dropdown="true"
+            class="form-input"
+          />
+        </div>
+        <div class="action-buttons">
+          <button class="btn-action-move" @click="assignSelected"><i class="fas fa-angle-right"></i></button>
+          <button class="btn-action-move" @click="unassignSelected"><i class="fas fa-angle-left"></i></button>
+        </div>
+        <div class="member-list">
+          <div class="list-title">
+            พนักงานในห้องวิจัย ({{ assignedEmployees.length }} คน)
+          </div>
+          <AutoComplete
+            id="assigned-employee"
+            v-model="selectedEmployeeToUnassign"
+            :suggestions="filteredAssigned"
+            @complete="searchAssigned"
+            optionLabel="fullname"
+            optionValue="id"
+            placeholder="ค้นหาพนักงานในห้องวิจัย..."
+            :dropdown="true"
+            class="form-input"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="button-footer">
+      <button class="btn-save-data" @click="saveData"><i class="fas fa-save"></i> บันทึกข้อมูล</button>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -142,6 +166,51 @@ const selectedAssigned = ref<any>(null);
 const deptId = ref<number | null>(null);
 const isEditMode = computed(() => !!deptId.value);
 
+const selectedLabHeads = ref<any>(null);
+const filteredLabHeads = ref<any[]>([]);
+const selectedEmployeeToAssign = ref<any>(null);
+const selectedEmployeeToUnassign = ref<any>(null);
+const filteredUnassigned = ref<any[]>([]);
+const filteredAssigned = ref<any[]>([]);
+
+const searchLabHeads = (event: { query: string }) => {
+  const query = event.query.toLowerCase();
+  filteredLabHeads.value = allEmployees.value.filter(emp =>
+    emp.fullname.toLowerCase().includes(query)
+  );
+};
+
+const searchUnassigned = (event: { query: string }) => {
+  const query = event.query.toLowerCase();
+  filteredUnassigned.value = unassignedEmployees.value.filter(emp =>
+    emp.fullname.toLowerCase().includes(query)
+  );
+};
+
+const searchAssigned = (event: { query: string }) => {
+  const query = event.query.toLowerCase();
+  filteredAssigned.value = assignedEmployees.value.filter(emp =>
+    emp.fullname.toLowerCase().includes(query)
+  );
+};
+
+const assignSelected = () => {
+  if (selectedEmployeeToAssign.value) {
+    assignedEmployees.value.push(selectedEmployeeToAssign.value);
+    unassignedEmployees.value = unassignedEmployees.value.filter(emp => emp.id !== selectedEmployeeToAssign.value.id);
+    selectedEmployeeToAssign.value = null;
+  }
+};
+
+const unassignSelected = () => {
+  if (selectedEmployeeToUnassign.value) {
+    unassignedEmployees.value.push(selectedEmployeeToUnassign.value);
+    assignedEmployees.value = assignedEmployees.value.filter(emp => emp.id !== selectedEmployeeToUnassign.value.id);
+    selectedEmployeeToUnassign.value = null;
+  }
+};
+
+
 const toggleProfileMenu = () => {
   showProfileMenu.value = !showProfileMenu.value;
 };
@@ -162,21 +231,6 @@ const unselectEmployee = (employee: any) => {
   selectedAssigned.value = employee;
 };
 
-const assignSelected = () => {
-  if (selectedUnassigned.value) {
-    assignedEmployees.value.push(selectedUnassigned.value);
-    unassignedEmployees.value = unassignedEmployees.value.filter(emp => emp.id !== selectedUnassigned.value.id);
-    selectedUnassigned.value = null;
-  }
-};
-
-const unassignSelected = () => {
-  if (selectedAssigned.value) {
-    unassignedEmployees.value.push(selectedAssigned.value);
-    assignedEmployees.value = assignedEmployees.value.filter(emp => emp.id !== selectedAssigned.value.id);
-    selectedAssigned.value = null;
-  }
-};
 
 const saveData = async () => {
   if (!form.labNameTh || !form.labNameEn || !form.labDesc) {
@@ -269,7 +323,11 @@ onMounted(async () => {
     const response = await axios.get('http://localhost:8000/api/users/', {
       headers: { Authorization: `Token ${token.value}` }
     });
-    allEmployees.value = response.data;
+    allEmployees.value = response.data.map((emp: any) => ({
+      ...emp,
+      fullname: `${emp.firstname_th} ${emp.lastname_th}`
+    }));
+    filteredLabHeads.value = [...allEmployees.value];
     unassignedEmployees.value = [...allEmployees.value];
   } catch (err) {
     errorMessage.value = 'ไม่สามารถโหลดรายชื่อพนักงานได้';
@@ -737,4 +795,5 @@ function logout() {
   width: 20px;
   text-align: center;
 }
+
 </style>
