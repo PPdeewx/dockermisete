@@ -26,7 +26,6 @@
                   :suggestions="filteredEmployees"
                   @complete="searchEmployees"
                   optionLabel="name"
-                  optionValue="id"
                   placeholder="ค้นหาพนักงาน..."
                   :dropdown="true"
                   required
@@ -129,7 +128,7 @@
             <div class="form-group full-width">
               <label>หัวหน้างาน <span class="required">*</span></label>
               <AutoComplete
-                v-model="selectedSupervisor"
+                v-model="form.approver"
                 :suggestions="filteredSupervisors"
                 @complete="searchSupervisor"
                 optionLabel="name"
@@ -160,7 +159,6 @@ const router = useRouter();
 const user = ref<any>(null);
 
 const employees = ref<any[]>([]);
-const approvers = ref<any[]>([]);
 const supervisorList = ref<any[]>([]);
 const filteredSupervisors = ref<any[]>([]);
 const filteredEmployees = ref<any[]>([]);
@@ -177,16 +175,16 @@ const selectedSupervisor = ref<any>(null);
 const errors = ref<any>({});
 
 const form = ref({
-  requester: '',
-  collaborators: [] as number[],
+  requester: null,        // จะเก็บ object ของผู้ปฏิบัติงาน
   startDate: '',
   endDate: '',
   period: 'ทั้งวัน',
   reason: '',
   location: '',
-  approver: ''
+  approver: null          // จะเก็บ object ของหัวหน้างาน
 });
 
+// ฟังก์ชันค้นหา
 const searchEmployees = (event: { query: string }) => {
   const query = event.query.toLowerCase();
   filteredEmployees.value = employees.value.filter(emp =>
@@ -200,6 +198,7 @@ const searchSupervisor = (event: { query: string }) => {
     s.name.toLowerCase().includes(query)
   );
 };
+
 const searchUnassigned = (event: { query: string }) => {
   const query = event.query.toLowerCase();
   filteredUnassigned.value = unassignedEmployees.value.filter(emp =>
@@ -213,6 +212,7 @@ const searchAssigned = (event: { query: string }) => {
   );
 };
 
+// ฟังก์ชันย้ายพนักงาน
 const assignSelected = () => {
   if (selectedEmployeeToAssign.value) {
     const emp = selectedEmployeeToAssign.value;
@@ -230,6 +230,7 @@ const unassignSelected = () => {
   }
 };
 
+// โหลดข้อมูลเมื่อหน้า mount
 onMounted(async () => {
   const tokenStored = localStorage.getItem("token");
   if (!tokenStored) {
@@ -267,17 +268,9 @@ onMounted(async () => {
     alert('เกิดข้อผิดพลาดในการโหลดข้อมูล');
     router.push("/login");
   }
-
-  document.addEventListener('click', handleBodyClick);
 });
 
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleBodyClick);
-});
-
-function handleBodyClick(event: MouseEvent) {
-}
-
+// Submit form
 const submitForm = async () => {
   errors.value = {};
 
@@ -289,28 +282,32 @@ const submitForm = async () => {
   if (!form.value.location) errors.value.location = 'กรุณาระบุสถานที่';
   if (!form.value.approver) errors.value.approver = 'กรุณาเลือกหัวหน้างาน';
 
-  if (Object.keys(errors.value).length > 0) {
-    return;
-  }
+  if (Object.keys(errors.value).length > 0) return;
 
   try {
-    const response = await axios.post("http://localhost:8000/api/work-from-outside/requests/proxy/", {
-      user: form.value.requester?.id,
-      collaborators: assignedEmployees.value.map(e => e.id),
+    const payload = {
+      user: form.value.requester.id, // ส่ง ID ของ requester
+      collaborators: assignedEmployees.value.map(e => e.id), // ส่ง list ของ ID
       start_date: form.value.startDate,
       end_date: form.value.endDate,
       time_period: form.value.period === 'ทั้งวัน' ? 'full' : form.value.period === 'ครึ่งวันเช้า' ? 'morning' : 'afternoon',
       reason: form.value.reason,
       location: form.value.location,
-      approver: form.value.approver,
+      approver: form.value.approver.id, // ส่ง ID ของ approver
       proxy_user: user.value.id
-    });
+    };
+
+    const response = await axios.post(
+      "http://localhost:8000/api/work-from-outside/requests/proxy/",
+      payload
+    );
+    console.log("Payload ก่อนส่ง:", payload);
     console.log('ส่งฟอร์มสำเร็จ:', response.data);
     alert('ส่งคำขอสำเร็จ!');
     router.push('/user');
-  } catch (err) {
-    console.error('เกิดข้อผิดพลาด:', err);
-    alert('เกิดข้อผิดพลาดในการส่งคำขอ');
+  } catch (err: any) {
+    console.error('เกิดข้อผิดพลาด:', err.response?.data || err);
+    alert('เกิดข้อผิดพลาดในการส่งคำขอ: ' + JSON.stringify(err.response?.data));
   }
 };
 
@@ -318,6 +315,7 @@ const cancelForm = () => {
   router.push('/user');
 };
 </script>
+
 
 <style scoped>
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');

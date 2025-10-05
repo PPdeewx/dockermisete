@@ -222,6 +222,12 @@ onMounted(async () => {
   }
 });
 
+const periodMap: Record<string, string> = {
+  "ทั้งวัน": "full",
+  "ครึ่งวันเช้า": "morning",
+  "ครึ่งวันบ่าย": "afternoon"
+};
+
 const form = ref({
   startDate: '',
   endDate: '',
@@ -231,26 +237,30 @@ const form = ref({
 });
 
 const submitForm = async () => {
-  if (!selectedSupervisor.value) {
+  if (!selectedSupervisor.value || !selectedSupervisor.value.id) {
     alert("กรุณาเลือกหัวหน้างาน");
     return;
   }
+
+  const payload = {
+    start_date: form.value.startDate,
+    end_date: form.value.endDate,
+    time_period: periodMap[form.value.period],
+    reason: form.value.reason,
+    location: form.value.location,
+    approver: selectedSupervisor.value.id,
+    collaborators: assignedEmployees.value.map(e => e.id)
+  };
+
+  console.log("Payload to send:", payload);
+
   try {
-    const payload = {
-      start_date: form.value.startDate,
-      end_date: form.value.endDate,
-      time_period: form.value.period,
-      reason: form.value.reason,
-      location: form.value.location,
-      approver: selectedSupervisor.value.id,
-      collaborators: assignedEmployees.value.map(e => e.id),
-    };
     await axios.post("http://localhost:8000/api/work-from-outside/requests/", payload);
     alert("ส่งคำขอสำเร็จ!");
     router.push("/user");
-  } catch (err) {
-    console.error(err);
-    alert("ไม่สามารถส่งคำขอได้");
+  } catch (err: any) {
+    console.error("Error response:", err.response?.data || err);
+    alert("ไม่สามารถส่งคำขอได้: " + JSON.stringify(err.response?.data));
   }
 };
 

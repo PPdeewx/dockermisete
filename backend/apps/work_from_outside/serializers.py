@@ -14,13 +14,19 @@ class UserSimpleSerializer(serializers.ModelSerializer):
 
 class WorkOutsideRequestSerializer(serializers.ModelSerializer):
     user = UserSimpleSerializer(read_only=True)
-    approver = UserSimpleSerializer(read_only=True)
-    collaborators = UserSimpleSerializer(many=True)
+    approver = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all())
+    collaborators = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), many=True)
     proxy_user = UserSimpleSerializer(read_only=True)
 
     class Meta:
         model = WorkOutsideRequest
         fields = "__all__"
+
+    def create(self, validated_data):
+        collaborators = validated_data.pop('collaborators', [])
+        work_request = WorkOutsideRequest.objects.create(**validated_data)
+        work_request.collaborators.set(collaborators)
+        return work_request
 
     def validate(self, attrs):
         start_date = attrs.get('start_date')

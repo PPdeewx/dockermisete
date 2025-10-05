@@ -121,8 +121,8 @@ const form = ref({
   endDate: '',
   period: 'full',   
   reason: '',
-  approver: '',
-  substitute: ''
+  approver: null as any,
+  substitute: null as any
 });
 
 const router = useRouter();
@@ -212,8 +212,8 @@ const submitForm = async () => {
       end_date: form.value.endDate,
       period: form.value.period,
       reason: form.value.reason,
-      approver_id: approvers.value.find(a => a.name === form.value.approver)?.id,
-      substitute_id: substitutes.value.find(s => s.name === form.value.substitute)?.id || null
+      approver_id: form.value.approver?.id,
+      substitute_id: form.value.substitute?.id || null
     };
 
    
